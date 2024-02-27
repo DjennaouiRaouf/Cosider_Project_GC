@@ -118,6 +118,10 @@ class Camion(models.Model):
         app_label = 'api_gc'
 
 
+class BonLivraison(models.Model):
+
+
+
 
 
 
