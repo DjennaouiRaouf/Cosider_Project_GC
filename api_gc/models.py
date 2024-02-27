@@ -3,6 +3,13 @@ from django.db import models
 
 # Create your models here.
 
+class Parametres(models.Model):
+    saisie_automatique=models.BooleanField(default=False, verbose_name="Saisie Automatique")
+
+    class Meta:
+        app_label = 'api_gc'
+
+
 
 class Clients(models.Model):
     id = models.CharField(db_column='Code_Client', primary_key=True, max_length=500, verbose_name='Code du Client')
@@ -68,7 +75,6 @@ class Contrat(models.Model):
     client=models.ForeignKey(Clients, on_delete=models.DO_NOTHING,null=False,verbose_name='Client')
     date_expiration=models.DateField(db_column='date_expiration', null=True, verbose_name='Date de Signature')
 
-
     class Meta:
         app_label = 'api_gc'
 
@@ -113,14 +119,48 @@ class Planing(models.Model):
 
 class Camion(models.Model):
     matricule=models.CharField(max_length=500, primary_key=True, verbose_name='Matricule')
-    poids=models.DecimalField(max_digits=38, decimal_places=2,validators=[MinValueValidator(0)],default=0, verbose_name = 'Poids du camion')
+    poids=models.DecimalField(max_digits=38, decimal_places=2,validators=[MinValueValidator(0)],default=0, verbose_name = 'Poids net du camion')
+    class Meta:
+        app_label = 'api_gc'
+
+class Conducteur(models.Model):
+    nom=models.CharField(max_length=500,null=False, verbose_name='Nom')
+    prenom = models.CharField(max_length=500, null=False, verbose_name='Prénom')
+    num_id=models.CharField(max_length=500,null=False,verbose_name='Numero d\'identification')
+    class Meta:
+        app_label = 'api_gc'
+
+class Conduire(models.Model):
+    conducteur=models.ForeignKey(Conducteur,null=False, on_delete=models.DO_NOTHING, verbose_name='Conducteur')
+    camion=models.ForeignKey(Camion,null=False, on_delete=models.DO_NOTHING, verbose_name='Camion')
+    date=models.DateField(null=False, verbose_name='Date')
     class Meta:
         app_label = 'api_gc'
 
 
+
+
+
 class BonLivraison(models.Model):
+    contrat = models.ForeignKey(Contrat, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
+    dqe = models.ForeignKey(DQE, on_delete=models.DO_NOTHING, null=False, verbose_name='dqe')
 
+    qte_precedent = models.DecimalField(max_digits=38, decimal_places=2, validators=[MinValueValidator(0)], default=0,
+                                     verbose_name='Quantité precedent')
 
+    qte_livre = models.DecimalField(max_digits=38, decimal_places=2, validators=[MinValueValidator(0)], default=0,
+                                    verbose_name='Quantité à livré')
+    qte_cumule=models.DecimalField(max_digits=38, decimal_places=2, validators=[MinValueValidator(0)], default=0,
+                                    verbose_name='Quantité cumulé')
+
+    date=models.DateField(auto_now=True)
+
+    class Meta:
+        app_label = 'api_gc'
+
+class Factures(models.Model):
+    numero_facture=models.PositiveIntegerField(primary_key=True,null=False, verbose_name='Numero de facture')
+    numero_situtation=models.PositiveIntegerField(null=False, verbose_name='Numero de situation',editable='')
 
 
 
