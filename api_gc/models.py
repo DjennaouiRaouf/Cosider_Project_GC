@@ -202,6 +202,7 @@ class Factures(models.Model):
         app_label = 'api_gc'
 
 
+
 class DetailFacture(models.Model):
     facture = models.ForeignKey(Factures, on_delete=models.DO_NOTHING,to_field="numero_facture")
     detail = models.ForeignKey(BonLivraison, on_delete=models.DO_NOTHING)
