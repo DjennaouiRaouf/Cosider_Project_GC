@@ -203,10 +203,11 @@ class Factures(models.Model):
 
 
 class DetailFacture(models.Model):
-    facture = models.ForeignKey(Factures, on_delete=models.DO_NOTHING, null=True, blank=True, to_field="numero_facture")
+    facture = models.ForeignKey(Factures, on_delete=models.DO_NOTHING,to_field="numero_facture")
     detail = models.ForeignKey(BonLivraison, on_delete=models.DO_NOTHING)
 
     class Meta:
+        unique_together = (('facture', 'detail',))
         app_label = 'api_gc'
 
 
