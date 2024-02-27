@@ -158,13 +158,56 @@ class BonLivraison(models.Model):
     class Meta:
         app_label = 'api_gc'
 
+
+
+
+
 class Factures(models.Model):
     numero_facture=models.PositiveIntegerField(primary_key=True,null=False, verbose_name='Numero de facture')
     numero_situtation=models.PositiveIntegerField(null=False, verbose_name='Numero de situation',editable='')
+    contrat=models.ForeignKey(Contrat, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
+    du = models.DateField(null=False, verbose_name='Du')
+    au = models.DateField(null=False, verbose_name='Au')
+    paye = models.BooleanField(default=False, null=False, editable=False)
+    montant_precedent = models.DecimalField(max_digits=38, decimal_places=2, validators=[MinValueValidator(0)],
+                                            default=0,
+                                            verbose_name="Montant Precedent"
+                                            , editable=False)
+    montant_mois = models.DecimalField(max_digits=38, decimal_places=2, validators=[MinValueValidator(0)], default=0,
+                                       verbose_name="Montant du Mois"
+                                       , editable=False)
+    montant_cumule = models.DecimalField(max_digits=38, decimal_places=2, validators=[MinValueValidator(0)], default=0,
+                                         verbose_name="Montant Cumulé"
+                                         , editable=False)
+
+    montant_rb = models.DecimalField(max_digits=38, decimal_places=2, validators=[MinValueValidator(0)], default=0,
+                                     verbose_name="Montant du rabais"
+                                     , editable=False)
+
+    montant_rg = models.DecimalField(max_digits=38, decimal_places=2, validators=[MinValueValidator(0)], default=0,
+                                     verbose_name="Montant Retenue de garantie"
+                                     , editable=False)
+
+    montant_factureHT = models.DecimalField(max_digits=38, decimal_places=2, validators=[MinValueValidator(0)],
+                                            default=0,
+                                            verbose_name="Montant de la facture en HT"
+                                            , editable=False)
+
+    montant_factureTTC = models.DecimalField(max_digits=38, decimal_places=2, validators=[MinValueValidator(0)],
+                                             default=0,
+                                             verbose_name="Montant de la facture en TTC"
+                                             , editable=False)
+
+    class Meta:
+        app_label = 'api_gc'
 
 
+class DetailFacture(models.Model):
+    facture = models.ForeignKey(Factures, on_delete=models.DO_NOTHING, null=True, blank=True, to_field="numero_facture")
+    detail = models.ForeignKey(BonLivraison, on_delete=models.DO_NOTHING)
 
-
+    class Meta:
+        app_label = 'api_gc'
 
 
 
