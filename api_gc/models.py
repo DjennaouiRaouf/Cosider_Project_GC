@@ -140,7 +140,7 @@ class Conduire(models.Model):
 
 
 
-
+# mode hors connexion
 class BonLivraison(models.Model):
     contrat = models.ForeignKey(Contrat, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
     dqe = models.ForeignKey(DQE, on_delete=models.DO_NOTHING, null=False, verbose_name='dqe')
