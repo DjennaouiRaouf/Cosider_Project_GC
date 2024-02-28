@@ -223,7 +223,7 @@ class ModePaiement(models.Model):
 
 
 class Encaissements(models.Model):
-    facture = models.ForeignKey(Factures, on_delete=models.DO_NOTHING, null=True, blank=True, verbose_name="Facture")
+    facture = models.ForeignKey(Factures, on_delete=models.DO_NOTHING, null=False, verbose_name="Facture")
     date_encaissement = models.DateField(null=False, verbose_name="Date d'encaissement")
     mode_paiement = models.ForeignKey(ModePaiement, on_delete=models.DO_NOTHING, null=False,
                                       verbose_name="Mode de paiement")
