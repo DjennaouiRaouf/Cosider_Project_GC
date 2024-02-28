@@ -1,13 +1,15 @@
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
-from safedelete import SOFT_DELETE_CASCADE
-from safedelete.managers import SafeDeleteManager
-from safedelete.models import SafeDeleteModel
+from safedelete import *
+from safedelete.managers import *
+from safedelete.models import *
+from simple_history.models import *
 
 
 # Create your models here.
 
 class DeletedModelManager(SafeDeleteManager):
+
     _safedelete_visibility = DELETED_VISIBLE_BY_PK
 class Parametres(SafeDeleteModel):
     saisie_automatique=models.BooleanField(default=False, verbose_name="Saisie Automatique")

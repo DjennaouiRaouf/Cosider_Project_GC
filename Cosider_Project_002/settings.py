@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     'django_filters',
     'corsheaders',
     'import_export',
-    "api_gc.apps.Api_gcConfig"
+    'api_gc',
 ]
 
 MIDDLEWARE = [
