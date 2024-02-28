@@ -1,10 +1,17 @@
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
+from safedelete import SOFT_DELETE_CASCADE
+from safedelete.managers import SafeDeleteManager
+from safedelete.models import SafeDeleteModel
+
 
 # Create your models here.
 
+class DeletedModelManager(SafeDeleteManager):
+    _safedelete_visibility = DELETED_VISIBLE_BY_PK
 class Parametres(models.Model):
     saisie_automatique=models.BooleanField(default=False, verbose_name="Saisie Automatique")
+    historique = HistoricalRecords()
 
     class Meta:
         app_label = 'api_gc'
@@ -31,7 +38,7 @@ class Clients(models.Model):
 
     sous_client = models.ForeignKey('Clients', on_delete=models.DO_NOTHING, db_column='sous_client',null=True, blank=True)
 
-
+    historique = HistoricalRecords()
 
     class Meta:
         app_label = 'api_gc'
@@ -40,7 +47,7 @@ class Clients(models.Model):
 class UniteMesure(models.Model):
     libelle = models.CharField(db_column='libelle', max_length=10, blank=True, null=True)
     description = models.CharField(db_column='description', max_length=50, blank=True, null=True)
-
+    historique = HistoricalRecords()
     class Meta:
         app_label = 'api_gc'
 
@@ -49,7 +56,7 @@ class Produits(models.Model):
     libelle = models.CharField(db_column='nom_produit', max_length=500, blank=True, null=False, verbose_name='Nom Produit')
     unite = models.ForeignKey(UniteMesure, on_delete=models.DO_NOTHING,null=False,verbose_name='Unite de Mesure')
     famille=models.CharField(db_column='famille', max_length=500,  null=True, verbose_name='Famille')
-
+    historique = HistoricalRecords()
     class Meta:
         app_label = 'api_gc'
 
@@ -57,7 +64,7 @@ class Produits(models.Model):
 class PrixProduit(models.Model):
     produit = models.ForeignKey(Produits, on_delete=models.DO_NOTHING,null=False,verbose_name='Produit')
     prix_unitaire = models.DecimalField(max_digits=38, decimal_places=2,validators=[MinValueValidator(0)],default=0, verbose_name = 'Montant')
-
+    historique = HistoricalRecords()
     class Meta:
         unique_together = (('produit', 'prix_unitaire'))
         app_label = 'api_gc'
@@ -74,7 +81,7 @@ class Contrat(models.Model):
     montant_ttc=models.DecimalField(max_digits=38, decimal_places=2,validators=[MinValueValidator(0)],default=0, verbose_name = 'Montant en (TTC)')
     client=models.ForeignKey(Clients, on_delete=models.DO_NOTHING,null=False,verbose_name='Client')
     date_expiration=models.DateField(db_column='date_expiration', null=True, verbose_name='Date de Signature')
-
+    historique = HistoricalRecords()
     class Meta:
         app_label = 'api_gc'
 
@@ -86,6 +93,7 @@ class DQE(models.Model):
     prixPrduit=models.ForeignKey(PrixProduit, on_delete=models.DO_NOTHING,null=False,verbose_name='Produit')
     qte=models.DecimalField(max_digits=38, decimal_places=2,validators=[MinValueValidator(0)],default=0, verbose_name = 'Quantité')
     montant_qte=models.DecimalField(max_digits=38, decimal_places=2,validators=[MinValueValidator(0)],default=0, verbose_name = 'Montant de la quantité',editable=False)
+    historique = HistoricalRecords()
     class Meta:
         app_label = 'api_gc'
 
@@ -97,7 +105,7 @@ class ODS(models.Model):
     type=models.CharField(max_length=500, choices=Types, verbose_name='Type d\'Ordre de Service',null=False)
     date=models.DateField(null=False,verbose_name='Date d\'Ordre de Service')
     motif=models.TextField(null=True, verbose_name='Motif')
-
+    historique = HistoricalRecords()
 
     class Meta:
         unique_together = (('contrat', 'type', 'date'),)
@@ -112,7 +120,7 @@ class Planing(models.Model):
     dqe=models.ForeignKey(DQE, on_delete=models.DO_NOTHING, null=False, verbose_name='dqe')
     date=models.DateField(null=False, verbose_name='Date')
     qte_livre=models.DecimalField(max_digits=38, decimal_places=2,validators=[MinValueValidator(0)],default=0, verbose_name = 'Quantité à livré')
-
+    historique = HistoricalRecords()
     # ajuster selon l'ods
     class Meta:
         unique_together = (('contrat', 'dqe', 'date'),)
@@ -123,6 +131,7 @@ class Planing(models.Model):
 class Camion(models.Model):
     matricule=models.CharField(max_length=500, primary_key=True, verbose_name='Matricule')
     poids=models.DecimalField(max_digits=38, decimal_places=2,validators=[MinValueValidator(0)],default=0, verbose_name = 'Poids net du camion')
+    historique = HistoricalRecords()
     class Meta:
         app_label = 'api_gc'
 
@@ -130,6 +139,7 @@ class Conducteur(models.Model):
     nom=models.CharField(max_length=500,null=False, verbose_name='Nom')
     prenom = models.CharField(max_length=500, null=False, verbose_name='Prénom')
     num_id=models.CharField(max_length=500,null=False,verbose_name='Numero d\'identification')
+    historique = HistoricalRecords()
     class Meta:
         app_label = 'api_gc'
 
@@ -138,6 +148,7 @@ class Conduire(models.Model):
     conducteur=models.ForeignKey(Conducteur,null=False, on_delete=models.DO_NOTHING, verbose_name='Conducteur')
     camion=models.ForeignKey(Camion,null=False, on_delete=models.DO_NOTHING, verbose_name='Camion')
     date=models.DateField(null=False, verbose_name='Date')
+    historique = HistoricalRecords()
     class Meta:
         app_label = 'api_gc'
 
@@ -158,6 +169,7 @@ class BonLivraison(models.Model):
                                     verbose_name='Quantité cumulé')
 
     date=models.DateField(auto_now=True)
+    historique = HistoricalRecords()
 
     # verifier ods
     class Meta:
@@ -203,6 +215,7 @@ class Factures(models.Model):
                                              verbose_name="Montant de la facture en TTC"
                                              , editable=False)
 
+    historique = HistoricalRecords()
     class Meta:
         app_label = 'api_gc'
 
@@ -218,11 +231,13 @@ class DetailFacture(models.Model):
 
 class ModePaiement(models.Model):
     libelle = models.CharField(max_length=500, null=False, unique=True)
+    historique = HistoricalRecords()
     class Meta:
         app_label = 'api_gc'
 
 
-class Encaissements(models.Model):
+class Encaissement(SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
     facture = models.ForeignKey(Factures, on_delete=models.DO_NOTHING, null=False, verbose_name="Facture")
     date_encaissement = models.DateField(null=False, verbose_name="Date d'encaissement")
     mode_paiement = models.ForeignKey(ModePaiement, on_delete=models.DO_NOTHING, null=False,
@@ -234,7 +249,8 @@ class Encaissements(models.Model):
                                           validators=[MinValueValidator(0)], default=0, editable=False)
     # banque ou agence  soit charfield soit FK
     numero_piece = models.CharField(max_length=300, null=False, verbose_name="Numero de piéce")
-
+    historique = HistoricalRecords()
+    objects = DeletedModelManager()
     class Meta:
         unique_together = (("facture", "date_encaissement"),)
         app_label = 'api_gc'
