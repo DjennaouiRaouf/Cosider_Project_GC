@@ -11,6 +11,15 @@ from simple_history.models import *
 class DeletedModelManager(SafeDeleteManager):
 
     _safedelete_visibility = DELETED_VISIBLE_BY_PK
+
+class Unite(SafeDeleteModel):
+    id=models.CharField(max_length=500,primary_key=True,verbose_name='Code Unité',db_column='code_unite')
+    libelle=models.CharField(max_length=500,null=False,verbose_name="Libelle")
+    date_ouverture= models.DateField(null=False,verbose_name="Date d'ouverture")
+    date_cloture = models.DateField(null=True, verbose_name="Date de cloture")
+    class Meta:
+        app_label = 'api_gc'
+
 class Parametres(SafeDeleteModel):
     saisie_automatique=models.BooleanField(default=False, verbose_name="Saisie Automatique")
     historique = HistoricalRecords()

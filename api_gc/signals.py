@@ -37,3 +37,10 @@ def update_on_softdelete(sender, instance, **kwargs):
 
     except Encaissement.DoesNotExist:
         pass
+
+
+@receiver(post_save, sender=Unite)
+def post_save_unite(sender, instance, created, **kwargs):
+    if(instance.date_cloture != None):
+        instance.delete()
+
