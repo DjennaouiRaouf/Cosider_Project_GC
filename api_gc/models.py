@@ -1,26 +1,29 @@
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
-from safedelete import *
-from safedelete.managers import *
-from safedelete.models import *
-from simple_history.models import *
+from safedelete import SOFT_DELETE_CASCADE, DELETED_VISIBLE_BY_PK, SOFT_DELETE, HARD_DELETE
+from safedelete.managers import SafeDeleteManager
+from safedelete.models import SafeDeleteModel
+from simple_history.models import HistoricalRecords
 
 
 # Create your models here.
 
 class DeletedModelManager(SafeDeleteManager):
-
     _safedelete_visibility = DELETED_VISIBLE_BY_PK
 
 class Unite(SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE
     id=models.CharField(max_length=500,primary_key=True,verbose_name='Code Unité',db_column='code_unite')
     libelle=models.CharField(max_length=500,null=False,verbose_name="Libelle")
     date_ouverture= models.DateField(null=False,verbose_name="Date d'ouverture")
-    date_cloture = models.DateField(null=True, verbose_name="Date de cloture")
+    date_cloture = models.DateField(null=True,blank=True, verbose_name="Date de cloture")
+
+    objects = DeletedModelManager()
     class Meta:
         app_label = 'api_gc'
 
 class Parametres(SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
     saisie_automatique=models.BooleanField(default=False, verbose_name="Saisie Automatique")
     historique = HistoricalRecords()
     objects = DeletedModelManager()
@@ -31,6 +34,7 @@ class Parametres(SafeDeleteModel):
 
 
 class Clients(SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
     id = models.CharField(db_column='Code_Client', primary_key=True, max_length=500, verbose_name='Code du Client')
     type_client = models.PositiveSmallIntegerField(db_column='Type_Client', blank=True, null=True,
                                                    verbose_name='Type de Client')
@@ -58,6 +62,7 @@ class Clients(SafeDeleteModel):
 
 
 class UniteMesure(SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
     libelle = models.CharField(db_column='libelle', max_length=10, blank=True, null=True)
     description = models.CharField(db_column='description', max_length=50, blank=True, null=True)
     historique = HistoricalRecords()
@@ -66,6 +71,7 @@ class UniteMesure(SafeDeleteModel):
         app_label = 'api_gc'
 
 class Produits(SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
     id=models.CharField(db_column='code_produits', max_length=500, primary_key=True)
     libelle = models.CharField(db_column='nom_produit', max_length=500, blank=True, null=False, verbose_name='Nom Produit')
     unite = models.ForeignKey(UniteMesure, on_delete=models.DO_NOTHING,null=False,verbose_name='Unite de Mesure')

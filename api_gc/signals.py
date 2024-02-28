@@ -39,8 +39,4 @@ def update_on_softdelete(sender, instance, **kwargs):
         pass
 
 
-@receiver(post_save, sender=Unite)
-def post_save_unite(sender, instance, created, **kwargs):
-    if(instance.date_cloture != None):
-        instance.delete()
 
