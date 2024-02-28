@@ -81,7 +81,7 @@ class Contrat(models.Model):
 
 
 class DQE(models.Model):
-    id=models.CharField(max_length=500,primary_key=True,verbose_name='ID',editable=False)
+    id=models.CharField(max_length=500,primary_key=True,verbose_name='id',editable=False)
     contrat=models.ForeignKey(Contrat, on_delete=models.DO_NOTHING,null=True,verbose_name='Contrat')
     prixPrduit=models.ForeignKey(PrixProduit, on_delete=models.DO_NOTHING,null=False,verbose_name='Produit')
     qte=models.DecimalField(max_digits=38, decimal_places=2,validators=[MinValueValidator(0)],default=0, verbose_name = 'Quantité')
@@ -98,6 +98,7 @@ class ODS(models.Model):
     date=models.DateField(null=False,verbose_name='Date d\'Ordre de Service')
     motif=models.TextField(null=True, verbose_name='Motif')
 
+
     class Meta:
         unique_together = (('contrat', 'type', 'date'),)
         app_label = 'api_gc'
@@ -111,6 +112,8 @@ class Planing(models.Model):
     dqe=models.ForeignKey(DQE, on_delete=models.DO_NOTHING, null=False, verbose_name='dqe')
     date=models.DateField(null=False, verbose_name='Date')
     qte_livre=models.DecimalField(max_digits=38, decimal_places=2,validators=[MinValueValidator(0)],default=0, verbose_name = 'Quantité à livré')
+
+    # ajuster selon l'ods
     class Meta:
         unique_together = (('contrat', 'dqe', 'date'),)
         app_label = 'api_gc'
@@ -129,6 +132,7 @@ class Conducteur(models.Model):
     num_id=models.CharField(max_length=500,null=False,verbose_name='Numero d\'identification')
     class Meta:
         app_label = 'api_gc'
+
 
 class Conduire(models.Model):
     conducteur=models.ForeignKey(Conducteur,null=False, on_delete=models.DO_NOTHING, verbose_name='Conducteur')
@@ -155,6 +159,7 @@ class BonLivraison(models.Model):
 
     date=models.DateField(auto_now=True)
 
+    # verifier ods
     class Meta:
         app_label = 'api_gc'
 
@@ -210,6 +215,9 @@ class DetailFacture(models.Model):
     class Meta:
         unique_together = (('facture', 'detail',))
         app_label = 'api_gc'
+
+
+class Encaissements(models.Model):
 
 
 
