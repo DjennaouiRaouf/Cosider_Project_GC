@@ -214,6 +214,14 @@ class BonLivraison(SafeDeleteModel):
     qte_cumule=models.DecimalField(max_digits=38, decimal_places=2, validators=[MinValueValidator(0)], default=0,
                                     verbose_name='Quantité cumulé')
 
+    montant_precedent = models.DecimalField(max_digits=38, decimal_places=2, validators=[MinValueValidator(0)],
+                                            default=0,
+                                            editable=False, verbose_name='Montant précedent')
+    montant_mois = models.DecimalField(max_digits=38, decimal_places=2, validators=[MinValueValidator(0)], default=0,
+                                       verbose_name='Montant du Mois', editable=False)
+    montant_cumule = models.DecimalField(max_digits=38, decimal_places=2, validators=[MinValueValidator(0)], default=0,
+                                         editable=False, verbose_name='Montant cumulé')
+
     date=models.DateField(auto_now=True)
     historique = HistoricalRecords()
     objects = DeletedModelManager()
