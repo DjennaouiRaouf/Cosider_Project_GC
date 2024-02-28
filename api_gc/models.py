@@ -236,6 +236,7 @@ class Encaissements(models.Model):
     numero_piece = models.CharField(max_length=300, null=False, verbose_name="Numero de piéce")
 
     class Meta:
+        unique_together = (("facture", "date_encaissement"),)
         app_label = 'api_gc'
 
 
