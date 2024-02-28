@@ -12,12 +12,13 @@ class DeletedModelManager(SafeDeleteManager):
     _safedelete_visibility = DELETED_VISIBLE_BY_PK
 
 class Unite(SafeDeleteModel):
-    _safedelete_policy = SOFT_DELETE
+    _safedelete_policy = SOFT_DELETE_CASCADE
     id=models.CharField(max_length=500,primary_key=True,verbose_name='Code Unité',db_column='code_unite')
     libelle=models.CharField(max_length=500,null=False,verbose_name="Libelle")
     date_ouverture= models.DateField(null=False,verbose_name="Date d'ouverture")
     date_cloture = models.DateField(null=True,blank=True, verbose_name="Date de cloture")
 
+    historique = HistoricalRecords()
     objects = DeletedModelManager()
     class Meta:
         app_label = 'api_gc'
@@ -83,6 +84,8 @@ class Produits(SafeDeleteModel):
 
 
 class PrixProduit(SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
+
     produit = models.ForeignKey(Produits, on_delete=models.DO_NOTHING,null=False,verbose_name='Produit')
     prix_unitaire = models.DecimalField(max_digits=38, decimal_places=2,validators=[MinValueValidator(0)],default=0, verbose_name = 'Montant')
     historique = HistoricalRecords()
@@ -93,6 +96,8 @@ class PrixProduit(SafeDeleteModel):
 
 
 class Contrat(SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
+
     id=models.CharField(db_column='code_contrat', max_length=500, primary_key=True)
     date_signature=models.DateField(db_column='date_signature', null=False, blank=False, verbose_name='Date de Signature')
     libelle=models.CharField(db_column='libelle', max_length=500, blank=True, null=False, verbose_name='')
@@ -111,6 +116,8 @@ class Contrat(SafeDeleteModel):
 
 
 class DQE(SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
+
     id=models.CharField(max_length=500,primary_key=True,verbose_name='id',editable=False)
     contrat=models.ForeignKey(Contrat, on_delete=models.DO_NOTHING,null=True,verbose_name='Contrat')
     prixPrduit=models.ForeignKey(PrixProduit, on_delete=models.DO_NOTHING,null=False,verbose_name='Produit')
@@ -122,6 +129,8 @@ class DQE(SafeDeleteModel):
         app_label = 'api_gc'
 
 class ODS(SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
+
     Types=[
         ('Interruption','Interruption',),('Reprise','Reprise')
     ]
@@ -141,6 +150,8 @@ class ODS(SafeDeleteModel):
 
 
 class Planing(SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
+
     contrat = models.ForeignKey(Contrat, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
     dqe=models.ForeignKey(DQE, on_delete=models.DO_NOTHING, null=False, verbose_name='dqe')
     date=models.DateField(null=False, verbose_name='Date')
@@ -155,6 +166,7 @@ class Planing(SafeDeleteModel):
 
 
 class Camion(SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
     matricule=models.CharField(max_length=500, primary_key=True, verbose_name='Matricule')
     poids=models.DecimalField(max_digits=38, decimal_places=2,validators=[MinValueValidator(0)],default=0, verbose_name = 'Poids net du camion')
     historique = HistoricalRecords()
@@ -163,6 +175,8 @@ class Camion(SafeDeleteModel):
         app_label = 'api_gc'
 
 class Conducteur(SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
+
     nom=models.CharField(max_length=500,null=False, verbose_name='Nom')
     prenom = models.CharField(max_length=500, null=False, verbose_name='Prénom')
     num_id=models.CharField(max_length=500,null=False,verbose_name='Numero d\'identification')
@@ -173,6 +187,8 @@ class Conducteur(SafeDeleteModel):
 
 
 class Conduire(SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
+
     conducteur=models.ForeignKey(Conducteur,null=False, on_delete=models.DO_NOTHING, verbose_name='Conducteur')
     camion=models.ForeignKey(Camion,null=False, on_delete=models.DO_NOTHING, verbose_name='Camion')
     date=models.DateField(null=False, verbose_name='Date')
@@ -186,6 +202,7 @@ class Conduire(SafeDeleteModel):
 
 # mode hors connexion
 class BonLivraison(SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
     contrat = models.ForeignKey(Contrat, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
     dqe = models.ForeignKey(DQE, on_delete=models.DO_NOTHING, null=False, verbose_name='dqe')
 
