@@ -10,7 +10,7 @@ import serial
 import serial.tools.list_ports
 # Create your views here.
 
-class LoginView(APIView):
+class Login(APIView):
     permission_classes = []
     def post(self,request):
         username = request.data.get('username')
@@ -43,7 +43,12 @@ class LoginView(APIView):
 
 
 
-class LogoutView(APIView):
+class Whoami(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        return Response({'whoami':request.user.username}, status=status.HTTP_200_OK)
+
+class Logout(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
         Token.objects.get(user_id=request.user.id).delete()
@@ -90,10 +95,5 @@ class GetWeight(APIView):
 
 
 
-
-class WhoamiView(APIView):
-    permission_classes = [IsAuthenticated]
-    def get(self, request):
-        return Response({'whoami':request.user.username}, status=status.HTTP_200_OK)
 
 
