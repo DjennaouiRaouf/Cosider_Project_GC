@@ -26,6 +26,7 @@ class Unite(SafeDeleteModel):
 class Parametres(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
     saisie_automatique=models.BooleanField(default=False, verbose_name="Saisie Automatique")
+    port=models.CharField(max_length=500,default='COM1',null=False,verbose_name='Port')
     historique = HistoricalRecords()
     objects = DeletedModelManager()
 
@@ -104,6 +105,10 @@ class Contrat(SafeDeleteModel):
     tva=models.DecimalField(max_digits=38,decimal_places=2,validators=[MinValueValidator(0),MaxValueValidator(100)],default=0,verbose_name='TVA')
     transport=models.BooleanField(db_column='transport', default=False, verbose_name='Transport')
     rabais=models.DecimalField(max_digits=38,decimal_places=2,validators=[MinValueValidator(0),MaxValueValidator(100)],default=0,verbose_name='Rabais')
+    rg = models.DecimalField(max_digits=38, decimal_places=2,
+                                 validators=[MinValueValidator(0), MaxValueValidator(100)], default=0,
+                                 verbose_name='Rabais')
+
     montant_ht=models.DecimalField(max_digits=38, decimal_places=2,validators=[MinValueValidator(0)],default=0, verbose_name = 'Montant en (HT)')
     montant_ttc=models.DecimalField(max_digits=38, decimal_places=2,validators=[MinValueValidator(0)],default=0, verbose_name = 'Montant en (TTC)')
     client=models.ForeignKey(Clients, on_delete=models.DO_NOTHING,null=False,verbose_name='Client')

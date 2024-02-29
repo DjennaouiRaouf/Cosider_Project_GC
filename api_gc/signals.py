@@ -7,6 +7,14 @@ from django.dispatch import *
 from safedelete.signals import *
 
 from api_gc.models import *
+
+@receiver(pre_save, sender=Parametres)
+def pre_save_params(sender, instance, **kwargs):
+    if not instance.pk:
+        count=Parametres.objects.all().count()
+        if( count > 0):
+            raise ValidationError('Impossible d\'ajouter un parametre')
+
 @receiver(pre_save,  sender=Encaissement)
 def pre_save_encaissement(sender, instance, **kwargs):
     if not instance.pk:
@@ -50,8 +58,6 @@ def pre_save_dqe(sender, instance, **kwargs):
 
 @receiver(post_save, sender=DQE)
 def post_save_dqe(sender, instance, created, **kwargs):
-    if created:
-        instance.id = str(instance.prixPrduit.produit.id) + "_" + str(instance.contrat.id)
     total = DQE.objects.filter(contrat=instance.contrat).aggregate(models.Sum('montant_qte'))[
             "montant_qte__sum"]
     if not total:
@@ -59,8 +65,6 @@ def post_save_dqe(sender, instance, created, **kwargs):
     instance.contrat.montant_ht = round(total, 2)
     instance.contrat.montant_ttc = round(total + (total * instance.marche.tva / 100), 2)
     instance.contrat.save()
-
-
 
 
 @receiver(post_save, sender=Contrat)
@@ -73,3 +77,26 @@ def post_save_contrat(sender, instance, created, **kwargs):
     Contrat.objects.filter(id=instance.pk).update(
         montant_ht=round(total, 2),
         montant_ttc=round(total + (total * instance.tva / 100), 2))
+
+
+
+
+@receiver(post_save, sender=BonLivraison)
+def post_save_bonlivraison(sender, instance, **kwargs):
+    if not instance.pk:
+        bonlivraison = BonLivraison.objects.filter(~Q(pk=instance.pk) & Q(dqe=instance.dqe))
+        prix_u = instance.dqe.prixPrduit.prix_unitaire
+        if (bonlivraison):  # courant
+            previous = bonlivraison.latest('date')
+            instance.qte_precedente = previous.qte_cumule
+            instance.qte_cumule = instance.qte_precedente + instance.qte_mois
+            instance.montant_precedent = round(previous.montant_cumule, 2)
+            instance.montant_mois = round(instance.qte_mois * prix_u, 2)
+            instance.montant_cumule = round(instance.montant_precedent + instance.montant_mois, 2)
+
+        else:  # debut
+            instance.qte_precedente = 0
+            instance.qte_cumule = instance.qte_mois
+            instance.montant_precedent = 0
+            instance.montant_mois = instance.qte_mois * prix_u
+            instance.montant_cumule = round(instance.montant_precedent + instance.montant_mois, 2)
