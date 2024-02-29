@@ -115,6 +115,8 @@ class Contrat(SafeDeleteModel):
     date_expiration=models.DateField(db_column='date_expiration', null=True, verbose_name='Date de Signature')
     historique = HistoricalRecords()
     objects = DeletedModelManager()
+
+
     class Meta:
         app_label = 'api_gc'
 

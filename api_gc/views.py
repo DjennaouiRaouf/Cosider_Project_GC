@@ -1,11 +1,12 @@
 from django.contrib.auth import authenticate
 from django.shortcuts import render
-from rest_framework import status
+from rest_framework import status, generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
 from api_gc.models import *
+from api_gc.serializers import *
 import serial
 import serial.tools.list_ports
 # Create your views here.
@@ -83,7 +84,10 @@ class GetWeight(APIView):
                 return Response({'message': 'Erreur'}, status=status.HTTP_400_BAD_REQUEST)
 
 
-
+class ListContract(generics.ListAPIView):
+    #permission_classes = [IsAuthenticated]
+    queryset = Contrat.objects.all()
+    serializer_class =ContratSerializer
 
 
 

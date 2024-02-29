@@ -11,7 +11,8 @@ lp=20
 @admin.register(Unite)
 class UniteAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin):
     list_per_page = lp
-    list_display = ('id', 'libelle','date_ouverture','date_cloture')
+    list_display = [field.name for field in Unite._meta.fields if field.name not in ['deleted', 'deleted_by_cascade']]
+
     list_filter = (
         SafeDeleteAdminFilter,
     )
@@ -20,7 +21,8 @@ class UniteAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,admin
 @admin.register(Contrat)
 class ContratAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin):
     list_per_page = lp
-    list_display = ('id','date_signature', 'libelle','tva','rabais','rg','montant_ht','montant_ttc')
+    list_display = [field.name for field in Contrat._meta.fields if field.name not in ['deleted', 'deleted_by_cascade']]
+
     list_filter = (
         SafeDeleteAdminFilter,
     )
@@ -28,7 +30,8 @@ class ContratAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,adm
 @admin.register(Parametres)
 class ParametresAdmin(SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin):
     list_per_page = lp
-    list_display = ('id','saisie_automatique', 'port')
+    list_display = [field.name for field in Parametres._meta.fields if field.name not in ['deleted', 'deleted_by_cascade']]
+
     list_filter = (
         SafeDeleteAdminFilter,
     )
@@ -37,13 +40,27 @@ class ParametresAdmin(SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin
 
 
 
+@admin.register(Clients)
+class ClientsAdmin(SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin):
+    list_per_page = lp
+    list_display = [field.name for field in Clients._meta.fields if field.name not in ['deleted', 'deleted_by_cascade']]
+
+    list_filter = (
+        SafeDeleteAdminFilter,
+    )
+
+
+
+
 
 
 @admin.register(DQE)
 class ContratAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin):
     list_per_page = lp
-    list_display = ()
-    list_filter = (
+    list_display = [field.name for field in DQE._meta.fields if field.name not in ['deleted', 'deleted_by_cascade']]
+
+
+list_filter = (
         SafeDeleteAdminFilter,
     )
 
