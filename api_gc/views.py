@@ -54,7 +54,6 @@ class LogoutView(APIView):
 
 class GetWeight(APIView):
     #permission_classes = [IsAuthenticated]
-
     def get(self, request):
         port=Parametres.objects.all().first().port
         print(port)
