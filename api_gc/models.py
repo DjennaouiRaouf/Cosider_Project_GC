@@ -69,6 +69,9 @@ class UniteMesure(SafeDeleteModel):
     description = models.CharField(db_column='description', max_length=50, blank=True, null=True)
     historique = HistoricalRecords()
     objects = DeletedModelManager()
+
+    def __str__(self):
+        return self.libelle
     class Meta:
         app_label = 'api_gc'
 
@@ -82,6 +85,9 @@ class Produits(SafeDeleteModel):
     famille=models.CharField(db_column='famille', max_length=500,  null=True, verbose_name='Famille')
     historique = HistoricalRecords()
     objects = DeletedModelManager()
+
+    def __str__(self):
+        return self.id+' '+self.libelle
     class Meta:
         app_label = 'api_gc'
 
@@ -102,7 +108,6 @@ class Contrat(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
 
     id=models.CharField(db_column='code_contrat', max_length=500, primary_key=True)
-    date_signature=models.DateField(db_column='date_signature', null=False, blank=False, verbose_name='Date de Signature')
     libelle=models.CharField(db_column='libelle', max_length=500, blank=True, null=False, verbose_name='')
     tva=models.DecimalField(max_digits=38,decimal_places=2,validators=[MinValueValidator(0),MaxValueValidator(100)],default=0,verbose_name='TVA')
     transport=models.BooleanField(db_column='transport', default=False, verbose_name='Transport')
@@ -114,7 +119,9 @@ class Contrat(SafeDeleteModel):
     montant_ht=models.DecimalField(max_digits=38, decimal_places=2,validators=[MinValueValidator(0)],default=0, verbose_name = 'Montant en (HT)')
     montant_ttc=models.DecimalField(max_digits=38, decimal_places=2,validators=[MinValueValidator(0)],default=0, verbose_name = 'Montant en (TTC)')
     client=models.ForeignKey(Clients, on_delete=models.DO_NOTHING,null=False,verbose_name='Client')
-    date_expiration=models.DateField(db_column='date_expiration', null=True, verbose_name='Date de Signature')
+    date_signature=models.DateField(db_column='date_signature', null=False, blank=False, verbose_name='Date de Signature')
+    date_expiration=models.DateField(db_column='date_expiration', null=True, verbose_name='Date d\'expiration')
+    validite=models.PositiveIntegerField(default=0, verbose_name='Durée de validité (en Mois)', null=False, blank=False,editable=False)
     historique = HistoricalRecords()
     objects = DeletedModelManager()
 
@@ -158,28 +165,25 @@ class ODS(SafeDeleteModel):
 class Avances(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
     contrat = models.ForeignKey(Contrat, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
-
     montant_avance = models.DecimalField(max_digits=38, decimal_places=2, validators=[MinValueValidator(0)], default=0,
                                          verbose_name='Montant de l\'avance')
     remboursee = models.BooleanField(editable=False, default=False, null=False, verbose_name='Est remboursée')
     historique = HistoricalRecords()
     objects = DeletedModelManager()
-
-    # ajuster selon l'ods
     class Meta:
         app_label = 'api_gc'
 
 
 class Planing(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
-
     contrat = models.ForeignKey(Contrat, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
     dqe=models.ForeignKey(DQE, on_delete=models.DO_NOTHING, null=False, verbose_name='dqe')
     date=models.DateField(null=False, verbose_name='Date')
     qte_livre=models.DecimalField(max_digits=38, decimal_places=2,validators=[MinValueValidator(0)],default=0, verbose_name = 'Quantité à livré')
     historique = HistoricalRecords()
     objects = DeletedModelManager()
-    # ajuster selon l'ods
+
+
     class Meta:
         unique_together = (('contrat', 'dqe', 'date'),)
         app_label = 'api_gc'

@@ -1,4 +1,6 @@
 import sys
+from dateutil.relativedelta import relativedelta
+from datetime import datetime
 
 from django.core.exceptions import ValidationError
 from django.db.models import Q, F
@@ -69,6 +71,10 @@ def post_save_dqe(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=Contrat)
 def post_save_contrat(sender, instance, created, **kwargs):
+    if(instance.date_signature < instance.date_expiration):
+        delta=relativedelta(instance.date_expiration, instance.date_signature)
+        months = delta.months + (delta.years * 12)
+        Contrat.objects.filter(pk=instance.pk).update(validite=months)
     total = DQE.objects.filter(contrat=instance).aggregate(models.Sum('montant_qte'))[
         "montant_qte__sum"]
     if not total:

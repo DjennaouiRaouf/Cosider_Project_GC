@@ -40,6 +40,7 @@ class ParametresAdmin(SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin
 
 
 
+
 @admin.register(Clients)
 class ClientsAdmin(SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin):
     list_per_page = lp
@@ -60,9 +61,44 @@ class ContratAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,adm
     list_display = [field.name for field in DQE._meta.fields if field.name not in ['deleted', 'deleted_by_cascade']]
 
 
-list_filter = (
+    list_filter = (
         SafeDeleteAdminFilter,
     )
+
+
+@admin.register(UniteMesure)
+class UniteMesureAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin):
+    list_per_page = lp
+    list_display = [field.name for field in UniteMesure._meta.fields if field.name not in ['deleted', 'deleted_by_cascade']]
+
+
+    list_filter = (
+        SafeDeleteAdminFilter,
+    )
+
+
+@admin.register(Produits)
+class UniteMesureAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin):
+    save_as = True
+    list_per_page = lp
+    list_display = [field.name for field in Produits._meta.fields if field.name not in ['deleted', 'deleted_by_cascade']]
+
+
+    list_filter = (
+        SafeDeleteAdminFilter,
+    )
+
+@admin.register(PrixProduit)
+class UniteMesureAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin):
+    list_per_page = lp
+    list_display = [field.name for field in PrixProduit._meta.fields if field.name not in ['deleted', 'deleted_by_cascade']]
+
+
+    list_filter = (
+        SafeDeleteAdminFilter,
+    )
+
+
 
 
 
