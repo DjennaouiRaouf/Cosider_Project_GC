@@ -282,6 +282,7 @@ class BonLivraison(SafeDeleteModel):
     montant_cumule = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
                                          editable=False, verbose_name='Montant cumulé')
 
+
     date=models.DateField(auto_now=True)
     historique = HistoricalRecords()
     objects = DeletedModelManager()
