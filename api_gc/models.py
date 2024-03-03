@@ -72,6 +72,8 @@ class UniteMesure(SafeDeleteModel):
     class Meta:
         app_label = 'api_gc'
 
+
+
 class Produits(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
     id=models.CharField(db_column='code_produits', max_length=500, primary_key=True)
@@ -153,7 +155,19 @@ class ODS(SafeDeleteModel):
         app_label = 'api_gc'
 
 
+class Avances(SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
+    contrat = models.ForeignKey(Contrat, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
 
+    montant_avance = models.DecimalField(max_digits=38, decimal_places=2, validators=[MinValueValidator(0)], default=0,
+                                         verbose_name='Montant de l\'avance')
+    remboursee = models.BooleanField(editable=False, default=False, null=False, verbose_name='Est remboursée')
+    historique = HistoricalRecords()
+    objects = DeletedModelManager()
+
+    # ajuster selon l'ods
+    class Meta:
+        app_label = 'api_gc'
 
 
 class Planing(SafeDeleteModel):

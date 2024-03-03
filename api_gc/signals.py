@@ -78,9 +78,6 @@ def post_save_contrat(sender, instance, created, **kwargs):
         montant_ht=round(total, 2),
         montant_ttc=round(total + (total * instance.tva / 100), 2))
 
-
-
-
 @receiver(post_save, sender=BonLivraison)
 def post_save_bonlivraison(sender, instance, **kwargs):
     if not instance.pk:
