@@ -269,7 +269,7 @@ class BonLivraison(SafeDeleteModel):
     qte_precedent = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
                                      verbose_name='Quantité precedent',editable=False)
 
-    qte_livre = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
+    qte_mois = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
                                     verbose_name='Quantité à livré')
     qte_cumule=models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
                                     verbose_name='Quantité cumulé',editable=False)

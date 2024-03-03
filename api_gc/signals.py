@@ -121,6 +121,7 @@ def pre_save_bonlivraison(sender, instance, **kwargs):
             instance.montant_mois = round(instance.qte_mois * prix_u, 4)
             instance.montant_cumule = round(instance.montant_precedent + instance.montant_mois, 4)
         except BonLivraison.DoesNotExist:
+            prix_u = instance.dqe.prixPrduit.prix_unitaire
             instance.qte_precedente = 0
             instance.qte_cumule = instance.qte_mois
             instance.montant_precedent = 0
