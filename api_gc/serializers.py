@@ -44,8 +44,7 @@ class ContratSerializer(serializers.ModelSerializer):
                 serilizedData['type']= 'Modification'
             elif (historical_instance.history_type=='+'):
                 serilizedData['type']='Création'
-            elif (historical_instance.history_type=='-'):
-                serilizedData['type']='suppression'
+
 
             serilizedData['version_id'] = historical_instance.history_id
             history.append(serilizedData)
@@ -78,7 +77,11 @@ class DQESerializer(serializers.ModelSerializer):
             serilizedData = anySerilizer(historical_instance.instance, many=False).data
             serilizedData['utilisateur'] = historical_instance.history_user.username
             serilizedData['date_modification'] = historical_instance.history_date
-            serilizedData['type'] = 'Modification' if historical_instance.history_type == '~' else 'Création'
+            if (historical_instance.history_type == '~'):
+                serilizedData['type'] = 'Modification'
+            elif (historical_instance.history_type == '+'):
+                serilizedData['type'] = 'Création'
+
             serilizedData['version_id'] = historical_instance.history_id
             history.append(serilizedData)
         return history
