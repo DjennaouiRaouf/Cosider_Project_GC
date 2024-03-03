@@ -108,20 +108,19 @@ def post_save_contrat(sender, instance, created, **kwargs):
         montant_ht=round(total, 4),
         montant_ttc=round(total + (total * instance.tva / 100), 4))
 
-@receiver(post_save, sender=BonLivraison)
-def post_save_bonlivraison(sender, instance, **kwargs):
+@receiver(pre_save, sender=BonLivraison)
+def pre_save_bonlivraison(sender, instance, **kwargs):
     if not instance.pk:
-        bonlivraison = BonLivraison.objects.filter(~Q(pk=instance.pk) & Q(dqe=instance.dqe))
-        prix_u = instance.dqe.prixPrduit.prix_unitaire
-        if (bonlivraison):  # courant
-            previous = bonlivraison.latest('date')
+        try:
+            bonlivraison = BonLivraison.objects.filter(Q(contrat=instance.contrat) & Q(dqe=instance.dqe)).latest('date')
+            prix_u = instance.dqe.prixPrduit.prix_unitaire
+            previous = bonlivraison
             instance.qte_precedente = previous.qte_cumule
             instance.qte_cumule = instance.qte_precedente + instance.qte_mois
             instance.montant_precedent = round(previous.montant_cumule, 4)
             instance.montant_mois = round(instance.qte_mois * prix_u, 4)
             instance.montant_cumule = round(instance.montant_precedent + instance.montant_mois, 4)
-
-        else:  # debut
+        except BonLivraison.DoesNotExist:
             instance.qte_precedente = 0
             instance.qte_cumule = instance.qte_mois
             instance.montant_precedent = 0

@@ -288,6 +288,7 @@ class BonLivraison(SafeDeleteModel):
 
     # verifier ods
     class Meta:
+        unique_together = (('contrat','dqe','date'))
         app_label = 'api_gc'
         verbose_name = 'Bon de livraison'
         verbose_name_plural = 'Bon de livraison'
