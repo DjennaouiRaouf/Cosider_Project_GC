@@ -1,4 +1,6 @@
 import sys
+from decimal import Decimal
+
 from dateutil.relativedelta import relativedelta
 from datetime import datetime
 
@@ -73,9 +75,16 @@ def post_save_dqe(sender, instance, created, **kwargs):
         date_debut = instance.contrat.date_signature
         cumule=0
         for i in range(chunck):
-            qte_chunck=round(instance.qte/chunck,4)
-            cumule=cumule+qte_chunck
-            date=date_debut+ relativedelta(months=i)
+            date = date_debut + relativedelta(months=i)
+            if(i<chunck-1):
+                qte_chunck = Decimal(int(instance.qte / chunck))
+            if(i==chunck-1):
+                precedent=Planing.objects.filter(dqe=instance,contrat=instance.contrat,date__lt=date).latest('date')
+                qte_chunck = Decimal(int(instance.qte - precedent.qte_cumule))
+
+            cumule = cumule + qte_chunck
+
+
             product, created=Planing.objects.update_or_create(
                 contrat=instance.contrat, dqe=instance,date=date,
                 defaults={
@@ -83,8 +92,7 @@ def post_save_dqe(sender, instance, created, **kwargs):
                     "qte_cumule":cumule,
                 }
                 )
-            print(product)
-            print(created)
+
 
 
     else:
