@@ -54,7 +54,7 @@ def pre_save_dqe(sender, instance, **kwargs):
     if not instance.pk:
         instance.id = str(instance.prixPrduit.produit.id) + "_" + str(instance.contrat.id)
 
-    instance.montant_qte = round(instance.qte * instance.prixPrduit.prix_unitaire, 2)
+    instance.montant_qte = round(instance.qte * instance.prixPrduit.prix_unitaire, 4)
 
 
 
@@ -64,10 +64,31 @@ def post_save_dqe(sender, instance, created, **kwargs):
             "montant_qte__sum"]
     if not total:
         total = 0
-    instance.contrat.montant_ht = round(total, 2)
-    instance.contrat.montant_ttc = round(total + (total * instance.marche.tva / 100), 2)
+    instance.contrat.montant_ht = round(total, 4)
+    instance.contrat.montant_ttc = round(total + (total * instance.contrat.tva / 100), 4)
     instance.contrat.save()
 
+    chunck=instance.contrat.validite
+    if(chunck):
+        date_debut = instance.contrat.date_signature
+        cumule=0
+        for i in range(chunck):
+            qte_chunck=round(instance.qte/chunck,4)
+            cumule=cumule+qte_chunck
+            date=date_debut+ relativedelta(months=i)
+            product, created=Planing.objects.update_or_create(
+                contrat=instance.contrat, dqe=instance,date=date,
+                defaults={
+                    "qte_livre":qte_chunck,
+                    "qte_cumule":cumule,
+                }
+                )
+            print(product)
+            print(created)
+
+
+    else:
+        pass
 
 @receiver(post_save, sender=Contrat)
 def post_save_contrat(sender, instance, created, **kwargs):
@@ -81,8 +102,8 @@ def post_save_contrat(sender, instance, created, **kwargs):
         total = 0
 
     Contrat.objects.filter(id=instance.pk).update(
-        montant_ht=round(total, 2),
-        montant_ttc=round(total + (total * instance.tva / 100), 2))
+        montant_ht=round(total, 4),
+        montant_ttc=round(total + (total * instance.tva / 100), 4))
 
 @receiver(post_save, sender=BonLivraison)
 def post_save_bonlivraison(sender, instance, **kwargs):
@@ -93,13 +114,13 @@ def post_save_bonlivraison(sender, instance, **kwargs):
             previous = bonlivraison.latest('date')
             instance.qte_precedente = previous.qte_cumule
             instance.qte_cumule = instance.qte_precedente + instance.qte_mois
-            instance.montant_precedent = round(previous.montant_cumule, 2)
-            instance.montant_mois = round(instance.qte_mois * prix_u, 2)
-            instance.montant_cumule = round(instance.montant_precedent + instance.montant_mois, 2)
+            instance.montant_precedent = round(previous.montant_cumule, 4)
+            instance.montant_mois = round(instance.qte_mois * prix_u, 4)
+            instance.montant_cumule = round(instance.montant_precedent + instance.montant_mois, 4)
 
         else:  # debut
             instance.qte_precedente = 0
             instance.qte_cumule = instance.qte_mois
             instance.montant_precedent = 0
             instance.montant_mois = instance.qte_mois * prix_u
-            instance.montant_cumule = round(instance.montant_precedent + instance.montant_mois, 2)
+            instance.montant_cumule = round(instance.montant_precedent + instance.montant_mois, 4)
