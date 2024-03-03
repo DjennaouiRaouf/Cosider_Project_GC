@@ -111,6 +111,17 @@ class UniteMesureAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin
     )
 
 
+@admin.register(BonLivraison)
+class BonLivraisonAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin):
+    save_as = True
+    list_per_page = lp
+    list_display = [field.name for field in BonLivraison._meta.fields if field.name not in ['deleted', 'deleted_by_cascade']]
+
+
+    list_filter = (
+        SafeDeleteAdminFilter,
+    )
+
 
 
 

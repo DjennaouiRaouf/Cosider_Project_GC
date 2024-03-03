@@ -267,12 +267,12 @@ class BonLivraison(SafeDeleteModel):
     dqe = models.ForeignKey(DQE, on_delete=models.DO_NOTHING, null=False, verbose_name='dqe')
 
     qte_precedent = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
-                                     verbose_name='Quantité precedent')
+                                     verbose_name='Quantité precedent',editable=False)
 
     qte_livre = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
                                     verbose_name='Quantité à livré')
     qte_cumule=models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
-                                    verbose_name='Quantité cumulé')
+                                    verbose_name='Quantité cumulé',editable=False)
 
     montant_precedent = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)],
                                             default=0,
