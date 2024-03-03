@@ -70,33 +70,28 @@ def post_save_dqe(sender, instance, created, **kwargs):
     instance.contrat.montant_ttc = round(total + (total * instance.contrat.tva / 100), 4)
     instance.contrat.save()
 
-    chunck=instance.contrat.validite
-    if(chunck):
-        date_debut = instance.contrat.date_signature
-        cumule=0
-        for i in range(chunck):
-            date = date_debut + relativedelta(months=i)
-            if(i<chunck-1):
-                qte_chunck = Decimal(int(instance.qte / chunck))
-            if(i==chunck-1):
-                precedent=Planing.objects.filter(dqe=instance,contrat=instance.contrat,date__lt=date).latest('date')
-                qte_chunck = Decimal(int(instance.qte - precedent.qte_cumule))
 
-            cumule = cumule + qte_chunck
+@receiver(pre_save, sender=Planing)
+def pre_save_planing(sender, instance, **kwargs):
+    if(not instance.pk):
+        counter=Planing.objects.filter(contrat=instance.contrat,dqe=instance.dqe).count()
+        if(counter > instance.contrat.validite):
+            raise ValidationError(f'Le contrat {instance.contrat} à éxpiré')
+        if(instance.date > instance.contrat.date_expiration):
+            raise ValidationError(f'Le contrat {instance.contrat} à éxpiré')
+        try:
 
-
-            product, created=Planing.objects.update_or_create(
-                contrat=instance.contrat, dqe=instance,date=date,
-                defaults={
-                    "qte_livre":qte_chunck,
-                    "qte_cumule":cumule,
-                }
-                )
+            previous = Planing.objects.filter(dqe=instance.dqe, contrat=instance.contrat, date__lt=instance.date).latest('date')
+            cumule=previous.qte_cumule+instance.qte_livre
+            if(cumule > instance.dqe.qte):
+                raise ValidationError('Vous avez dépassé la quantité contractuelle')
+            else:
+                instance.qte_cumule = cumule
 
 
+        except Planing.DoesNotExist:
+                instance.qte_cumule=instance.qte_livre
 
-    else:
-        pass
 
 @receiver(post_save, sender=Contrat)
 def post_save_contrat(sender, instance, created, **kwargs):
