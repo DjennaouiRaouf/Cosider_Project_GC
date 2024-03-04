@@ -8,6 +8,17 @@ from api_gc.models import *
 
 # Register your models here.
 lp=20
+
+
+@admin.register(Images)
+class ImagesAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin):
+    list_per_page = lp
+    list_display = [field.name for field in Images._meta.fields  if field.name not in ['deleted', 'deleted_by_cascade']]
+
+    list_filter = (
+        SafeDeleteAdminFilter,
+    )
+
 @admin.register(Unite)
 class UniteAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin):
     list_per_page = lp
@@ -23,11 +34,16 @@ class UniteAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,admin
 @admin.register(Contrat)
 class ContratAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin):
     list_per_page = lp
-    list_display = [field.name for field in Contrat._meta.fields if field.name not in ['deleted', 'deleted_by_cascade']]
+    list_display = [field.name for field in Contrat._meta.fields if field.name not in ['deleted', 'deleted_by_cascade']]+['montant_ht','montant_ttc',]
 
     list_filter = (
         SafeDeleteAdminFilter,
     )
+
+    def montant_ttc(self,obj):
+        return obj.montant_ttc
+    def montant_ht(self,obj):
+        return obj.montant_ht
 
 @admin.register(Parametres)
 class ParametresAdmin(SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin):
@@ -61,13 +77,17 @@ class ClientsAdmin(SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin):
 class ContratAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin):
     save_as = True
     list_per_page = lp
-    list_display = [field.name for field in DQE._meta.fields if field.name not in ['deleted', 'deleted_by_cascade']]
+    list_display = [field.name for field in DQE._meta.fields if field.name not in ['deleted', 'deleted_by_cascade']]+['prix_unitaire','montant_qte',
+                                                                                                                      ]
 
 
     list_filter = (
         SafeDeleteAdminFilter,
     )
-
+    def montant_qte(self,obj):
+        return obj.montant_qte
+    def prix_unitaire(self,obj):
+        return obj.prixPrduit.prix_unitaire
 
 @admin.register(UniteMesure)
 class UniteMesureAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin):
@@ -146,7 +166,9 @@ class FacturesAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,ad
     save_as = True
     list_per_page = lp
     list_display = [field.name for field in Factures._meta.fields if field.name not in ['deleted', 'deleted_by_cascade']]+['montant_precedent','montant_mois',
-                                                                                                                               'montant_cumule']
+                                                                                                                               'montant_cumule','montant_rb',
+                                                                                                                           'montant_rg','montant_facture_ht',
+                                                                                                                           'montant_facture_ttc']
 
     list_filter = (
         SafeDeleteAdminFilter,
@@ -154,6 +176,17 @@ class FacturesAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,ad
 
     def montant_mois(self, obj):
         return obj.montant_mois
+    def montant_rg(self, obj):
+        return obj.montant_rg
+
+    def montant_rb(self, obj):
+        return obj.montant_rb
+
+    def montant_facture_ht(self,obj):
+        return obj.montant_facture_ht
+
+    def montant_facture_ttc(self, obj):
+        return obj.montant_facture_ttc
 
     montant_mois.short_description = 'montant courant'
     def montant_precedent(self,obj):

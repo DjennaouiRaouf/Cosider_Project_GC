@@ -58,6 +58,11 @@ class Logout(APIView):
         response.delete_cookie('role')
         return response
 
+class ListImages(generics.ListAPIView):
+    #permission_classes = [IsAuthenticated]
+    queryset = Images.objects.all()
+    serializer_class =ImagesSerilizer
+
 class GetWeight(APIView):
     #permission_classes = [IsAuthenticated]
     def get(self, request):

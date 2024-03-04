@@ -57,19 +57,9 @@ def pre_save_dqe(sender, instance, **kwargs):
     if not instance.pk:
         instance.id = str(instance.prixPrduit.produit.id) + "_" + str(instance.contrat.id)
 
-    instance.montant_qte = round(instance.qte * instance.prixPrduit.prix_unitaire, 4)
 
 
 
-@receiver(post_save, sender=DQE)
-def post_save_dqe(sender, instance, created, **kwargs):
-    total = DQE.objects.filter(contrat=instance.contrat).aggregate(models.Sum('montant_qte'))[
-            "montant_qte__sum"]
-    if not total:
-        total = 0
-    instance.contrat.montant_ht = round(total, 4)
-    instance.contrat.montant_ttc = round(total + (total * instance.contrat.tva / 100), 4)
-    instance.contrat.save()
 
 
 @receiver(pre_save, sender=Planing)
@@ -84,14 +74,7 @@ def post_save_contrat(sender, instance, created, **kwargs):
         delta=relativedelta(instance.date_expiration, instance.date_signature)
         months = delta.months + (delta.years * 12)
         Contrat.objects.filter(pk=instance.pk).update(validite=months)
-    total = DQE.objects.filter(contrat=instance).aggregate(models.Sum('montant_qte'))[
-        "montant_qte__sum"]
-    if not total:
-        total = 0
 
-    Contrat.objects.filter(id=instance.pk).update(
-        montant_ht=round(total, 4),
-        montant_ttc=round(total + (total * instance.tva / 100), 4))
 
 @receiver(pre_save, sender=BonLivraison)
 def pre_save_bonlivraison(sender, instance, **kwargs):
