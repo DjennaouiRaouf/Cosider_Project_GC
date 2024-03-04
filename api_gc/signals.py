@@ -22,6 +22,7 @@ def pre_save_params(sender, instance, **kwargs):
 @receiver(pre_save,  sender=Encaissement)
 def pre_save_encaissement(sender, instance, **kwargs):
     if not instance.pk:
+
         try:
 
             sum = Encaissement.objects.filter(facture=instance.facture).aggregate(models.Sum('montant_encaisse'))[
@@ -73,24 +74,8 @@ def post_save_dqe(sender, instance, created, **kwargs):
 
 @receiver(pre_save, sender=Planing)
 def pre_save_planing(sender, instance, **kwargs):
-    if(not instance.pk):
-        counter=Planing.objects.filter(contrat=instance.contrat,dqe=instance.dqe).count()
-        if(counter > instance.contrat.validite):
-            raise ValidationError(f'Le contrat {instance.contrat} à éxpiré')
-        if(instance.date > instance.contrat.date_expiration):
-            raise ValidationError(f'Le contrat {instance.contrat} à éxpiré')
-        try:
-
-            previous = Planing.objects.filter(dqe=instance.dqe, contrat=instance.contrat, date__lt=instance.date).latest('date')
-            cumule=previous.qte_cumule+instance.qte_livre
-            if(cumule > instance.dqe.qte):
-                raise ValidationError('Vous avez dépassé la quantité contractuelle')
-            else:
-                instance.qte_cumule = cumule
-
-
-        except Planing.DoesNotExist:
-                instance.qte_cumule=instance.qte_livre
+    if(instance.cumule > instance.dqe.qte):
+        raise ValidationError("Vous avez dépassé la quantité contractuelle")
 
 
 @receiver(post_save, sender=Contrat)
@@ -110,20 +95,26 @@ def post_save_contrat(sender, instance, created, **kwargs):
 
 @receiver(pre_save, sender=BonLivraison)
 def pre_save_bonlivraison(sender, instance, **kwargs):
+    if (instance.qte_cumule > instance.dqe.qte):
+        raise ValidationError("Vous avez dépassé la quantité contractuelle")
+
+
+@receiver(pre_save, sender=Factures)
+def pre_save_facture(sender, instance, **kwargs):
     if not instance.pk:
-        try:
-            bonlivraison = BonLivraison.objects.filter(Q(contrat=instance.contrat) & Q(dqe=instance.dqe)).latest('date')
-            prix_u = instance.dqe.prixPrduit.prix_unitaire
-            previous = bonlivraison
-            instance.qte_precedente = previous.qte_cumule
-            instance.qte_cumule = instance.qte_precedente + instance.qte_mois
-            instance.montant_precedent = round(previous.montant_cumule, 4)
-            instance.montant_mois = round(instance.qte_mois * prix_u, 4)
-            instance.montant_cumule = round(instance.montant_precedent + instance.montant_mois, 4)
-        except BonLivraison.DoesNotExist:
-            prix_u = instance.dqe.prixPrduit.prix_unitaire
-            instance.qte_precedente = 0
-            instance.qte_cumule = instance.qte_mois
-            instance.montant_precedent = 0
-            instance.montant_mois = instance.qte_mois * prix_u
-            instance.montant_cumule = round(instance.montant_precedent + instance.montant_mois, 4)
+        instance.numero_facture=str(Factures.objects.all().count()+1)+'/'+str(datetime.now().year)
+        if (instance.du > instance.au):
+            raise ValidationError('Date de debut doit etre inferieur à la date de fin')
+        else:
+            debut = instance.du
+            fin = instance.au
+            try:
+                details = BonLivraison.objects.filter(contrat=instance.contrat, date__lte=fin, date__gte=debut)
+                for d in details:
+                    DetailFacture.objects.create(facture=instance, detail=d)
+
+
+            except BonLivraison.DoesNotExist:
+                raise ValidationError('Facturation impossible les bons de livraison ne sont pas disponible ')
+
+

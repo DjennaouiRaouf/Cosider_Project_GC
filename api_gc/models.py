@@ -206,11 +206,24 @@ class Planing(SafeDeleteModel):
     dqe=models.ForeignKey(DQE, on_delete=models.DO_NOTHING, null=False, verbose_name='dqe')
     date=models.DateField(null=False, verbose_name='Date')
     qte_livre=models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Quantité à livré')
-    qte_cumule = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,editable=False,
-                                    verbose_name='Quantité à livré cumulée')
 
     historique = HistoricalRecords()
     objects = DeletedModelManager()
+
+    @property
+    def cumule(self):
+        try:
+            previous_cumule = Planing.objects.filter(dqe=self.dqe, contrat=self.contrat, date__lt=self.date).aggregate(models.Sum('qte_livre'))[
+            "qte_livre__sum"]
+            if(previous_cumule):
+                return self.qte_livre+previous_cumule
+            else:
+                return self.qte_livre
+
+        except Planing.DoesNotExist:
+                return self.qte_livre
+
+
 
 
     class Meta:
@@ -262,30 +275,58 @@ class Conduire(SafeDeleteModel):
 
 # mode hors connexion
 class BonLivraison(SafeDeleteModel):
+
     _safedelete_policy = SOFT_DELETE_CASCADE
     contrat = models.ForeignKey(Contrat, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
     dqe = models.ForeignKey(DQE, on_delete=models.DO_NOTHING, null=False, verbose_name='dqe')
-
-    qte_precedent = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
-                                     verbose_name='Quantité precedent',editable=False)
-
     qte_mois = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
                                     verbose_name='Quantité à livré')
-    qte_cumule=models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
-                                    verbose_name='Quantité cumulé',editable=False)
-
-    montant_precedent = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)],
-                                            default=0,
-                                            editable=False, verbose_name='Montant précedent')
-    montant_mois = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
-                                       verbose_name='Montant du Mois', editable=False)
-    montant_cumule = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
-                                         editable=False, verbose_name='Montant cumulé')
-
-
-    date=models.DateField(auto_now=True)
+    date=models.DateField()
     historique = HistoricalRecords()
     objects = DeletedModelManager()
+
+    @property
+    def qte_precedente (self):
+        try:
+            previous_cumule = BonLivraison.objects.filter(dqe=self.dqe, contrat=self.contrat, date__lt=self.date).aggregate(models.Sum('qte_mois'))[
+            "qte_mois__sum"]
+            if(previous_cumule):
+                return previous_cumule
+            else:
+                return 0
+
+        except BonLivraison.DoesNotExist:
+                return 0
+
+    @property
+    def qte_cumule(self):
+        return self.qte_precedente+self.qte_mois
+
+    @property
+    def montant_precedent(self):
+        try:
+            previous = BonLivraison.objects.filter(dqe=self.dqe, contrat=self.contrat, date__lt=self.date)
+            sum=0
+            if (previous):
+                for p in previous:
+                    sum+=p.montant_mois
+                return sum
+            else:
+                return round(0,4)
+
+        except BonLivraison.DoesNotExist:
+            return 0
+
+    @property
+    def montant_mois(self):
+        return round(self.qte_mois*self.dqe.prixPrduit.prix_unitaire,4)
+
+    @property
+    def montant_cumule(self):
+        return self.montant_precedent + self.montant_mois
+
+
+
 
     # verifier ods
     class Meta:
@@ -299,43 +340,51 @@ class BonLivraison(SafeDeleteModel):
 
 
 class Factures(SafeDeleteModel):
-    numero_facture=models.PositiveIntegerField(primary_key=True,null=False, verbose_name='Numero de facture')
-    numero_situtation=models.PositiveIntegerField(null=False, verbose_name='Numero de situation',editable='')
+    numero_facture=models.CharField(max_length=500,primary_key=True,null=False, verbose_name='Numero de facture',editable=False)
     contrat=models.ForeignKey(Contrat, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
     du = models.DateField(null=False, verbose_name='Du')
     au = models.DateField(null=False, verbose_name='Au')
     paye = models.BooleanField(default=False, null=False, editable=False)
-    montant_precedent = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)],
-                                            default=0,
-                                            verbose_name="Montant Precedent"
-                                            , editable=False)
-    montant_mois = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
-                                       verbose_name="Montant du Mois"
-                                       , editable=False)
-    montant_cumule = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
-                                         verbose_name="Montant Cumulé"
-                                         , editable=False)
-
-    montant_rb = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
-                                     verbose_name="Montant du rabais"
-                                     , editable=False)
-
-    montant_rg = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
-                                     verbose_name="Montant Retenue de garantie"
-                                     , editable=False)
-
-    montant_factureHT = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)],
-                                            default=0,
-                                            verbose_name="Montant de la facture en HT"
-                                            , editable=False)
-
-    montant_factureTTC = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)],
-                                             default=0,
-                                             verbose_name="Montant de la facture en TTC"
-                                             , editable=False)
 
     historique = HistoricalRecords()
     objects = DeletedModelManager()
+
+    @property
+    def montant_mois(self):
+        try:
+            details=DetailFacture.objects.filter(facture=self.numero_facture)
+            montant_mois=0
+            for detail in details:
+                montant_mois=montant_mois+detail.detail.montant_mois
+            return montant_mois
+        except DetailFacture.DoesNotExist:
+            return 0
+
+    @property
+    def montant_precedent(self):
+        try:
+            details = DetailFacture.objects.filter(facture=self.numero_facture)
+            montant_precedent = 0
+            for detail in details:
+                montant_precedent = montant_precedent + detail.detail.montant_precedent
+            return montant_precedent
+        except DetailFacture.DoesNotExist:
+            return 0
+
+    @property
+    def montant_cumule(self):
+        try:
+            details = DetailFacture.objects.filter(facture=self.numero_facture)
+            montant_cumule = 0
+            for detail in details:
+                montant_cumule = montant_cumule + detail.detail.montant_cumule
+            return montant_cumule
+        except DetailFacture.DoesNotExist:
+            return 0
+
+
+
+
     class Meta:
         app_label = 'api_gc'
         verbose_name = 'Factures'
