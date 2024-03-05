@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'import_export',
     'api_gc',
+    "forms"
 ]
 
 MIDDLEWARE = [

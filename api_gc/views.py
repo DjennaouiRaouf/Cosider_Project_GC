@@ -11,6 +11,10 @@ import serial
 import serial.tools.list_ports
 # Create your views here.
 
+class CreateUserView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
 class Login(APIView):
     permission_classes = []
     def post(self,request):

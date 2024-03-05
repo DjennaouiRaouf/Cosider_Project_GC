@@ -45,10 +45,7 @@ class Parametres(SafeDeleteModel):
 
 class Images(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
-    itemImageSrc= models.ImageField(upload_to="Images", null=False)
-    thumbnailImageSrc=models.CharField(max_length=300,null=True)
-    alt=models.CharField(max_length=300,null=True)
-    title=models.CharField(max_length=300,null=True)
+    src= models.ImageField(upload_to="Images", null=False)
     historique = HistoricalRecords()
     objects = DeletedModelManager()
 
