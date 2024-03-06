@@ -9,5 +9,4 @@ urlpatterns = [
     path('contratlistform/',ContratFieldsList.as_view()),
     path('contrataddform/',ContratFieldsAddUpdate.as_view()),
 
-
 ]
