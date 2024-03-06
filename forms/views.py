@@ -65,18 +65,17 @@ class ContratFieldsList(APIView):
             obj = {
                     'field': field_name,
                     'headerName': field_instance.label or field_name,
-                    'info': str(field_instance.__class__.__name__),
+
 
             }
-            if(field_name in ['montant_ht','montant_ttc']):
-                obj['cellRenderer'] = 'InfoRenderer' 
-
+            if(field_name in ['montant_ht','montant_ttc','rg','tva','rabais']):
+                obj['cellRenderer'] = 'InfoRenderer'
 
             field_info.append(obj)
         return Response({'fields': field_info},
                         status=status.HTTP_200_OK)
 
-class ContratFieldsAdd(APIView):
+class ContratFieldsAddUpdate(APIView):
     def get(self, request):
         serializer = ContratSerializer()
         fields = serializer.get_fields()
@@ -86,9 +85,41 @@ class ContratFieldsAdd(APIView):
                 obj = {
                     'name': field_name,
                     'type': str(field_instance.__class__.__name__),
+                    'required': field_instance.required,
                     'label': field_instance.label or field_name,
                 }
+                if (str(field_instance.__class__.__name__) == "PrimaryKeyRelatedField"):
+                    anySerilizer = create_dynamic_serializer(field_instance.queryset.model)
+                    serialized_data = anySerilizer(field_instance.queryset, many=True).data
+                    filtered_data = []
+                    for item in serialized_data:
+                        filtered_item = {
+                            'value': item['id'],
+                            'label': item['libelle']
+                        }
+                        filtered_data.append(filtered_item)
+
+                    obj['queryset'] = filtered_data
 
                 field_info.append(obj)
-        return Response({'fields': field_info},
+                field_state = []
+                state = {}
+
+                default_value = ''
+                if (str(field_instance.__class__.__name__) == "PrimaryKeyRelatedField"):
+                    default_value=[]
+                if str(field_instance.__class__.__name__) == 'BooleanField':
+                    default_value = False
+                if str(field_instance.__class__.__name__) in ['PositiveSmallIntegerField', 'DecimalField',
+                                                              'PositiveIntegerField',
+                                                              'IntegerField', ]:
+                    default_value = 0
+                field_state.append({
+                    field_name: default_value,
+                })
+                state = {}
+                for d in field_state:
+                    state.update(d)
+
+        return Response({'fields': field_info,'state':state},
                         status=status.HTTP_200_OK)
