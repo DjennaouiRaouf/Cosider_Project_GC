@@ -20,11 +20,18 @@ def create_dynamic_serializer(model_class):
 
 class ContratSerializer(serializers.ModelSerializer):
     utilisateur=serializers.SerializerMethodField()
-    historique = serializers.SerializerMethodField()
+    montant_ht = serializers.SerializerMethodField()
+    montant_ttc = serializers.SerializerMethodField()
 
     def get_utilisateur(self,obj):
-        user_fullname = obj.historique.latest().history_user.get_full_name()
+        user_fullname = obj.historique.latest().history_user.username
         return user_fullname
+
+    def get_montant_ht(self,obj):
+        return  obj.montant_ht
+
+    def get_montant_ttc(self, obj):
+        return obj.montant_ttc
 
     def get_fields(self, *args, **kwargs):
         fields = super().get_fields(*args, **kwargs)
@@ -33,23 +40,7 @@ class ContratSerializer(serializers.ModelSerializer):
 
         return fields
 
-    def get_historique(self, obj):
-        history = []
-        for historical_instance in obj.historique.all():
 
-            anySerilizer = create_dynamic_serializer(historical_instance.instance)
-            serilizedData=anySerilizer(historical_instance.instance, many=False).data
-            serilizedData['utilisateur']=historical_instance.history_user.username
-            serilizedData['date_modification']=historical_instance.history_date
-            if (historical_instance.history_type == '~'):
-                serilizedData['type']= 'Modification'
-            elif (historical_instance.history_type=='+'):
-                serilizedData['type']='Création'
-
-
-            serilizedData['version_id'] = historical_instance.history_id
-            history.append(serilizedData)
-        return history
     class Meta:
         model = Contrat
         fields ='__all__'

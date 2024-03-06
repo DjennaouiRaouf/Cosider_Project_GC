@@ -67,6 +67,14 @@ class ListImages(generics.ListAPIView):
     queryset = Images.objects.all()
     serializer_class =ImagesSerilizer
 
+class WhoamiView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        return Response({'whoami':request.user.username}, status=status.HTTP_200_OK)
+
+
+
+
 class GetWeight(APIView):
     #permission_classes = [IsAuthenticated]
     def get(self, request):
