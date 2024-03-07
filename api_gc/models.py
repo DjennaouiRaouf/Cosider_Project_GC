@@ -4,7 +4,7 @@ from safedelete import SOFT_DELETE_CASCADE, DELETED_VISIBLE_BY_PK, SOFT_DELETE, 
 from safedelete.managers import SafeDeleteManager
 from safedelete.models import SafeDeleteModel
 from simple_history.models import HistoricalRecords
-
+from dateutil.relativedelta import relativedelta
 
 # Create your models here.
 
@@ -149,12 +149,19 @@ class Contrat(SafeDeleteModel):
     client=models.ForeignKey(Clients, on_delete=models.DO_NOTHING,null=False,verbose_name='Client')
     date_signature=models.DateField(db_column='date_signature', null=False, blank=False, verbose_name='Date de Signature')
     date_expiration=models.DateField(db_column='date_expiration', null=True, verbose_name='Date d\'expiration')
-    validite=models.PositiveIntegerField(default=0, verbose_name='Durée de validité (en Mois)', null=False, blank=False,editable=False)
     historique = HistoricalRecords()
     objects = DeletedModelManager()
 
     def __str__(self):
         return self.id
+
+    @property
+    def validite(self):
+        delta = relativedelta(self.date_expiration, self.date_signature)
+        months = delta.months + (delta.years * 12)
+        return months
+
+
 
     @property
     def montant_ht(self):
@@ -173,8 +180,6 @@ class Contrat(SafeDeleteModel):
         app_label = 'api_gc'
         verbose_name = 'Contrats'
         verbose_name_plural = 'Contrats'
-
-
 
 class DQE(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE

@@ -3,6 +3,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from api_gc.filters import *
 from api_gc.serializers import *
 
 
@@ -75,6 +76,39 @@ class ContratFieldsList(APIView):
         return Response({'fields': field_info},
                         status=status.HTTP_200_OK)
 
+
+
+
+
+class ContratFilterForm(APIView):
+    def get(self,request):
+        field_info = []
+
+        for field_name, field_instance  in ContratFilter.base_filters.items():
+            if(field_name  not in ['deleted','deleted_by_cascade']):
+
+                obj = {
+                    'name': field_name,
+                    'type': str(field_instance.__class__.__name__),
+                    'label': field_instance.label or field_name,
+
+                }
+                if str(field_instance.__class__.__name__) == 'ModelChoiceFilter':
+                    anySerilizer = create_dynamic_serializer(field_instance.queryset.model)
+                    serialized_data = anySerilizer(field_instance.queryset, many=True).data
+                    filtered_data = []
+                    for item in serialized_data:
+                        filtered_item = {
+                            'value': item['id'],
+                            'label': item['libelle']
+                        }
+                        filtered_data.append(filtered_item)
+
+                    obj['queryset'] = filtered_data
+
+                field_info.append(obj)
+
+        return Response({'fields': field_info},status=status.HTTP_200_OK)
 class ContratFieldsAddUpdate(APIView):
     def get(self, request):
         serializer = ContratSerializer()

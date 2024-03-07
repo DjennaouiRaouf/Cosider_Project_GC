@@ -22,7 +22,10 @@ class ContratSerializer(serializers.ModelSerializer):
     utilisateur=serializers.SerializerMethodField()
     montant_ht = serializers.SerializerMethodField()
     montant_ttc = serializers.SerializerMethodField()
+    validite = serializers.SerializerMethodField()
 
+    def get_validite(self, obj):
+        return obj.validite
     def get_utilisateur(self,obj):
         user_fullname = obj.historique.latest().history_user.username
         return user_fullname

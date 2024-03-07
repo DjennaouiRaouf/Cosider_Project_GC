@@ -1,10 +1,13 @@
 from django.contrib.auth import authenticate
 from django.shortcuts import render
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
+
+from api_gc.filters import *
 from api_gc.models import *
 from api_gc.serializers import *
 import serial
@@ -105,12 +108,15 @@ class ListContract(generics.ListAPIView):
     #permission_classes = [IsAuthenticated]
     queryset = Contrat.objects.all()
     serializer_class =ContratSerializer
-
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = ContratFilter
 
 class ListClient(generics.ListAPIView):
     #permission_classes = [IsAuthenticated]
     queryset = Clients.objects.all()
     serializer_class =ClientSerilizer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = ClientsFilter
 
 class AddClient(generics.CreateAPIView):
     #permission_classes = [IsAuthenticated]
