@@ -141,6 +141,15 @@ class AddContrat(generics.CreateAPIView):
     serializer_class = ContratSerializer
 
 
+class contratKeys(APIView):
+    #permission_classes = [IsAuthenticated]
+    def get(self,request):
+        try:
+            keys=Contrat.objects.all().values("id",'libelle')
+            return Response({'data':keys},status=status.HTTP_200_OK)
+        except Contrat.DoesNotExist:
+            return Response({'message':'Pas de contrat'},status=status.HTTP_404_NOT_FOUND)
+
 
 
 

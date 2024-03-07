@@ -14,6 +14,7 @@ urlpatterns = [
     path('getclient/',ListClient.as_view()),
     path('addclient/',AddClient.as_view()),
     path('getdqe/',ListDQE.as_view()),
+    path('contractkeys/',contratKeys.as_view()),
     path('adddqe/',AddDQE.as_view()),
     path('getimg/',ListImages.as_view()),
 ]
