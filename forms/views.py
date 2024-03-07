@@ -265,3 +265,113 @@ class ClientFilterForm(APIView):
                 field_info.append(obj)
 
         return Response({'fields': field_info},status=status.HTTP_200_OK)
+
+
+#-------------------------------------------------------- DQE
+
+class DQEFieldsList(APIView):
+    def get(self, request):
+        serializer = DQESerializer()
+        fields = serializer.get_fields()
+        field_info = []
+        for field_name, field_instance in fields.items():
+            if(field_name not in ['prixProduit',]):
+                obj = {
+                        'field': field_name,
+                        'headerName': field_instance.label or field_name,
+
+
+                }
+                if(field_name in ['montant_qte','prix_unitaire']):
+                    obj['cellRenderer'] = 'InfoRenderer'
+
+                field_info.append(obj)
+        return Response({'fields': field_info},
+                        status=status.HTTP_200_OK)
+
+
+
+
+
+class DQEFilterForm(APIView):
+    def get(self,request):
+        field_info = []
+
+        for field_name, field_instance  in DQEFilter.base_filters.items():
+            if(field_name  not in ['deleted','deleted_by_cascade']):
+
+                obj = {
+                    'name': field_name,
+                    'type': str(field_instance.__class__.__name__),
+                    'label': field_instance.label or field_name,
+
+                }
+                if str(field_instance.__class__.__name__) == 'ModelChoiceFilter':
+                    anySerilizer = create_dynamic_serializer(field_instance.queryset.model)
+                    serialized_data = anySerilizer(field_instance.queryset, many=True).data
+                    filtered_data = []
+                    for item in serialized_data:
+                        filtered_item = {
+                            'value': item['id'],
+                            'label': item['libelle']
+                        }
+                        filtered_data.append(filtered_item)
+
+                    obj['queryset'] = filtered_data
+
+                field_info.append(obj)
+
+        return Response({'fields': field_info},status=status.HTTP_200_OK)
+class DQEFieldsAddUpdate(APIView):
+    def get(self, request):
+        serializer = DQESerializer
+        fields = serializer.get_fields()
+        field_info = []
+        field_state = []
+        state = {}
+
+        for field_name, field_instance in fields.items():
+            if(field_name not in ['utilisateur','montant_qte']):
+                obj = {
+                    'name': field_name,
+                    'type': str(field_instance.__class__.__name__),
+                    'required': field_instance.required,
+                    'label': field_instance.label or field_name,
+                }
+                if (str(field_instance.__class__.__name__) == "PrimaryKeyRelatedField"):
+                    anySerilizer = create_dynamic_serializer(field_instance.queryset.model)
+                    serialized_data = anySerilizer(field_instance.queryset, many=True).data
+                    filtered_data = []
+                    for item in serialized_data:
+                        filtered_item = {
+                            'value': item['id'],
+                            'label': item['libelle']
+                        }
+                        filtered_data.append(filtered_item)
+
+                    obj['queryset'] = filtered_data
+
+                field_info.append(obj)
+
+                default_value = ''
+                if (str(field_instance.__class__.__name__) == "PrimaryKeyRelatedField"):
+                    default_value=[]
+                if str(field_instance.__class__.__name__) == 'BooleanField':
+                    default_value = False
+                if str(field_instance.__class__.__name__) in ['PositiveSmallIntegerField', 'DecimalField',
+                                                              'PositiveIntegerField',
+                                                              'IntegerField', ]:
+                    default_value = 0
+                field_state.append({
+                    field_name: default_value,
+                })
+                for d in field_state:
+                    state.update(d)
+
+        return Response({'fields': field_info,'state':state},
+                        status=status.HTTP_200_OK)
+
+
+
+
+

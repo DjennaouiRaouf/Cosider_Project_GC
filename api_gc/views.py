@@ -111,6 +111,12 @@ class ListContract(generics.ListAPIView):
     filter_backends = [DjangoFilterBackend]
     filterset_class = ContratFilter
 
+class ListDQE(generics.ListAPIView):
+    #permission_classes = [IsAuthenticated]
+    queryset = DQE.objects.all()
+    serializer_class =DQESerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = DQEFilter
 class ListClient(generics.ListAPIView):
     #permission_classes = [IsAuthenticated]
     queryset = Clients.objects.all()
@@ -124,16 +130,15 @@ class AddClient(generics.CreateAPIView):
     serializer_class = ClientSerilizer
 
 
+class AddDQE(generics.CreateAPIView):
+    #permission_classes = [IsAuthenticated]
+    queryset = DQE.objects.all()
+    serializer_class = DQESerializer
+
 class AddContrat(generics.CreateAPIView):
     #permission_classes = [IsAuthenticated]
     queryset = Contrat.objects.all()
     serializer_class = ContratSerializer
-
-class ListDQE(generics.ListAPIView):
-    #permission_classes = [IsAuthenticated]
-    queryset = DQE.objects.all()
-    serializer_class =DQESerializer
-
 
 
 

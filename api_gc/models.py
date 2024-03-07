@@ -186,14 +186,14 @@ class DQE(SafeDeleteModel):
 
     id=models.CharField(max_length=500,primary_key=True,verbose_name='id',editable=False)
     contrat=models.ForeignKey(Contrat, on_delete=models.DO_NOTHING,null=True,verbose_name='Contrat')
-    prixPrduit=models.ForeignKey(PrixProduit, on_delete=models.DO_NOTHING,null=False,verbose_name='Produit')
+    prixProduit=models.ForeignKey(PrixProduit, on_delete=models.DO_NOTHING,null=False,verbose_name='Produit')
     qte=models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Quantité')
     historique = HistoricalRecords()
     objects = DeletedModelManager()
 
     @property
     def montant_qte(self):
-        return round(self.qte*self.prixPrduit.prix_unitaire,4)
+        return round(self.qte*self.prixProduit.prix_unitaire,4)
     class Meta:
         app_label = 'api_gc'
         verbose_name = 'DQE'

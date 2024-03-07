@@ -30,10 +30,30 @@ class ContratFilter(django_filters.FilterSet):
 class ClientsFilter(django_filters.FilterSet):
     class Meta:
         model = Clients
-        fields = ['id', 'type_client','nif','num_registre_commerce','raison_social', 'est_client_cosider', 'sous_client']
+        fields = '__all__'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field_name, field_instance in self.base_filters.items():
-            model_field = self.Meta.model._meta.get_field(field_name)
-            field_instance.label = model_field.verbose_name
+            try:
+                model_field = self.Meta.model._meta.get_field(field_name)
+                field_instance.label = model_field.verbose_name
+            except:
+                pass
+
+
+
+
+class DQEFilter(django_filters.FilterSet):
+    class Meta:
+        model = DQE
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field_instance in self.base_filters.items():
+            try:
+                model_field = self.Meta.model._meta.get_field(field_name)
+                field_instance.label = model_field.verbose_name
+            except:
+                pass

@@ -50,27 +50,6 @@ class ContratSerializer(serializers.ModelSerializer):
 
 
 
-class DQESerializer(serializers.ModelSerializer):
-    utilisateur = serializers.SerializerMethodField()
-
-    def get_utilisateur(self, obj):
-        user_fullname = obj.historique.latest().history_user.get_full_name()
-        return user_fullname
-
-    def get_fields(self, *args, **kwargs):
-        fields = super().get_fields(*args, **kwargs)
-        fields.pop('deleted', None)
-        fields.pop('deleted_by_cascade', None)
-
-        return fields
-
-
-
-    class Meta:
-        model = DQE
-        fields = '__all__'
-
-
 class ImagesSerilizer(serializers.ModelSerializer):
     def get_fields(self, *args, **kwargs):
         fields = super().get_fields(*args, **kwargs)
@@ -97,6 +76,35 @@ class ClientSerilizer(serializers.ModelSerializer):
     class Meta:
         model = Clients
         fields = '__all__'
+
+
+
+
+class DQESerializer(serializers.ModelSerializer):
+    utilisateur = serializers.SerializerMethodField()
+    montant_qte=serializers.SerializerMethodField()
+    prix_unitaire=serializers.SerializerMethodField()
+
+    def get_montant_qte(self, obj):
+        return obj.montant_qte
+
+    def get_prix_unitaire(self, obj):
+        return obj.prixProduit.prix_unitaire
+
+    def get_utilisateur(self, obj):
+        user_fullname = obj.historique.latest().history_user.username
+        return user_fullname
+    def get_fields(self, *args, **kwargs):
+        fields = super().get_fields(*args, **kwargs)
+        fields.pop('deleted', None)
+        fields.pop('deleted_by_cascade', None)
+
+        return fields
+    class Meta:
+        model = DQE
+        fields = '__all__'
+
+
 
 
 class UserSerializer(serializers.ModelSerializer):
