@@ -106,10 +106,30 @@ class ListContract(generics.ListAPIView):
     queryset = Contrat.objects.all()
     serializer_class =ContratSerializer
 
+
+class ListClient(generics.ListAPIView):
+    #permission_classes = [IsAuthenticated]
+    queryset = Clients.objects.all()
+    serializer_class =ClientSerilizer
+
+class AddClient(generics.CreateAPIView):
+    #permission_classes = [IsAuthenticated]
+    queryset = Clients.objects.all()
+    serializer_class = ClientSerilizer
+
+
+class AddContrat(generics.CreateAPIView):
+    #permission_classes = [IsAuthenticated]
+    queryset = Contrat.objects.all()
+    serializer_class = ContratSerializer
+
 class ListDQE(generics.ListAPIView):
     #permission_classes = [IsAuthenticated]
     queryset = DQE.objects.all()
     serializer_class =DQESerializer
+
+
+
 
 
 
