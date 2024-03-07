@@ -13,5 +13,6 @@ urlpatterns = [
 
     path('clientlistform/', ClientFieldsList.as_view()),
     path('clientaddform/', ClientFieldsAddUpdate.as_view()),
+    path('clientfilterform/', ClientFilterForm.as_view()),
 
 ]

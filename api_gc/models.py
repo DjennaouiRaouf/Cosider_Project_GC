@@ -137,7 +137,7 @@ class PrixProduit(SafeDeleteModel):
 class Contrat(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
 
-    id=models.CharField(db_column='code_contrat', max_length=500, primary_key=True)
+    id=models.CharField(db_column='code_contrat', max_length=500, primary_key=True,verbose_name = 'Code du contrat')
     libelle=models.CharField(db_column='libelle', max_length=500, blank=True, null=False, verbose_name='libelle')
     tva=models.DecimalField(max_digits=38,decimal_places=3,validators=[MinValueValidator(0),MaxValueValidator(100)],default=0,verbose_name='TVA')
     transport=models.BooleanField(db_column='transport', default=False, verbose_name='Transport')

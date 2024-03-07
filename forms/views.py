@@ -231,3 +231,37 @@ class ClientFieldsAddUpdate(APIView):
 
         return Response({'fields': field_info,'state':state},
                         status=status.HTTP_200_OK)
+
+
+
+class ClientFilterForm(APIView):
+    def get(self,request):
+
+
+        field_info = []
+        for field_name, field_instance  in ClientsFilter().base_filters.items():
+
+            if(field_name  not in ['deleted','deleted_by_cascade']):
+
+                obj = {
+                    'name': field_name,
+                    'type': str(field_instance.__class__.__name__),
+                    'label': field_instance.label or field_name,
+
+                }
+                if str(field_instance.__class__.__name__) == 'ModelChoiceFilter':
+                    anySerilizer = create_dynamic_serializer(field_instance.queryset.model)
+                    serialized_data = anySerilizer(field_instance.queryset, many=True).data
+                    filtered_data = []
+                    for item in serialized_data:
+                        filtered_item = {
+                            'value': item['id'],
+                            'label': item['libelle']
+                        }
+                        filtered_data.append(filtered_item)
+
+                    obj['queryset'] = filtered_data
+
+                field_info.append(obj)
+
+        return Response({'fields': field_info},status=status.HTTP_200_OK)
