@@ -144,6 +144,8 @@ class AddDQE(generics.CreateAPIView):
     queryset = DQE.objects.all()
     serializer_class = DQESerializer
 
+
+
 class AddContrat(generics.CreateAPIView):
     #permission_classes = [IsAuthenticated]
     queryset = Contrat.objects.all()
