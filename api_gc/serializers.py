@@ -79,11 +79,27 @@ class ClientSerilizer(serializers.ModelSerializer):
 
 
 
+class PrixProduitSerializer(serializers.ModelSerializer):
+    libelle_prod=serializers.SerializerMethodField(label='libelle du produit')
+    def get_libelle_prod(self, obj):
+        return obj.produit.libelle
+    def get_fields(self, *args, **kwargs):
+        fields = super().get_fields(*args, **kwargs)
+        fields.pop('deleted', None)
+        fields.pop('deleted_by_cascade', None)
+
+        return fields
+    class Meta:
+        model = PrixProduit
+        fields = '__all__'
+
 
 class DQESerializer(serializers.ModelSerializer):
     utilisateur = serializers.SerializerMethodField()
     montant_qte=serializers.SerializerMethodField()
     prix_unitaire=serializers.SerializerMethodField()
+    unite=serializers.PrimaryKeyRelatedField(source='prixProduit.unite',queryset=Unite.objects.all())
+    produit=serializers.PrimaryKeyRelatedField(source='prixProduit.produit',queryset=Produits.objects.all())
 
     def get_montant_qte(self, obj):
         return obj.montant_qte
