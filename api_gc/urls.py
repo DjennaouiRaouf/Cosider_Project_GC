@@ -18,4 +18,7 @@ urlpatterns = [
     path('getpprod/',ListPrixProduit.as_view()),
     path('adddqe/',AddDQE.as_view()),
     path('getimg/',ListImages.as_view()),
+
+    path('getunite/',GetUnites.as_view()),
+    path('getprod/',GetProds.as_view()),
 ]

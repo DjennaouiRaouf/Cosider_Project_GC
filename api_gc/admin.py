@@ -87,7 +87,7 @@ class ContratAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,adm
     def montant_qte(self,obj):
         return obj.montant_qte
     def prix_unitaire(self,obj):
-        return obj.prixPrduit.prix_unitaire
+        return obj.prixProduit.prix_unitaire
 
 @admin.register(UniteMesure)
 class UniteMesureAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin):

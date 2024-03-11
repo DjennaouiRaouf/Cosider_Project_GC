@@ -98,9 +98,6 @@ class DQESerializer(serializers.ModelSerializer):
     utilisateur = serializers.SerializerMethodField()
     montant_qte=serializers.SerializerMethodField()
     prix_unitaire=serializers.SerializerMethodField()
-    unite=serializers.PrimaryKeyRelatedField(source='prixProduit.unite',queryset=Unite.objects.all())
-    produit=serializers.PrimaryKeyRelatedField(source='prixProduit.produit',queryset=Produits.objects.all())
-
     def get_montant_qte(self, obj):
         return obj.montant_qte
 

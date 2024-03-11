@@ -145,6 +145,26 @@ class AddDQE(generics.CreateAPIView):
     serializer_class = DQESerializer
 
 
+class GetUnites(APIView):
+    def get(self,request):
+        try:
+            u=Unite.objects.all().values('id','libelle')
+            return Response(u,status=status.HTTP_200_OK)
+        except Unite.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+class GetProds(APIView):
+    def get(self,request):
+        try:
+            u=Produits.objects.all().values('id','libelle')
+            return Response(u,status=status.HTTP_200_OK)
+        except Produits.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+
+
 
 class AddContrat(generics.CreateAPIView):
     #permission_classes = [IsAuthenticated]
