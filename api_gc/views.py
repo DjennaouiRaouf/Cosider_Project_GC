@@ -78,6 +78,7 @@ class WhoamiView(APIView):
 
 
 
+
 class GetWeight(APIView):
     #permission_classes = [IsAuthenticated]
     def get(self, request):
@@ -110,6 +111,21 @@ class ListContract(generics.ListAPIView):
     serializer_class =ContratSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = ContratFilter
+
+
+class ListBL(generics.ListAPIView):
+    # permission_classes = [IsAuthenticated]
+    queryset= BonLivraison.objects.all()
+    serializer_class = BonLivraisonSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = BLFilter
+
+
+class AddBL(generics.CreateAPIView):
+    # permission_classes = [IsAuthenticated]
+    queryset= BonLivraison.objects.all()
+    serializer_class = BonLivraisonSerializer
+
 
 class ListDQE(generics.ListAPIView):
     #permission_classes = [IsAuthenticated]

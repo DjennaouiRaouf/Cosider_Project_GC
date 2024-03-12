@@ -21,4 +21,6 @@ urlpatterns = [
 
     path('getunite/',GetUnites.as_view()),
     path('getprod/',GetProds.as_view()),
+    path('getbl/',ListBL.as_view()),
+    path('addbl/', AddBL.as_view()),
 ]

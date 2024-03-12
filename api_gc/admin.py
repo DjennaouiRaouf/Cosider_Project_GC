@@ -136,11 +136,34 @@ class UniteMesureAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin
         return obj.cumule
 
 
+
 @admin.register(BonLivraison)
 class BonLivraisonAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin):
     save_as = True
     list_per_page = lp
-    list_display = [field.name for field in BonLivraison._meta.fields if field.name not in ['qte_mois','deleted', 'deleted_by_cascade']]+['qte_precedente','qte_mois','qte_cumule',
+    list_display = [field.name for field in BonLivraison._meta.fields if field.name not in ['deleted', 'deleted_by_cascade']]
+
+    list_filter = (
+        SafeDeleteAdminFilter,
+    )
+
+
+@admin.register(Camion)
+class CamionAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin):
+    save_as = True
+    list_per_page = lp
+    list_display = [field.name for field in Camion._meta.fields if field.name not in ['deleted', 'deleted_by_cascade']]
+
+
+    list_filter = (
+        SafeDeleteAdminFilter,
+    )
+
+@admin.register(DetailBonLivraison)
+class BonLivraisonAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin):
+    save_as = True
+    list_per_page = lp
+    list_display = [field.name for field in DetailBonLivraison._meta.fields if field.name not in ['qte_mois','deleted', 'deleted_by_cascade']]+['qte_precedente','qte_mois','qte_cumule',
                                                                                                                                'montant_precedent','montant_mois',
                                                                                                                                'montant_cumule']
 

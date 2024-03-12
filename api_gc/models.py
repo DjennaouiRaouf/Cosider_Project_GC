@@ -256,9 +256,6 @@ class Planing(SafeDeleteModel):
         except Planing.DoesNotExist:
                 return self.qte_livre
 
-
-
-
     class Meta:
         unique_together = (('contrat', 'dqe', 'date'),)
         app_label = 'api_gc'
@@ -278,50 +275,38 @@ class Camion(SafeDeleteModel):
         verbose_name = 'Camions'
         verbose_name_plural = 'Camions'
 
-class Conducteur(SafeDeleteModel):
-    _safedelete_policy = SOFT_DELETE_CASCADE
-
-    nom=models.CharField(max_length=500,null=False, verbose_name='Nom')
-    prenom = models.CharField(max_length=500, null=False, verbose_name='Prénom')
-    num_id=models.CharField(max_length=500,null=False,verbose_name='Numero d\'identification')
-    historique = HistoricalRecords()
-    objects = DeletedModelManager()
-    class Meta:
-        app_label = 'api_gc'
-        verbose_name = 'Conducteur'
-        verbose_name_plural = 'Conducteur'
-
-
-class Conduire(SafeDeleteModel):
-    _safedelete_policy = SOFT_DELETE_CASCADE
-
-    conducteur=models.ForeignKey(Conducteur,null=False, on_delete=models.DO_NOTHING, verbose_name='Conducteur')
-    camion=models.ForeignKey(Camion,null=False, on_delete=models.DO_NOTHING, verbose_name='Camion')
-    date=models.DateField(null=False, verbose_name='Date')
-    historique = HistoricalRecords()
-    objects = DeletedModelManager()
-    class Meta:
-        app_label = 'api_gc'
-        verbose_name = 'Conduire'
-        verbose_name_plural = 'Conduire'
-
 
 # mode hors connexion
 class BonLivraison(SafeDeleteModel):
 
     _safedelete_policy = SOFT_DELETE_CASCADE
+    conducteur=models.CharField(max_length=500, null=False, verbose_name='Conducteur')
+    camion = models.ForeignKey(Camion, null=False, on_delete=models.DO_NOTHING, verbose_name='Camion')
     contrat = models.ForeignKey(Contrat, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
+    date=models.DateField(auto_now=True)
+    historique = HistoricalRecords()
+    objects = DeletedModelManager()
+
+
+    class Meta:
+        app_label = 'api_gc'
+        verbose_name = 'Bon de livraison'
+        verbose_name_plural = 'Bon de livraison'
+
+class DetailBonLivraison(SafeDeleteModel):
+
+    _safedelete_policy = SOFT_DELETE_CASCADE
+    bl=models.ForeignKey(BonLivraison, on_delete=models.DO_NOTHING, null=False, verbose_name='Bon de Livraison')
     dqe = models.ForeignKey(DQE, on_delete=models.DO_NOTHING, null=False, verbose_name='dqe')
     qte_mois = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
                                     verbose_name='Quantité à livré')
-    date=models.DateField()
     historique = HistoricalRecords()
     objects = DeletedModelManager()
 
     @property
     def qte_precedente (self):
         try:
-            previous_cumule = BonLivraison.objects.filter(dqe=self.dqe, contrat=self.contrat, date__lt=self.date).aggregate(models.Sum('qte_mois'))[
+            previous_cumule = BonLivraison.objects.filter(dqe=self.dqe, contrat=self.bl.contrat, date__lt=self.bl.date).aggregate(models.Sum('qte_mois'))[
             "qte_mois__sum"]
             if(previous_cumule):
                 return previous_cumule
@@ -338,7 +323,7 @@ class BonLivraison(SafeDeleteModel):
     @property
     def montant_precedent(self):
         try:
-            previous = BonLivraison.objects.filter(dqe=self.dqe, contrat=self.contrat, date__lt=self.date)
+            previous = BonLivraison.objects.filter(dqe=self.dqe, contrat=self.bl.contrat, date__lt=self.bl.date)
             sum=0
             if (previous):
                 for p in previous:
@@ -363,10 +348,10 @@ class BonLivraison(SafeDeleteModel):
 
     # verifier ods
     class Meta:
-        unique_together = (('contrat','dqe','date'))
+        unique_together = (('bl','dqe'))
         app_label = 'api_gc'
-        verbose_name = 'Bon de livraison'
-        verbose_name_plural = 'Bon de livraison'
+        verbose_name = 'Details des Bons de livraison'
+        verbose_name_plural = 'Details des Bons de livraison'
 
 
 

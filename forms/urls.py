@@ -21,4 +21,8 @@ urlpatterns = [
     path('dqefilterform/',DQEFilterForm.as_view()),
 
 
+    path('bllistform/',BLFieldsList.as_view()),
+    path('bladdform/',BLFieldsAddUpdate.as_view()),
+
+
 ]

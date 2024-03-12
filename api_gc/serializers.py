@@ -146,3 +146,44 @@ class UserSerializer(serializers.ModelSerializer):
 
         )
         return user
+
+
+
+
+class BonLivraisonSerializer(serializers.ModelSerializer):
+
+    def get_fields(self, *args, **kwargs):
+        fields = super().get_fields(*args, **kwargs)
+        fields.pop('deleted', None)
+        fields.pop('deleted_by_cascade', None)
+
+        return fields
+    class Meta:
+        model = BonLivraison
+        fields = '__all__'
+
+
+class DetailBonLivraisonSerializer(serializers.ModelSerializer):
+    libelle_produit = serializers.SerializerMethodField()
+    unite = serializers.SerializerMethodField()
+    unite_mesure = serializers.SerializerMethodField()
+
+    def get_libelle_produit(self, obj):
+        return obj.dqe.prixProduit.produit.libelle
+
+    def get_unite(self, obj):
+        return obj.dqe.prixProduit.unite.id
+
+    def get_unite_mesure(self, obj):
+        return obj.dqe.prixProduit.produit.unite.libelle
+
+
+    def get_fields(self, *args, **kwargs):
+        fields = super().get_fields(*args, **kwargs)
+        fields.pop('deleted', None)
+        fields.pop('deleted_by_cascade', None)
+
+        return fields
+    class Meta:
+        model = DetailBonLivraison
+        fields = '__all__'
