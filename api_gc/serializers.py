@@ -95,18 +95,23 @@ class PrixProduitSerializer(serializers.ModelSerializer):
 
 
 class DQESerializer(serializers.ModelSerializer):
-    utilisateur = serializers.SerializerMethodField()
     montant_qte=serializers.SerializerMethodField()
     prix_unitaire=serializers.SerializerMethodField()
+    unite=serializers.SerializerMethodField()
+    produit = serializers.SerializerMethodField()
     def get_montant_qte(self, obj):
         return obj.montant_qte
+
+    def get_unite(self, obj):
+        return obj.prixProduit.unite.libelle
+
+    def get_produit(self, obj):
+        return obj.prixProduit.produit.libelle
 
     def get_prix_unitaire(self, obj):
         return obj.prixProduit.prix_unitaire
 
-    def get_utilisateur(self, obj):
-        user_fullname = obj.historique.latest().history_user.username
-        return user_fullname
+
     def get_fields(self, *args, **kwargs):
         fields = super().get_fields(*args, **kwargs)
         fields.pop('deleted', None)

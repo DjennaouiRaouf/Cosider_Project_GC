@@ -357,21 +357,23 @@ class DQEFieldsAddUpdate(APIView):
         state = {}
 
         for field_name, field_instance in fields.items():
-            if(field_name not in ['utilisateur','montant_qte','prixProduit','prix_unitaire','contrat','id']):
+            if(field_name not in ['utilisateur','montant_qte','produit','unite','prix_unitaire','contrat','id']):
                 obj = {
                     'name': field_name,
                     'type': str(field_instance.__class__.__name__),
                     'required': field_instance.required,
                     'label': field_instance.label or field_name,
                 }
-                if (str(field_instance.__class__.__name__) == "PrimaryKeyRelatedField"):
-                    anySerilizer = create_dynamic_serializer(field_instance.queryset.model)
-                    serialized_data = anySerilizer(field_instance.queryset, many=True).data
+                if (str(field_instance.__class__.__name__) == "PrimaryKeyRelatedField" and field_name in [
+                    'prixProduit']):
+
+                    serialized_data = PrixProduitSerializer(field_instance.queryset, many=True).data
                     filtered_data = []
                     for item in serialized_data:
                         filtered_item = {
                             'value': item['id'],
-                            'label': item['libelle']
+                            'label': '('+item['unite']+')'+"  --  "+item['libelle_prod']+"  --  "+item['prix_unitaire']
+
                         }
                         filtered_data.append(filtered_item)
 
