@@ -278,12 +278,11 @@ class Camion(SafeDeleteModel):
 
 # mode hors connexion
 class BonLivraison(SafeDeleteModel):
-
     _safedelete_policy = SOFT_DELETE_CASCADE
     conducteur=models.CharField(max_length=500, null=False, verbose_name='Conducteur')
     camion = models.ForeignKey(Camion, null=False, on_delete=models.DO_NOTHING, verbose_name='Camion')
     contrat = models.ForeignKey(Contrat, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
-    date=models.DateField(auto_now=True)
+    date=models.DateTimeField(auto_now=True)
     historique = HistoricalRecords()
     objects = DeletedModelManager()
 
@@ -306,8 +305,9 @@ class DetailBonLivraison(SafeDeleteModel):
     @property
     def qte_precedente (self):
         try:
-            previous_cumule = BonLivraison.objects.filter(dqe=self.dqe, contrat=self.bl.contrat, date__lt=self.bl.date).aggregate(models.Sum('qte_mois'))[
+            previous_cumule = DetailBonLivraison.objects.filter(dqe=self.dqe, bl__contrat=self.bl.contrat, bl__date__lt=self.bl.date).aggregate(models.Sum('qte_mois'))[
             "qte_mois__sum"]
+            print(previous_cumule)
             if(previous_cumule):
                 return previous_cumule
             else:
@@ -323,7 +323,7 @@ class DetailBonLivraison(SafeDeleteModel):
     @property
     def montant_precedent(self):
         try:
-            previous = BonLivraison.objects.filter(dqe=self.dqe, contrat=self.bl.contrat, date__lt=self.bl.date)
+            previous = DetailBonLivraison.objects.filter(dqe=self.dqe, bl__contrat=self.bl.contrat, bl__date__lt=self.bl.date)
             sum=0
             if (previous):
                 for p in previous:
@@ -337,7 +337,7 @@ class DetailBonLivraison(SafeDeleteModel):
 
     @property
     def montant_mois(self):
-        return round(self.qte_mois*self.dqe.prixPrduit.prix_unitaire,4)
+        return round(self.qte_mois*self.dqe.prixProduit.prix_unitaire,4)
 
     @property
     def montant_cumule(self):
@@ -431,7 +431,7 @@ class Factures(SafeDeleteModel):
 
 class DetailFacture(SafeDeleteModel):
     facture = models.ForeignKey(Factures, on_delete=models.DO_NOTHING,to_field="numero_facture")
-    detail = models.ForeignKey(BonLivraison, on_delete=models.DO_NOTHING)
+    detail = models.ForeignKey(DetailBonLivraison, on_delete=models.DO_NOTHING)
 
     class Meta:
         unique_together = (('facture', 'detail',))

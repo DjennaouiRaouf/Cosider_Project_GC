@@ -71,7 +71,7 @@ def pre_save_planing(sender, instance, **kwargs):
 
 
 @receiver(pre_save, sender=DetailBonLivraison)
-def pre_save_bonlivraison(sender, instance, **kwargs):
+def pre_save_detailbonlivraison(sender, instance, **kwargs):
     if (instance.qte_cumule > instance.dqe.qte):
         raise ValidationError("Vous avez dépassé la quantité contractuelle")
 
@@ -86,12 +86,12 @@ def pre_save_facture(sender, instance, **kwargs):
             debut = instance.du
             fin = instance.au
             try:
-                details = BonLivraison.objects.filter(contrat=instance.contrat, date__lte=fin, date__gte=debut)
+                details = DetailBonLivraison.objects.filter(bl__contrat=instance.contrat, bl__date__lte=fin, bl__date__gte=debut)
                 for d in details:
                     DetailFacture.objects.create(facture=instance, detail=d)
 
 
-            except BonLivraison.DoesNotExist:
+            except DetailBonLivraison.DoesNotExist:
                 raise ValidationError('Facturation impossible les bons de livraison ne sont pas disponible ')
 
 

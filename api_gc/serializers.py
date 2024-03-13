@@ -183,20 +183,16 @@ class BonLivraisonSerializer(serializers.ModelSerializer):
 
 
 class DetailBonLivraisonSerializer(serializers.ModelSerializer):
-    libelle_produit = serializers.SerializerMethodField()
-    unite = serializers.SerializerMethodField()
-    unite_mesure = serializers.SerializerMethodField()
+    montant_precedent=serializers.SerializerMethodField()
+    montant_mois=serializers.SerializerMethodField()
+    montant_cumule=serializers.SerializerMethodField()
 
-    def get_libelle_produit(self, obj):
-        return obj.dqe.prixProduit.produit.libelle
-
-    def get_unite(self, obj):
-        return obj.dqe.prixProduit.unite.id
-
-    def get_unite_mesure(self, obj):
-        return obj.dqe.prixProduit.produit.unite.libelle
-
-
+    def get_montant_precedent(self, obj):
+        return obj.montant_precedent
+    def get_montant_mois(self, obj):
+        return obj.montant_mois
+    def get_montant_cumule(self, obj):
+        return obj.montant_cumule
     def get_fields(self, *args, **kwargs):
         fields = super().get_fields(*args, **kwargs)
         fields.pop('deleted', None)

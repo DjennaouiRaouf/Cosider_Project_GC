@@ -372,7 +372,7 @@ class DQEFieldsAddUpdate(APIView):
                     for item in serialized_data:
                         filtered_item = {
                             'value': item['id'],
-                            'label': '('+item['unite']+')'+"  --  "+item['libelle_prod']+"  --  "+item['prix_unitaire']
+                            'label': item['unite']+"-"+item['libelle_prod']+"-"+item['prix_unitaire']
 
                         }
                         filtered_data.append(filtered_item)
@@ -478,3 +478,62 @@ class BLFieldsAddUpdate(APIView):
         return Response({'fields': field_info,'state':state},
                         status=status.HTTP_200_OK)
 
+
+
+
+
+
+
+
+class ItemBLFieldsAddUpdat(APIView):
+    def get(self, request):
+        serializer = DetailBonLivraisonSerializer()
+        fields = serializer.get_fields()
+        field_info = []
+        field_state = []
+        state = {}
+
+        for field_name, field_instance in fields.items():
+            if(field_name not in ['contrat','id','date']):
+                obj = {
+                    'name': field_name,
+                    'type': str(field_instance.__class__.__name__),
+                    'required': field_instance.required,
+                    'label': field_instance.label or field_name,
+                }
+                if (str(field_instance.__class__.__name__) == "PrimaryKeyRelatedField" and field_name in [
+                    'camion']):
+
+                    anySerilizer = create_dynamic_serializer(field_instance.queryset.model)
+                    serialized_data = anySerilizer(field_instance.queryset, many=True).data
+
+                    filtered_data = []
+                    for item in serialized_data:
+                        filtered_item = {
+                            'value': item['matricule'],
+                            'label': item['matricule']
+
+                        }
+                        filtered_data.append(filtered_item)
+
+                    obj['queryset'] = filtered_data
+
+                field_info.append(obj)
+
+                default_value = ''
+                if (str(field_instance.__class__.__name__) == "PrimaryKeyRelatedField"):
+                    default_value=[]
+                if str(field_instance.__class__.__name__) == 'BooleanField':
+                    default_value = False
+                if str(field_instance.__class__.__name__) in ['PositiveSmallIntegerField', 'DecimalField',
+                                                              'PositiveIntegerField',
+                                                              'IntegerField', ]:
+                    default_value = 0
+                field_state.append({
+                    field_name: default_value,
+                })
+                for d in field_state:
+                    state.update(d)
+
+        return Response({'fields': field_info,'state':state},
+                        status=status.HTTP_200_OK)
