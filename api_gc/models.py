@@ -286,7 +286,6 @@ class BonLivraison(SafeDeleteModel):
     historique = HistoricalRecords()
     objects = DeletedModelManager()
 
-
     class Meta:
         app_label = 'api_gc'
         verbose_name = 'Bon de livraison'
@@ -312,9 +311,9 @@ class DetailBonLivraison(SafeDeleteModel):
                 return previous_cumule
             else:
                 return 0
-
         except BonLivraison.DoesNotExist:
                 return 0
+
 
     @property
     def qte_cumule(self):
