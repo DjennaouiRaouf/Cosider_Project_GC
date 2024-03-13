@@ -120,11 +120,18 @@ class ListBL(generics.ListAPIView):
     filter_backends = [DjangoFilterBackend]
     filterset_class = BLFilter
 
+class ListItemBL(generics.ListAPIView):
+    # permission_classes = [IsAuthenticated]
+    queryset= DetailBonLivraison.objects.all()
+    serializer_class = DetailBonLivraisonSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = ItemBLFilter
 
 class AddBL(generics.CreateAPIView):
     # permission_classes = [IsAuthenticated]
     queryset= BonLivraison.objects.all()
     serializer_class = BonLivraisonSerializer
+
 
 
 class ListDQE(generics.ListAPIView):

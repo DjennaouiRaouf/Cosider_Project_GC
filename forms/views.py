@@ -451,7 +451,7 @@ class BLFieldsAddUpdate(APIView):
                     for item in serialized_data:
                         filtered_item = {
                             'value': item['matricule'],
-                            'label': '('+item['poids']+')'+"  --  "+item['matricule']
+                            'label': item['matricule']
 
                         }
                         filtered_data.append(filtered_item)
