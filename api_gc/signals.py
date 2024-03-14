@@ -55,8 +55,16 @@ def update_on_softdelete(sender, instance, **kwargs):
 @receiver(pre_save, sender=DQE)
 def pre_save_dqe(sender, instance, **kwargs):
     if not instance.pk:
-        instance.id = str(instance.prixProduit.produit.id) + "_" + str(instance.contrat.id)
+        instance.id = str(instance.contrat.id)+"-"+str(instance.prixProduit.id)
 
+
+
+@receiver(pre_save, sender=PrixProduit)
+def pre_save_prixProduit(sender, instance, **kwargs):
+    if not instance.pk:
+        count = PrixProduit.objects.filter(unite=instance.unite, produit=instance.produit).count()
+        print(count)
+        instance.id = str(instance.unite)+"-"+str(instance.produit.id)+"-"+str(count+1)
 
 
 

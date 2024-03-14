@@ -119,6 +119,7 @@ class Produits(SafeDeleteModel):
 
 class PrixProduit(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
+    id = models.CharField(max_length=500, primary_key=True, verbose_name='ID', db_column='id',editable=False)
     unite = models.ForeignKey(Unite, on_delete=models.DO_NOTHING, db_column='Unité', null=False, verbose_name='Unité')
     produit = models.ForeignKey(Produits, on_delete=models.DO_NOTHING,null=False,verbose_name='Produit')
     prix_unitaire = models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Prix unitaire')
@@ -291,8 +292,8 @@ class BonLivraison(SafeDeleteModel):
         verbose_name = 'Bon de livraison'
         verbose_name_plural = 'Bon de livraison'
 
-class DetailBonLivraison(SafeDeleteModel):
 
+class DetailBonLivraison(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
     bl=models.ForeignKey(BonLivraison, on_delete=models.DO_NOTHING, null=False, verbose_name='Bon de Livraison')
     dqe = models.ForeignKey(DQE, on_delete=models.DO_NOTHING, null=False, verbose_name='dqe')

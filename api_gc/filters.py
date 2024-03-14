@@ -45,6 +45,10 @@ class ClientsFilter(django_filters.FilterSet):
 
 
 class DQEFilter(django_filters.FilterSet):
+    unite = django_filters.ModelChoiceFilter(field_name='prixProduit__unite', queryset=Unite.objects.all(),label='Unité')
+    produit=django_filters.ModelChoiceFilter(field_name='prixProduit__produit', queryset=Produits.objects.all(),label='Produit')
+
+
     class Meta:
         model = DQE
         fields = '__all__'

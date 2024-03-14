@@ -18,6 +18,8 @@ def create_dynamic_serializer(model_class):
     return DynamicModelSerializer
 
 
+
+
 class ContratSerializer(serializers.ModelSerializer):
     utilisateur=serializers.SerializerMethodField()
     montant_ht = serializers.SerializerMethodField()

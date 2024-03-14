@@ -206,7 +206,7 @@ class ClientFieldsAddUpdate(APIView):
                     for item in serialized_data:
                         filtered_item = {
                             'value': item['id'],
-                            'label': item['libelle']
+                            'label': item['libelle'] or '----'
                         }
                         filtered_data.append(filtered_item)
 
@@ -324,7 +324,7 @@ class DQEFilterForm(APIView):
         field_info = []
 
         for field_name, field_instance  in DQEFilter.base_filters.items():
-            if(field_name  not in ['deleted','deleted_by_cascade']):
+            if(field_name  not in ['deleted','deleted_by_cascade','id','contrat','prixProduit','qte']):
 
                 obj = {
                     'name': field_name,
@@ -339,7 +339,7 @@ class DQEFilterForm(APIView):
                     for item in serialized_data:
                         filtered_item = {
                             'value': item['id'],
-                            'label': item['libelle']
+                            'label': item['libelle'],
                         }
                         filtered_data.append(filtered_item)
 
@@ -492,26 +492,30 @@ class ItemBLFieldsAddUpdat(APIView):
         field_info = []
         field_state = []
         state = {}
-
+        contrat=request.query_params.get('contrat', None)
         for field_name, field_instance in fields.items():
-            if(field_name not in ['contrat','id','date']):
+            if(field_name not in ['id','montant_mois','montant_cumule','montant_precedent','bl']):
                 obj = {
                     'name': field_name,
                     'type': str(field_instance.__class__.__name__),
                     'required': field_instance.required,
                     'label': field_instance.label or field_name,
                 }
+                if(field_name in ['qte_mois']):
+                    params=Parametres.objects.all().first()
+                    obj['readOnly'] = params.saisie_automatique
+
                 if (str(field_instance.__class__.__name__) == "PrimaryKeyRelatedField" and field_name in [
-                    'camion']):
+                    'dqe']):
 
                     anySerilizer = create_dynamic_serializer(field_instance.queryset.model)
-                    serialized_data = anySerilizer(field_instance.queryset, many=True).data
+                    serialized_data = anySerilizer(field_instance.queryset.filter(contrat=contrat), many=True).data
 
                     filtered_data = []
                     for item in serialized_data:
                         filtered_item = {
-                            'value': item['matricule'],
-                            'label': item['matricule']
+                            'value': item['id'],
+                            'label': item['id'],
 
                         }
                         filtered_data.append(filtered_item)
@@ -528,7 +532,14 @@ class ItemBLFieldsAddUpdat(APIView):
                 if str(field_instance.__class__.__name__) in ['PositiveSmallIntegerField', 'DecimalField',
                                                               'PositiveIntegerField',
                                                               'IntegerField', ]:
-                    default_value = 0
+                    if(field_name in ['qte_mois']):
+                        params = Parametres.objects.all().first()
+                        if(params.saisie_automatique):
+                            default_value = 150
+                        else:
+                            default_value = 0
+                    else:
+                        default_value = 0
                 field_state.append({
                     field_name: default_value,
                 })

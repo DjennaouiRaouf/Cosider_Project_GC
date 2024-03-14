@@ -26,5 +26,5 @@ urlpatterns = [
 
     path('getitembl/',ListItemBL.as_view()),
 
-    path('additembl/', AddItemBL.as_view())
+    path('additembl/', AddItemBL.as_view()),
 ]
