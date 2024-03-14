@@ -63,7 +63,6 @@ class ImagesSerilizer(serializers.ModelSerializer):
         model = Images
         fields = '__all__'
 
-
 class ClientSerilizer(serializers.ModelSerializer):
     utilisateur = serializers.SerializerMethodField()
     def get_utilisateur(self, obj):
