@@ -548,3 +548,29 @@ class ItemBLFieldsAddUpdat(APIView):
 
         return Response({'fields': field_info,'state':state},
                         status=status.HTTP_200_OK)
+
+
+#------------------------------------------------ Camion
+
+
+class CamionFieldsList(APIView):
+    def get(self, request):
+        serializer = CamionSerializer()
+        fields = serializer.get_fields()
+        field_info = []
+        for field_name, field_instance in fields.items():
+            if(field_name not in ['',]):
+                obj = {
+                        'field': field_name,
+                        'headerName': field_instance.label or field_name,
+
+
+                }
+                if(field_name in ['unite']):
+                    obj['hide']=True
+
+                field_info.append(obj)
+        return Response({'fields': field_info},
+                        status=status.HTTP_200_OK)
+
+

@@ -204,6 +204,20 @@ class AddContrat(generics.CreateAPIView):
     serializer_class = ContratSerializer
 
 
+
+class AddCamion(generics.CreateAPIView):
+    #permission_classes = [IsAuthenticated]
+    queryset = Camion.objects.all()
+    serializer_class = CamionSerializer
+
+
+class ListCamion(generics.ListAPIView):
+    #permission_classes = [IsAuthenticated]
+    queryset = Camion.objects.all()
+    serializer_class =CamionSerializer
+
+
+
 class contratKeys(APIView):
     #permission_classes = [IsAuthenticated]
     def get(self,request):

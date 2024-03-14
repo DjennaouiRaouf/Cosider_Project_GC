@@ -269,6 +269,7 @@ class Camion(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
     matricule=models.CharField(max_length=500, primary_key=True, verbose_name='Matricule')
     poids=models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Poids net du camion')
+    unite = models.ForeignKey(UniteMesure, on_delete=models.DO_NOTHING,null=False,verbose_name='Unite de Mesure')
     historique = HistoricalRecords()
     objects = DeletedModelManager()
     class Meta:
