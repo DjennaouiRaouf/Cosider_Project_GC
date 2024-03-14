@@ -106,6 +106,10 @@ class CamionSerializer(serializers.ModelSerializer):
         fields.pop('deleted_by_cascade', None)
 
         return fields
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['unite'] = instance.unite.libelle
+        return representation
     class Meta:
         model = Camion
         fields = '__all__'

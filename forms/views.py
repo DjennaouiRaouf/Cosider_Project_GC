@@ -566,10 +566,8 @@ class CamionFieldsList(APIView):
 
 
                 }
-                if(field_name in ['unite']):
-                    obj['hide']=True
-                if(field_name in ['poids']):
-                    obj['cellRenderer'] = 'InfoRenderer'
+
+
 
                 field_info.append(obj)
         return Response({'fields': field_info},
