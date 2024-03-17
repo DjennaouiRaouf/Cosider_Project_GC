@@ -25,6 +25,8 @@ urlpatterns = [
     path('additemblform/',ItemBLFieldsAddUpdat.as_view()),
 
 
-    path('camionlistform/',CamionFieldsList.as_view())
+    path('camionlistform/',CamionFieldsList.as_view()),
+    path('camionaddform/',CamionAddUpdate.as_view()),
+    path('camionfilterform/',CamionFilterForm.as_view())
 
 ]

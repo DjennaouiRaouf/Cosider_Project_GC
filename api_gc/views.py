@@ -215,6 +215,9 @@ class ListCamion(generics.ListAPIView):
     #permission_classes = [IsAuthenticated]
     queryset = Camion.objects.all()
     serializer_class =CamionSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = CamionFilter
+
 
 
 
