@@ -620,7 +620,6 @@ class CamionAddUpdate(APIView):
                     filtered_item = {
                         'value': item['id'],
                         'label': item['libelle']
-
                     }
                     filtered_data.append(filtered_item)
                 obj['queryset'] = filtered_data
