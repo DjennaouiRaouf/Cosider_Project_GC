@@ -29,5 +29,7 @@ urlpatterns = [
     path('camionaddform/',CamionAddUpdate.as_view()),
     path('camionfilterform/',CamionFilterForm.as_view()),
 
+    path('detblitemlistform/',DetailBLItemFieldsList.as_view()),
+
 
 ]

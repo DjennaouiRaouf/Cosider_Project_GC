@@ -237,8 +237,3 @@ class contratKeys(APIView):
 
 
 
-
-
-
-
-

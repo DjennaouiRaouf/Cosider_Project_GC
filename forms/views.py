@@ -419,6 +419,8 @@ class BLFieldsList(APIView):
 
 
                 }
+                if(field_name in ['date']):
+                    obj['cellRenderer'] = 'InfoRenderer'
                 field_info.append(obj)
         return Response({'fields': field_info},
                         status=status.HTTP_200_OK)
@@ -481,6 +483,26 @@ class BLFieldsAddUpdate(APIView):
 
 
 
+
+class DetailBLItemFieldsList(APIView):
+    def get(self, request):
+        serializer = DetailBonLivraisonSerializer()
+        fields = serializer.get_fields()
+        field_info = []
+        for field_name, field_instance in fields.items():
+            if(field_name not in ['',]):
+                obj = {
+                        'field': field_name,
+                        'headerName': field_instance.label or field_name,
+                }
+                if(field_name in ['dqe',]):
+                    obj['hide'] =True
+                if(field_name in ['montant_precedent','montant_mois','montant_cumule']):
+                    obj['cellRenderer'] = 'InfoRenderer'
+
+                field_info.append(obj)
+        return Response({'fields': field_info},
+                        status=status.HTTP_200_OK)
 
 
 

@@ -151,19 +151,6 @@ class DQESerializer(serializers.ModelSerializer):
 
 
 
-class DetailBonLivraisonSerializer(serializers.ModelSerializer):
-
-    def get_fields(self, *args, **kwargs):
-        fields = super().get_fields(*args, **kwargs)
-        fields.pop('deleted', None)
-        fields.pop('deleted_by_cascade', None)
-
-        return fields
-    class Meta:
-        model = DetailBonLivraison
-        fields = '__all__'
-
-
 
 
 
@@ -206,9 +193,11 @@ class BonLivraisonSerializer(serializers.ModelSerializer):
 
 
 class DetailBonLivraisonSerializer(serializers.ModelSerializer):
-    montant_precedent=serializers.SerializerMethodField()
-    montant_mois=serializers.SerializerMethodField()
-    montant_cumule=serializers.SerializerMethodField()
+    montant_precedent=serializers.SerializerMethodField(label="Montant Precedent")
+    montant_mois=serializers.SerializerMethodField(label="Montant Mois")
+    montant_cumule=serializers.SerializerMethodField(label="Montant Cumule")
+    libelle=serializers.SerializerMethodField(label='Libelle')
+    prix_unitaire=serializers.SerializerMethodField(label='Prix Unitaire')
 
     def get_montant_precedent(self, obj):
         return obj.montant_precedent
@@ -216,6 +205,13 @@ class DetailBonLivraisonSerializer(serializers.ModelSerializer):
         return obj.montant_mois
     def get_montant_cumule(self, obj):
         return obj.montant_cumule
+
+    def get_libelle(self, obj):
+        return obj.dqe.prixProduit.produit.libelle
+
+    def get_prix_unitaire(self, obj):
+        return  obj.dqe.prixProduit.prix_unitaire
+
     def get_fields(self, *args, **kwargs):
         fields = super().get_fields(*args, **kwargs)
         fields.pop('deleted', None)
