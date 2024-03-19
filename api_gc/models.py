@@ -268,7 +268,7 @@ class Planing(SafeDeleteModel):
 class Camion(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
     matricule=models.CharField(max_length=500, primary_key=True, verbose_name='Matricule')
-    poids=models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Poids net du camion')
+    tare=models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Tare')
     unite = models.ForeignKey(UniteMesure, on_delete=models.DO_NOTHING,null=False,verbose_name='Unite de Mesure')
     historique = HistoricalRecords()
     objects = DeletedModelManager()
@@ -283,30 +283,23 @@ class BonLivraison(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
     conducteur=models.CharField(max_length=500, null=False, verbose_name='Conducteur')
     camion = models.ForeignKey(Camion, null=False, on_delete=models.DO_NOTHING, verbose_name='Camion')
+    numero_permis_c=models.CharField(max_length=500,null=True,verbose_name='N° P.Conduire')
     contrat = models.ForeignKey(Contrat, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
     date=models.DateTimeField(auto_now=True)
-    historique = HistoricalRecords()
-    objects = DeletedModelManager()
-
-    class Meta:
-        app_label = 'api_gc'
-        verbose_name = 'Bon de livraison'
-        verbose_name_plural = 'Bon de livraison'
-
-
-class DetailBonLivraison(SafeDeleteModel):
-    _safedelete_policy = SOFT_DELETE_CASCADE
-    bl=models.ForeignKey(BonLivraison, on_delete=models.DO_NOTHING, null=False, verbose_name='Bon de Livraison')
     dqe = models.ForeignKey(DQE, on_delete=models.DO_NOTHING, null=False, verbose_name='dqe')
-    qte_mois = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
-                                    verbose_name='Quantité à livré')
+    ptc = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
+                                   verbose_name='PTC')
     historique = HistoricalRecords()
     objects = DeletedModelManager()
 
+
+    @property
+    def qte(self):
+        return self.ptc-self.camion.tare
     @property
     def qte_precedente (self):
         try:
-            previous_cumule = DetailBonLivraison.objects.filter(dqe=self.dqe, bl__contrat=self.bl.contrat, bl__date__lt=self.bl.date).aggregate(models.Sum('qte_mois'))[
+            previous_cumule = BonLivraison.objects.filter(dqe=self.dqe, contrat=self.contrat, date__lt=self.date).aggregate(models.Sum('qte_mois'))[
             "qte_mois__sum"]
             print(previous_cumule)
             if(previous_cumule):
@@ -324,11 +317,11 @@ class DetailBonLivraison(SafeDeleteModel):
     @property
     def montant_precedent(self):
         try:
-            previous = DetailBonLivraison.objects.filter(dqe=self.dqe, bl__contrat=self.bl.contrat, bl__date__lt=self.bl.date)
+            previous = BonLivraison.objects.filter(dqe=self.dqe, contrat=self.contrat,date__lt=self.date)
             sum=0
             if (previous):
                 for p in previous:
-                    sum+=p.montant_mois
+                    sum+=p.montant
                 return sum
             else:
                 return round(0,4)
@@ -337,22 +330,22 @@ class DetailBonLivraison(SafeDeleteModel):
             return 0
 
     @property
-    def montant_mois(self):
+    def montant(self):
         return round(self.qte_mois*self.dqe.prixProduit.prix_unitaire,4)
 
     @property
     def montant_cumule(self):
-        return self.montant_precedent + self.montant_mois
+        return self.montant_precedent + self.montant
 
 
 
 
-    # verifier ods
     class Meta:
-        unique_together = (('bl','dqe'))
         app_label = 'api_gc'
-        verbose_name = 'Details des Bons de livraison'
-        verbose_name_plural = 'Details des Bons de livraison'
+        verbose_name = 'Bon de livraison'
+        verbose_name_plural = 'Bon de livraison'
+
+
 
 
 
@@ -369,13 +362,13 @@ class Factures(SafeDeleteModel):
     objects = DeletedModelManager()
 
     @property
-    def montant_mois(self):
+    def montant(self):
         try:
             details=DetailFacture.objects.filter(facture=self.numero_facture)
-            montant_mois=0
+            montant=0
             for detail in details:
-                montant_mois=montant_mois+detail.detail.montant_mois
-            return montant_mois
+                montant=montant+detail.detail.montant
+            return montant
         except DetailFacture.DoesNotExist:
             return 0
 
@@ -403,17 +396,17 @@ class Factures(SafeDeleteModel):
     
     @property
     def montant_rb(self):
-        return round((self.montant_mois*self.contrat.rabais/100),4)
+        return round((self.montant*self.contrat.rabais/100),4)
 
     @property
     def montant_rg(self):
-        m=self.montant_mois-self.montant_rb
+        m=self.montant-self.montant_rb
         return  round((m*self.contrat.rg/100),4)
 
 
     @property
     def montant_facture_ht(self):
-        return round(self.montant_mois-self.montant_rb-self.montant_rg,4)
+        return round(self.montant-self.montant_rb-self.montant_rg,4)
 
     @property
     def montant_facture_ttc(self):
@@ -432,7 +425,7 @@ class Factures(SafeDeleteModel):
 
 class DetailFacture(SafeDeleteModel):
     facture = models.ForeignKey(Factures, on_delete=models.DO_NOTHING,to_field="numero_facture")
-    detail = models.ForeignKey(DetailBonLivraison, on_delete=models.DO_NOTHING)
+    detail = models.ForeignKey(BonLivraison, on_delete=models.DO_NOTHING)
 
     class Meta:
         unique_together = (('facture', 'detail',))

@@ -120,21 +120,6 @@ class ListBL(generics.ListAPIView):
     filter_backends = [DjangoFilterBackend]
     filterset_class = BLFilter
 
-class ListItemBL(generics.ListAPIView):
-    # permission_classes = [IsAuthenticated]
-    queryset= DetailBonLivraison.objects.all()
-    serializer_class = DetailBonLivraisonSerializer
-    filter_backends = [DjangoFilterBackend]
-    filterset_class = ItemBLFilter
-
-
-
-class AddItemBL(generics.CreateAPIView):
-    # permission_classes = [IsAuthenticated]
-    queryset= DetailBonLivraison.objects.all()
-    serializer_class = DetailBonLivraisonSerializer
-
-
 
 class AddBL(generics.CreateAPIView):
     # permission_classes = [IsAuthenticated]
@@ -149,6 +134,24 @@ class ListDQE(generics.ListAPIView):
     serializer_class =DQESerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = DQEFilter
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        qt = 0
+        mt = 0
+        response_data = super().list(request, *args, **kwargs).data
+        for d in queryset:
+            qt = qt + d.qte
+            mt = mt + d.montant_qte
+
+        return Response({'dqe': response_data,
+                         'extra': {
+
+                             'qt': qt,
+                             'mt': mt,
+
+
+                         }}, status=status.HTTP_200_OK)
 class ListClient(generics.ListAPIView):
     #permission_classes = [IsAuthenticated]
     queryset = Clients.objects.all()

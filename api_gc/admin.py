@@ -137,16 +137,6 @@ class UniteMesureAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin
 
 
 
-@admin.register(BonLivraison)
-class BonLivraisonAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin):
-    save_as = True
-    list_per_page = lp
-    list_display = [field.name for field in BonLivraison._meta.fields if field.name not in ['deleted', 'deleted_by_cascade']]
-
-    list_filter = (
-        SafeDeleteAdminFilter,
-    )
-
 
 @admin.register(Camion)
 class CamionAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin):
@@ -159,12 +149,12 @@ class CamionAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,admi
         SafeDeleteAdminFilter,
     )
 
-@admin.register(DetailBonLivraison)
+@admin.register(BonLivraison)
 class BonLivraisonAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin):
     save_as = True
     list_per_page = lp
-    list_display = [field.name for field in DetailBonLivraison._meta.fields if field.name not in ['qte_mois','deleted', 'deleted_by_cascade']]+['qte_precedente','qte_mois','qte_cumule',
-                                                                                                                               'montant_precedent','montant_mois',
+    list_display = [field.name for field in BonLivraison._meta.fields if field.name not in ['qte','deleted', 'deleted_by_cascade']]+['qte_precedente','qte','qte_cumule',
+                                                                                                                               'montant_precedent','montant',
                                                                                                                                'montant_cumule']
 
 
@@ -177,9 +167,9 @@ class BonLivraisonAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmi
     def qte_cumule(self, obj):
         return obj.qte_cumule
 
-    def montant_mois(self, obj):
-        return obj.montant_mois
-    montant_mois.short_description = 'montant courant'
+    def montant(self, obj):
+        return obj.montant
+    montant.short_description = 'montant courant'
     def montant_precedent(self,obj):
         return obj.montant_precedent
     def montant_cumule(self,obj):
@@ -188,7 +178,7 @@ class BonLivraisonAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmi
 class FacturesAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin):
     save_as = True
     list_per_page = lp
-    list_display = [field.name for field in Factures._meta.fields if field.name not in ['deleted', 'deleted_by_cascade']]+['montant_precedent','montant_mois',
+    list_display = [field.name for field in Factures._meta.fields if field.name not in ['deleted', 'deleted_by_cascade']]+['montant_precedent','montant',
                                                                                                                                'montant_cumule','montant_rb',
                                                                                                                            'montant_rg','montant_facture_ht',
                                                                                                                            'montant_facture_ttc']
@@ -197,8 +187,8 @@ class FacturesAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,ad
         SafeDeleteAdminFilter,
     )
 
-    def montant_mois(self, obj):
-        return obj.montant_mois
+    def montant(self, obj):
+        return obj.montant
     def montant_rg(self, obj):
         return obj.montant_rg
 
@@ -211,7 +201,7 @@ class FacturesAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,ad
     def montant_facture_ttc(self, obj):
         return obj.montant_facture_ttc
 
-    montant_mois.short_description = 'montant courant'
+    montant.short_description = 'montant courant'
     def montant_precedent(self,obj):
         return obj.montant_precedent
     def montant_cumule(self,obj):

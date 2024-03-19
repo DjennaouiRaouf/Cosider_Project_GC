@@ -419,9 +419,15 @@ class BLFieldsList(APIView):
 
 
                 }
-                if(field_name in ['date']):
+
+                if(field_name in ['dqe',]):
+                    obj['hide'] =True
+
+                if(field_name in ['date','montant_precedent','montant','montant_cumule']):
                     obj['cellRenderer'] = 'InfoRenderer'
+
                 field_info.append(obj)
+
         return Response({'fields': field_info},
                         status=status.HTTP_200_OK)
 
@@ -435,14 +441,39 @@ class BLFieldsAddUpdate(APIView):
         field_state = []
         state = {}
 
+        contrat=request.query_params.get('contrat', None)
+
         for field_name, field_instance in fields.items():
-            if(field_name not in ['contrat','id','date']):
+            if(field_name not in ['contrat','id','date','montant_precedent','montant',
+                                  'libelle','prix_unitaire',
+                                  'montant_cumule']):
                 obj = {
                     'name': field_name,
                     'type': str(field_instance.__class__.__name__),
                     'required': field_instance.required,
                     'label': field_instance.label or field_name,
                 }
+                if (field_name in ['ptc']):
+                    params = Parametres.objects.all().first()
+                    obj['readOnly'] = params.saisie_automatique
+
+                if (str(field_instance.__class__.__name__) == "PrimaryKeyRelatedField" and field_name in [
+                    'dqe']):
+
+                    anySerilizer = create_dynamic_serializer(field_instance.queryset.model)
+                    serialized_data = DQESerializer(field_instance.queryset.filter(contrat=contrat), many=True).data
+
+                    filtered_data = []
+                    for item in serialized_data:
+                        filtered_item = {
+                            'value': item['id'],
+                            'label': item['produit'],
+
+                        }
+                        filtered_data.append(filtered_item)
+
+                    obj['queryset'] = filtered_data
+
                 if (str(field_instance.__class__.__name__) == "PrimaryKeyRelatedField" and field_name in [
                     'camion']):
 
@@ -470,93 +501,9 @@ class BLFieldsAddUpdate(APIView):
                 if str(field_instance.__class__.__name__) in ['PositiveSmallIntegerField', 'DecimalField',
                                                               'PositiveIntegerField',
                                                               'IntegerField', ]:
-                    default_value = 0
-                field_state.append({
-                    field_name: default_value,
-                })
-                for d in field_state:
-                    state.update(d)
-
-        return Response({'fields': field_info,'state':state},
-                        status=status.HTTP_200_OK)
-
-
-
-
-
-class DetailBLItemFieldsList(APIView):
-    def get(self, request):
-        serializer = DetailBonLivraisonSerializer()
-        fields = serializer.get_fields()
-        field_info = []
-        for field_name, field_instance in fields.items():
-            if(field_name not in ['',]):
-                obj = {
-                        'field': field_name,
-                        'headerName': field_instance.label or field_name,
-                }
-                if(field_name in ['dqe',]):
-                    obj['hide'] =True
-                if(field_name in ['montant_precedent','montant_mois','montant_cumule']):
-                    obj['cellRenderer'] = 'InfoRenderer'
-
-                field_info.append(obj)
-        return Response({'fields': field_info},
-                        status=status.HTTP_200_OK)
-
-
-
-
-class ItemBLFieldsAddUpdat(APIView):
-    def get(self, request):
-        serializer = DetailBonLivraisonSerializer()
-        fields = serializer.get_fields()
-        field_info = []
-        field_state = []
-        state = {}
-        contrat=request.query_params.get('contrat', None)
-        for field_name, field_instance in fields.items():
-            if(field_name not in ['id','montant_mois','montant_cumule','montant_precedent','bl','libelle','prix_unitaire']):
-                obj = {
-                    'name': field_name,
-                    'type': str(field_instance.__class__.__name__),
-                    'required': field_instance.required,
-                    'label': field_instance.label or field_name,
-                }
-                if(field_name in ['qte_mois']):
-                    params=Parametres.objects.all().first()
-                    obj['readOnly'] = params.saisie_automatique
-
-                if (str(field_instance.__class__.__name__) == "PrimaryKeyRelatedField" and field_name in [
-                    'dqe']):
-
-                    anySerilizer = create_dynamic_serializer(field_instance.queryset.model)
-                    serialized_data = DQESerializer(field_instance.queryset.filter(contrat=contrat), many=True).data
-
-                    filtered_data = []
-                    for item in serialized_data:
-                        filtered_item = {
-                            'value': item['id'],
-                            'label': item['produit'],
-
-                        }
-                        filtered_data.append(filtered_item)
-
-                    obj['queryset'] = filtered_data
-
-                field_info.append(obj)
-
-                default_value = ''
-                if (str(field_instance.__class__.__name__) == "PrimaryKeyRelatedField"):
-                    default_value=[]
-                if str(field_instance.__class__.__name__) == 'BooleanField':
-                    default_value = False
-                if str(field_instance.__class__.__name__) in ['PositiveSmallIntegerField', 'DecimalField',
-                                                              'PositiveIntegerField',
-                                                              'IntegerField', ]:
-                    if(field_name in ['qte_mois']):
+                    if (field_name in ['ptc']):
                         params = Parametres.objects.all().first()
-                        if(params.saisie_automatique):
+                        if (params.saisie_automatique):
                             default_value = 150
                         else:
                             default_value = 0
@@ -570,6 +517,13 @@ class ItemBLFieldsAddUpdat(APIView):
 
         return Response({'fields': field_info,'state':state},
                         status=status.HTTP_200_OK)
+
+
+
+
+
+
+
 
 
 #------------------------------------------------ Camion
@@ -624,7 +578,7 @@ class CamionAddUpdate(APIView):
                     filtered_data.append(filtered_item)
                 obj['queryset'] = filtered_data
 
-            if (field_name in ['poids']):
+            if (field_name in ['tare']):
                 params = Parametres.objects.all().first()
                 obj['readOnly'] = params.saisie_automatique
 
@@ -638,7 +592,7 @@ class CamionAddUpdate(APIView):
             if str(field_instance.__class__.__name__) in ['PositiveSmallIntegerField', 'DecimalField',
                                                                   'PositiveIntegerField',
                                                                   'IntegerField', ]:
-                if (field_name in ['poids']):
+                if (field_name in ['tare']):
                     params = Parametres.objects.all().first()
                     if (params.saisie_automatique):
                         default_value = 150
