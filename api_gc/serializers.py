@@ -189,8 +189,8 @@ class BonLivraisonSerializer(serializers.ModelSerializer):
     def get_montant_precedent(self, obj):
         return obj.montant_precedent
 
-    def get_montant_mois(self, obj):
-        return obj.montant_mois
+    def get_montant(self, obj):
+        return obj.montant
 
     def get_montant_cumule(self, obj):
         return obj.montant_cumule

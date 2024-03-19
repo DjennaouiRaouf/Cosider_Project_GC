@@ -299,11 +299,12 @@ class BonLivraison(SafeDeleteModel):
     @property
     def qte_precedente (self):
         try:
-            previous_cumule = BonLivraison.objects.filter(dqe=self.dqe, contrat=self.contrat, date__lt=self.date).aggregate(models.Sum('qte_mois'))[
-            "qte_mois__sum"]
-            print(previous_cumule)
+            previous_cumule = BonLivraison.objects.filter(dqe=self.dqe, contrat=self.contrat, date__lt=self.date)
+            sum=0
+            for pc in previous_cumule:
+                sum=sum+self.qte
             if(previous_cumule):
-                return previous_cumule
+                return sum
             else:
                 return 0
         except BonLivraison.DoesNotExist:
@@ -312,7 +313,7 @@ class BonLivraison(SafeDeleteModel):
 
     @property
     def qte_cumule(self):
-        return self.qte_precedente+self.qte_mois
+        return self.qte_precedente+self.qte
 
     @property
     def montant_precedent(self):
@@ -331,7 +332,7 @@ class BonLivraison(SafeDeleteModel):
 
     @property
     def montant(self):
-        return round(self.qte_mois*self.dqe.prixProduit.prix_unitaire,4)
+        return round(self.qte*self.dqe.prixProduit.prix_unitaire,4)
 
     @property
     def montant_cumule(self):
