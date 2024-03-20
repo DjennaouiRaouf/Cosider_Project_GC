@@ -462,7 +462,6 @@ class Encaissement(SafeDeleteModel):
             return (self.facture.montant_facture_ttc-enc)
         except Encaissement.DoesNotExist:
             return 0
-
     class Meta:
         unique_together = (("facture", "date_encaissement"),)
         app_label = 'api_gc'
