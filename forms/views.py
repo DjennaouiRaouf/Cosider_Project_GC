@@ -403,6 +403,49 @@ class DQEFieldsAddUpdate(APIView):
 
 #----------------------------------------------------- Bon de livraison
 
+class BLFilterForm(APIView):
+    def get(self,request):
+        field_info = []
+        contrat = request.query_params.get('contrat', None)
+        for field_name, field_instance  in BLFilter.base_filters.items():
+            if(field_name  not in ['deleted','deleted_by_cascade','contrat','ptc']):
+
+                obj = {
+                    'name': field_name,
+                    'type': str(field_instance.__class__.__name__),
+                    'label': field_instance.label or field_name,
+
+                }
+                if str(field_instance.__class__.__name__) == 'ModelChoiceFilter':
+                    if(field_name in ['dqe',]):
+                        anySerilizer = create_dynamic_serializer(field_instance.queryset.model)
+                        serialized_data = DQESerializer(field_instance.queryset.filter(contrat=contrat), many=True).data
+                        filtered_data = []
+                        for item in serialized_data:
+                            filtered_item = {
+                                  'value': item['id'],
+                                    'label': item['produit'],
+                            }
+                            filtered_data.append(filtered_item)
+
+                        obj['queryset'] = filtered_data
+                    if (field_name in ['camion', ]):
+                        anySerilizer = create_dynamic_serializer(field_instance.queryset.model)
+                        serialized_data = anySerilizer(field_instance.queryset, many=True).data
+                        filtered_data = []
+                        for item in serialized_data:
+                            filtered_item = {
+                                'value': item['matricule'],
+                                'label': item['matricule'],
+                            }
+                            filtered_data.append(filtered_item)
+
+                        obj['queryset'] = filtered_data
+
+
+                field_info.append(obj)
+
+        return Response({'fields': field_info},status=status.HTTP_200_OK)
 
 
 
@@ -423,7 +466,7 @@ class BLFieldsList(APIView):
                 if(field_name in ['dqe',]):
                     obj['hide'] =True
 
-                if(field_name in ['date','montant_precedent','montant','montant_cumule']):
+                if(field_name in ['date','montant','montant_cumule']):
                     obj['cellRenderer'] = 'InfoRenderer'
 
                 field_info.append(obj)
@@ -444,8 +487,8 @@ class BLFieldsAddUpdate(APIView):
         contrat=request.query_params.get('contrat', None)
 
         for field_name, field_instance in fields.items():
-            if(field_name not in ['contrat','id','date','montant_precedent','montant',
-                                  'libelle','prix_unitaire',
+            if(field_name not in ['contrat','id','date','montant',
+                                  'libelle','prix_unitaire','qte_cumule','qte',
                                   'montant_cumule']):
                 obj = {
                     'name': field_name,

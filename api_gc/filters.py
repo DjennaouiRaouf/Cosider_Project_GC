@@ -84,6 +84,7 @@ class PrixProduitFilter(django_filters.FilterSet):
 
 
 class BLFilter(django_filters.FilterSet):
+
     class Meta:
         model = BonLivraison
         fields = '__all__'

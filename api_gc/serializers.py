@@ -180,14 +180,12 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class BonLivraisonSerializer(serializers.ModelSerializer):
-    montant_precedent = serializers.SerializerMethodField(label="Montant Precedent")
     montant = serializers.SerializerMethodField(label="Montant")
     montant_cumule = serializers.SerializerMethodField(label="Montant Cumule")
     libelle = serializers.SerializerMethodField(label='Libelle')
     prix_unitaire = serializers.SerializerMethodField(label='Prix Unitaire')
-
-    def get_montant_precedent(self, obj):
-        return obj.montant_precedent
+    qte=serializers.SerializerMethodField(label="Quantité")
+    qte_cumule = serializers.SerializerMethodField(label="Quantité Cumulée")
 
     def get_montant(self, obj):
         return obj.montant
@@ -201,6 +199,11 @@ class BonLivraisonSerializer(serializers.ModelSerializer):
     def get_prix_unitaire(self, obj):
         return obj.dqe.prixProduit.prix_unitaire
 
+    def get_qte(self,obj):
+        return obj.qte
+
+    def get_qte_cumule(self, obj):
+        return obj.qte_cumule
     def get_fields(self, *args, **kwargs):
         fields = super().get_fields(*args, **kwargs)
         fields.pop('deleted', None)

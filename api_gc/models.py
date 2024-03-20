@@ -296,39 +296,22 @@ class BonLivraison(SafeDeleteModel):
     @property
     def qte(self):
         return self.ptc-self.camion.tare
-    @property
-    def qte_precedente (self):
-        try:
-            previous_cumule = BonLivraison.objects.filter(dqe=self.dqe, contrat=self.contrat, date__lt=self.date)
-            sum=0
-            for pc in previous_cumule:
-                sum=sum+self.qte
-            if(previous_cumule):
-                return sum
-            else:
-                return 0
-        except BonLivraison.DoesNotExist:
-                return 0
 
 
     @property
     def qte_cumule(self):
-        return self.qte_precedente+self.qte
-
-    @property
-    def montant_precedent(self):
         try:
-            previous = BonLivraison.objects.filter(dqe=self.dqe, contrat=self.contrat,date__lt=self.date)
-            sum=0
-            if (previous):
-                for p in previous:
-                    sum+=p.montant
+            previous_cumule = BonLivraison.objects.filter(dqe=self.dqe, contrat=self.contrat, date__lte=self.date)
+            sum = 0
+            if (previous_cumule):
+                for pc in previous_cumule:
+                    sum +=pc.qte
                 return sum
             else:
-                return round(0,4)
-
+                return 0
         except BonLivraison.DoesNotExist:
             return 0
+
 
     @property
     def montant(self):
@@ -336,7 +319,19 @@ class BonLivraison(SafeDeleteModel):
 
     @property
     def montant_cumule(self):
-        return self.montant_precedent + self.montant
+        try:
+            previous_cumule = BonLivraison.objects.filter(dqe=self.dqe, contrat=self.contrat, date__lte=self.date)
+            sum = 0
+            if (previous_cumule):
+                for pc in previous_cumule:
+                    sum +=pc.montant
+                return sum
+            else:
+                return 0
+        except BonLivraison.DoesNotExist:
+            return 0
+
+
 
 
 
