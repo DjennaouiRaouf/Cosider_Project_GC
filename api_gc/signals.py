@@ -21,26 +21,7 @@ def pre_save_params(sender, instance, **kwargs):
 
 @receiver(pre_save,  sender=Encaissement)
 def pre_save_encaissement(sender, instance, **kwargs):
-    if not instance.pk:
-
-        try:
-
-            sum = Encaissement.objects.filter(facture=instance.facture).aggregate(models.Sum('montant_encaisse'))[
-                        "montant_encaisse__sum"]
-
-        except Encaissement.DoesNotExist:
-                pass
-
-        if(not sum):
-            sum=0
-        sum=sum+instance.montant_encaisse
-        instance.montant_creance=instance.facture.montant_facture_ttc-sum
-        if(instance.montant_creance == 0):
-            instance.facture.paye=True
-            instance.facture.save()
-        if(instance.montant_creance < 0):
-            raise ValidationError('Le paiement de la facture est terminer')
-
+    print(instance.montant_creance)
 @receiver(post_softdelete, sender=Encaissement)
 def update_on_softdelete(sender, instance, **kwargs):
     try:

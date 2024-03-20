@@ -451,9 +451,15 @@ class Encaissement(SafeDeleteModel):
     @property
     def montant_creance(self):
         try:
-            enc = Encaissement.objects.filter(facture=self.facture).aggregate(models.Sum('montant_encaisse'))[
+            enc = Encaissement.objects.filter(facture=self.facture, date_encaissement__lt=self.date_encaissement).aggregate(models.Sum('montant_encaisse'))[
             "montant_encaisse__sum"]
-            return self.facture.montant_facture_ttc-enc
+
+            if(enc==None):
+                enc=self.montant_encaisse
+            else:
+                enc+=self.montant_encaisse
+
+            return (self.facture.montant_facture_ttc-enc)
         except Encaissement.DoesNotExist:
             return 0
 
