@@ -29,6 +29,8 @@ urlpatterns = [
     path('addcamion/',AddCamion.as_view()),
     path('getcamion/',ListCamion.as_view()),
 
+    path('addfacture/', AddFacture.as_view()),
+    path('getfacture/', ListFacture.as_view()),
 
 
 ]

@@ -140,9 +140,9 @@ class ListDQE(generics.ListAPIView):
         qt = 0
         mt = 0
         response_data = super().list(request, *args, **kwargs).data
-        for d in queryset:
-            qt = qt + d.qte
-            mt = mt + d.montant_qte
+        for q in queryset:
+            qt = qt + q.qte
+            mt = mt + q.montant_qte
 
         return Response({'dqe': response_data,
                          'extra': {
@@ -237,6 +237,39 @@ class contratKeys(APIView):
 
 
 
+
+
+class AddFacture(generics.CreateAPIView):
+    #permission_classes = [IsAuthenticated]
+    queryset = Factures.objects.all()
+    serializer_class = FactureSerializer
+
+
+class ListFacture(generics.ListAPIView):
+    #permission_classes = [IsAuthenticated]
+    queryset = Factures.objects.all()
+    serializer_class =FactureSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = FacturesFilter
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        rg_total = 0
+        creance = 0
+        response_data = super().list(request, *args, **kwargs).data
+        for q in queryset:
+            rg_total += q.montant_rg
+
+
+
+
+        return Response({'facture': response_data,
+                         'extra': {
+
+                             'rg_total': rg_total,
+                             'creance': creance,
+
+                         }}, status=status.HTTP_200_OK)
 
 
 

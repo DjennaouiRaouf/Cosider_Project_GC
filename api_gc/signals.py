@@ -34,7 +34,7 @@ def pre_save_encaissement(sender, instance, **kwargs):
         if(not sum):
             sum=0
         sum=sum+instance.montant_encaisse
-        instance.montant_creance=instance.facture.montant_factureTTC-sum
+        instance.montant_creance=instance.facture.montant_facture_ttc-sum
         if(instance.montant_creance == 0):
             instance.facture.paye=True
             instance.facture.save()

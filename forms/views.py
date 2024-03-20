@@ -317,6 +317,26 @@ class DQEFieldsList(APIView):
 
 
 
+class FactureFieldsList(APIView):
+    def get(self, request):
+        serializer = FactureSerializer()
+        fields = serializer.get_fields()
+        field_info = []
+        for field_name, field_instance in fields.items():
+            if(field_name not in ['',]):
+                obj = {
+                        'field': field_name,
+                        'headerName': field_instance.label or field_name,
+
+
+                }
+                if(field_name in ['montant_rg','montant_rb','montant','montant_cumule',
+                                  'montant_ttc','montant_ht']):
+                    obj['cellRenderer'] = 'InfoRenderer'
+
+                field_info.append(obj)
+        return Response({'fields': field_info},
+                        status=status.HTTP_200_OK)
 
 
 class DQEFilterForm(APIView):
@@ -399,6 +419,8 @@ class DQEFieldsAddUpdate(APIView):
         return Response({'fields': field_info,'state':state},
                         status=status.HTTP_200_OK)
 
+
+#----------------------------------------------------- Factures
 
 
 #----------------------------------------------------- Bon de livraison

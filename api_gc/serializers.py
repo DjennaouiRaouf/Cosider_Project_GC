@@ -214,3 +214,41 @@ class BonLivraisonSerializer(serializers.ModelSerializer):
         model = BonLivraison
         fields = '__all__'
 
+
+
+
+
+class FactureSerializer(serializers.ModelSerializer):
+    montant = serializers.SerializerMethodField(label="Montant")
+    montant_cumule = serializers.SerializerMethodField(label="Montant Cumule")
+    montant_ttc= serializers.SerializerMethodField(label="Montant TTC")
+    montant_ht = serializers.SerializerMethodField(label="Montant HT")
+    montant_rb = serializers.SerializerMethodField(label="Montant Rabais")
+    montant_rg = serializers.SerializerMethodField(label="Montant Retenue de Garantie")
+
+
+    def get_montant(self, obj):
+        return obj.montant
+
+    def get_montant_cumule(self, obj):
+        return obj.montant_cumule
+
+    def get_montant_ttc(self, obj):
+        return  obj.montant_facture_ttc
+
+    def get_montant_ht(self, obj):
+        return obj.montant_facture_ht
+
+    def get_montant_rb(self, obj):
+        return obj.montant_rb
+    def get_montant_rg(self, obj):
+        return obj.montant_rg
+    def get_fields(self, *args, **kwargs):
+        fields = super().get_fields(*args, **kwargs)
+        fields.pop('deleted', None)
+        fields.pop('deleted_by_cascade', None)
+
+        return fields
+    class Meta:
+        model = Factures
+        fields = '__all__'

@@ -24,6 +24,7 @@ urlpatterns = [
     path('bladdform/',BLFieldsAddUpdate.as_view()),
     path('blfilterform/',BLFilterForm.as_view()),
 
+    path('facturelistform/',FactureFieldsList.as_view()),
 
     path('camionlistform/',CamionFieldsList.as_view()),
     path('camionaddform/',CamionAddUpdate.as_view()),

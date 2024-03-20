@@ -350,10 +350,10 @@ class BonLivraison(SafeDeleteModel):
 class Factures(SafeDeleteModel):
     numero_facture=models.CharField(max_length=500,primary_key=True,null=False, verbose_name='Numero de facture',editable=False)
     contrat=models.ForeignKey(Contrat, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
+    date= models.DateField(null=True, verbose_name='Date')
     du = models.DateField(null=False, verbose_name='Du')
     au = models.DateField(null=False, verbose_name='Au')
     paye = models.BooleanField(default=False, null=False, editable=False)
-
     historique = HistoricalRecords()
     objects = DeletedModelManager()
 
@@ -361,35 +361,27 @@ class Factures(SafeDeleteModel):
     def montant(self):
         try:
             details=DetailFacture.objects.filter(facture=self.numero_facture)
-            montant=0
-            for detail in details:
-                montant=montant+detail.detail.montant
-            return montant
-        except DetailFacture.DoesNotExist:
-            return 0
-
-    @property
-    def montant_precedent(self):
-        try:
-            details = DetailFacture.objects.filter(facture=self.numero_facture)
-            montant_precedent = 0
-            for detail in details:
-                montant_precedent = montant_precedent + detail.detail.montant_precedent
-            return montant_precedent
+            if(details):
+                sum=0
+                for detail in details:
+                    sum+=detail.detail.montant
+                return sum
+            else:
+                return 0
         except DetailFacture.DoesNotExist:
             return 0
 
     @property
     def montant_cumule(self):
         try:
-            details = DetailFacture.objects.filter(facture=self.numero_facture)
+            details = DetailFacture.objects.filter(facture=self.numero_facture,facture__date__lte=self.date)
             montant_cumule = 0
             for detail in details:
-                montant_cumule = montant_cumule + detail.detail.montant_cumule
+                montant_cumule = montant_cumule + detail.detail.montant
             return montant_cumule
         except DetailFacture.DoesNotExist:
             return 0
-    
+
     @property
     def montant_rb(self):
         return round((self.montant*self.contrat.rabais/100),4)
@@ -434,6 +426,9 @@ class ModePaiement(SafeDeleteModel):
     libelle = models.CharField(max_length=500, null=False, unique=True)
     historique = HistoricalRecords()
     objects = DeletedModelManager()
+
+    def __str__(self):
+        return self.libelle
     class Meta:
         app_label = 'api_gc'
 
@@ -458,9 +453,7 @@ class Encaissement(SafeDeleteModel):
         try:
             enc = Encaissement.objects.filter(facture=self.facture).aggregate(models.Sum('montant_encaisse'))[
             "montant_encaisse__sum"]
-            if(enc):
-                return self.facture.montant_ttc
-
+            return self.facture.montant_facture_ttc-enc
         except Encaissement.DoesNotExist:
             return 0
 

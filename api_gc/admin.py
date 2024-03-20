@@ -57,6 +57,15 @@ class ParametresAdmin(SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin
         return False
 
 
+@admin.register(ModePaiement)
+class ModePaiementAdmin(SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin):
+    list_per_page = lp
+    list_display = [field.name for field in ModePaiement._meta.fields if field.name not in ['deleted', 'deleted_by_cascade']]
+
+    list_filter = (
+        SafeDeleteAdminFilter,
+    )
+
 
 
 @admin.register(Clients)
@@ -67,6 +76,22 @@ class ClientsAdmin(SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin):
     list_filter = (
         SafeDeleteAdminFilter,
     )
+
+
+@admin.register(Encaissement)
+class EncaissementAdmin(SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin):
+    list_per_page = lp
+    list_display = [field.name for field in Encaissement._meta.fields if field.name not in ['deleted', 'deleted_by_cascade']]+['montant_creance',
+                                                                                                                        ]
+
+
+    list_filter = (
+        SafeDeleteAdminFilter,
+    )
+    def montant_creance(self,obj):
+        return obj.montant_creance
+
+
 
 
 
@@ -175,7 +200,7 @@ class BonLivraisonAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmi
 class FacturesAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin):
     save_as = True
     list_per_page = lp
-    list_display = [field.name for field in Factures._meta.fields if field.name not in ['deleted', 'deleted_by_cascade']]+['montant_precedent','montant',
+    list_display = [field.name for field in Factures._meta.fields if field.name not in ['deleted', 'deleted_by_cascade']]+['montant',
                                                                                                                                'montant_cumule','montant_rb',
                                                                                                                            'montant_rg','montant_facture_ht',
                                                                                                                            'montant_facture_ttc']
@@ -198,9 +223,6 @@ class FacturesAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,ad
     def montant_facture_ttc(self, obj):
         return obj.montant_facture_ttc
 
-    montant.short_description = 'montant courant'
-    def montant_precedent(self,obj):
-        return obj.montant_precedent
     def montant_cumule(self,obj):
         return obj.montant_cumule
 
@@ -220,7 +242,7 @@ class DetailFactureAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdm
         return False
 
     def has_add_permission(self, request):
-        return False
+        return True
 
 
 
