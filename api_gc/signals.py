@@ -94,12 +94,12 @@ def pre_save_facture(sender, instance, **kwargs):
             debut = instance.du
             fin = instance.au
             try:
-                details = DetailBonLivraison.objects.filter(bl__contrat=instance.contrat, bl__date__lte=fin, bl__date__gte=debut)
+                details = BonLivraison.objects.filter(contrat=instance.contrat, date__lte=fin, date__gte=debut)
                 for d in details:
                     DetailFacture.objects.create(facture=instance, detail=d)
 
 
-            except DetailBonLivraison.DoesNotExist:
+            except BonLivraison.DoesNotExist:
                 raise ValidationError('Facturation impossible les bons de livraison ne sont pas disponible ')
 
 
