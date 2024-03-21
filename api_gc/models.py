@@ -316,8 +316,14 @@ class BonLivraison(SafeDeleteModel):
 
     @property
     def montant_cumule(self):
-        return 0
-
+        previous_cumule = BonLivraison.objects.filter(dqe=self.dqe, contrat=self.contrat, date__lt=self.date)
+        sum = self.montant
+        if (previous_cumule):
+            for pc in previous_cumule:
+                sum += pc.montant
+            return sum
+        else:
+            return self.montant
 
     class Meta:
         app_label = 'api_gc'
