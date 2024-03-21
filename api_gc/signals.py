@@ -21,7 +21,7 @@ def pre_save_params(sender, instance, **kwargs):
 
 @receiver(pre_save,  sender=Encaissement)
 def pre_save_encaissement(sender, instance, **kwargs):
-    print(instance.montant_creance)
+    pass
 @receiver(post_softdelete, sender=Encaissement)
 def update_on_softdelete(sender, instance, **kwargs):
     try:
@@ -76,11 +76,19 @@ def pre_save_facture(sender, instance, **kwargs):
             fin = instance.au
             try:
                 details = BonLivraison.objects.filter(contrat=instance.contrat, date__lte=fin, date__gte=debut)
+                sum=0
                 for d in details:
                     DetailFacture.objects.create(facture=instance, detail=d)
-
-
+                    sum+=d.montant
             except BonLivraison.DoesNotExist:
                 raise ValidationError('Facturation impossible les bons de livraison ne sont pas disponible ')
+
+        instance.montant=sum
+        instance.montant_rb= round((instance.montant*instance.contrat.rabais/100),4)
+        m = instance.montant - instance.montant_rb
+        instance.montant_rg=round((m*instance.contrat.rg/100),4)
+
+        instance.montant_facture_ht=round(instance.montant - instance.montant_rb - instance.montant_rg, 4)
+        instance.montant_facture_ttc=round(instance.montant_facture_ht + (instance.montant_facture_ht * instance.contrat.tva / 100), 2)
 
 

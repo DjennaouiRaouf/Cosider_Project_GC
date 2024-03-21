@@ -348,28 +348,19 @@ class BonLivraison(SafeDeleteModel):
 
 
 class Factures(SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
     numero_facture=models.CharField(max_length=500,primary_key=True,null=False, verbose_name='Numero de facture',editable=False)
     contrat=models.ForeignKey(Contrat, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
     date= models.DateField(null=True, verbose_name='Date')
     du = models.DateField(null=False, verbose_name='Du')
     au = models.DateField(null=False, verbose_name='Au')
     paye = models.BooleanField(default=False, null=False, editable=False)
-    historique = HistoricalRecords()
+    montant=  models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Montant',editable=False)
+    montant_rb=  models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Montant Rabais',editable=False)
+    montant_rg=  models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Montant RG',editable=False)
+    montant_facture_ht=models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Montant Facture (en HT)',editable=False)
+    montant_facture_ttc=models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Montant Facture (en TTC)',editable=False)
     objects = DeletedModelManager()
-
-    @property
-    def montant(self):
-        try:
-            details=DetailFacture.objects.filter(facture=self.numero_facture)
-            if(details):
-                sum=0
-                for detail in details:
-                    sum+=detail.detail.montant
-                return sum
-            else:
-                return 0
-        except DetailFacture.DoesNotExist:
-            return 0
 
     @property
     def montant_cumule(self):
@@ -382,23 +373,6 @@ class Factures(SafeDeleteModel):
         except DetailFacture.DoesNotExist:
             return 0
 
-    @property
-    def montant_rb(self):
-        return round((self.montant*self.contrat.rabais/100),4)
-
-    @property
-    def montant_rg(self):
-        m=self.montant-self.montant_rb
-        return  round((m*self.contrat.rg/100),4)
-
-
-    @property
-    def montant_facture_ht(self):
-        return round(self.montant-self.montant_rb-self.montant_rg,4)
-
-    @property
-    def montant_facture_ttc(self):
-        return round(self.montant_facture_ht+(self.montant_facture_ht*self.contrat.tva/100),2)
 
     def __str__(self):
         return self.numero_facture
@@ -412,8 +386,10 @@ class Factures(SafeDeleteModel):
 
 
 class DetailFacture(SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
     facture = models.ForeignKey(Factures, on_delete=models.DO_NOTHING,to_field="numero_facture")
     detail = models.ForeignKey(BonLivraison, on_delete=models.DO_NOTHING)
+    objects = DeletedModelManager()
 
     class Meta:
         unique_together = (('facture', 'detail',))
