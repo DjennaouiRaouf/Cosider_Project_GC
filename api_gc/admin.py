@@ -178,22 +178,17 @@ class CamionAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,admi
 class BonLivraisonAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin):
     save_as = True
     list_per_page = lp
-    list_display = [field.name for field in BonLivraison._meta.fields if field.name not in ['qte','deleted', 'deleted_by_cascade']]+['qte','qte_cumule',
-                                                                                                                               'montant',
-                                                                                                                               'montant_cumule']
+    list_display = [field.name for field in BonLivraison._meta.fields if field.name not in ['deleted', 'deleted_by_cascade']]+['montant_cumule','qte_cumule']
 
 
     list_filter = (
         SafeDeleteAdminFilter,
     )
-    def qte(self, obj):
-        return obj.qte
 
     def qte_cumule(self, obj):
         return obj.qte_cumule
 
-    def montant(self, obj):
-        return obj.montant
+
     def montant_cumule(self,obj):
         return obj.montant_cumule
 @admin.register(Factures)

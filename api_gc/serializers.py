@@ -180,15 +180,11 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class BonLivraisonSerializer(serializers.ModelSerializer):
-    montant = serializers.SerializerMethodField(label="Montant")
     montant_cumule = serializers.SerializerMethodField(label="Montant Cumule")
     libelle = serializers.SerializerMethodField(label='Libelle')
     prix_unitaire = serializers.SerializerMethodField(label='Prix Unitaire')
-    qte=serializers.SerializerMethodField(label="Quantité")
     qte_cumule = serializers.SerializerMethodField(label="Quantité Cumulée")
 
-    def get_montant(self, obj):
-        return obj.montant
 
     def get_montant_cumule(self, obj):
         return obj.montant_cumule
@@ -198,9 +194,6 @@ class BonLivraisonSerializer(serializers.ModelSerializer):
 
     def get_prix_unitaire(self, obj):
         return obj.dqe.prixProduit.prix_unitaire
-
-    def get_qte(self,obj):
-        return obj.qte
 
     def get_qte_cumule(self, obj):
         return obj.qte_cumule

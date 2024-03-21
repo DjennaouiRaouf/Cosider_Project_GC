@@ -61,8 +61,9 @@ def pre_save_planing(sender, instance, **kwargs):
 
 @receiver(pre_save, sender=BonLivraison)
 def pre_save_bonlivraison(sender, instance, **kwargs):
-    if (instance.qte_cumule > instance.dqe.qte):
-        raise ValidationError("Vous avez dépassé la quantité contractuelle")
+    if not instance.pk:
+        instance.qte = instance.ptc - instance.camion.tare
+        instance.montant = round(instance.qte * instance.dqe.prixProduit.prix_unitaire, 4)
 
 
 @receiver(pre_save, sender=Factures)

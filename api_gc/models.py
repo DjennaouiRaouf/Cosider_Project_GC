@@ -289,51 +289,34 @@ class BonLivraison(SafeDeleteModel):
     dqe = models.ForeignKey(DQE, on_delete=models.DO_NOTHING, null=False, verbose_name='dqe')
     ptc = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
                                    verbose_name='PTC')
+
+    montant = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
+                                  verbose_name='Montant', editable=False)
+
+
+    qte = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
+                                  verbose_name='QTE', editable=False)
+
     historique = HistoricalRecords()
     objects = DeletedModelManager()
 
-
-    @property
-    def qte(self):
-        return self.ptc-self.camion.tare
-
-
     @property
     def qte_cumule(self):
-        try:
-            previous_cumule = BonLivraison.objects.filter(dqe=self.dqe, contrat=self.contrat, date__lte=self.date)
-            sum = 0
-            if (previous_cumule):
-                for pc in previous_cumule:
-                    sum +=pc.qte
-                return sum
-            else:
-                return 0
-        except BonLivraison.DoesNotExist:
-            return 0
+        previous_cumule = BonLivraison.objects.filter(dqe=self.dqe, contrat=self.contrat, date__lt=self.date)
+        sum = self.qte
+        if (previous_cumule):
+            for pc in previous_cumule:
+                sum +=pc.qte
+            return sum
+        else:
+            return self.qte
 
 
-    @property
-    def montant(self):
-        return round(self.qte*self.dqe.prixProduit.prix_unitaire,4)
+
 
     @property
     def montant_cumule(self):
-        try:
-            previous_cumule = BonLivraison.objects.filter(dqe=self.dqe, contrat=self.contrat, date__lte=self.date)
-            sum = 0
-            if (previous_cumule):
-                for pc in previous_cumule:
-                    sum +=pc.montant
-                return sum
-            else:
-                return 0
-        except BonLivraison.DoesNotExist:
-            return 0
-
-
-
-
+        return 0
 
 
     class Meta:
