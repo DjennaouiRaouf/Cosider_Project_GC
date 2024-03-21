@@ -431,7 +431,7 @@ class FactureFieldsAddUpdate(APIView):
         state = {}
 
         for field_name, field_instance in fields.items():
-            if(field_name not in ['contrat','montant','montant_rg','montant_rb','numero_facture','paye',
+            if(field_name not in ['date','contrat','montant','montant_rg','montant_rb','numero_facture','paye',
                                   'montant_facture_ht','montant_facture_ttc']):
                 obj = {
                     'name': field_name,
