@@ -237,12 +237,25 @@ class contratKeys(APIView):
 
 
 
+class AddODS(generics.CreateAPIView):
+    #permission_classes = [IsAuthenticated]
+    queryset = ODS.objects.all()
+    serializer_class = ODSSerializer
+
+
 
 
 class AddFacture(generics.CreateAPIView):
     #permission_classes = [IsAuthenticated]
     queryset = Factures.objects.all()
     serializer_class = FactureSerializer
+
+class ListODS(generics.ListAPIView):
+    #permission_classes = [IsAuthenticated]
+    queryset = ODS.objects.all()
+    serializer_class =ODSSerializer
+    #filter_backends = [DjangoFilterBackend]
+    #filterset_class = FacturesFilter
 
 
 class ListFacture(generics.ListAPIView):

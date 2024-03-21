@@ -20,6 +20,8 @@ urlpatterns = [
     path('dqeaddform/',DQEFieldsAddUpdate.as_view()),
     path('dqefilterform/',DQEFilterForm.as_view()),
 
+    path('factureaddform/',FactureFieldsAddUpdate.as_view()),
+
     path('bllistform/',BLFieldsList.as_view()),
     path('bladdform/',BLFieldsAddUpdate.as_view()),
     path('blfilterform/',BLFilterForm.as_view()),
