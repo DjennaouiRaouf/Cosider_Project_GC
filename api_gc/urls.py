@@ -36,4 +36,8 @@ urlpatterns = [
     path('getods/', ListODS.as_view()),
 
 
+    path('updatedqe/<str:pk>/',UpdateDQE.as_view()),
+    path('deldqe/',DeleteDQE.as_view()),
+
+
 ]

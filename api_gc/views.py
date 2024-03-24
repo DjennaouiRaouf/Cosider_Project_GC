@@ -258,6 +258,20 @@ class ListODS(generics.ListAPIView):
     #filterset_class = FacturesFilter
 
 
+class UpdateDQE(generics.UpdateAPIView):
+    #permission_classes = [IsAuthenticated]
+    queryset = DQE.objects.all()
+    serializer_class = DQESerializer
+
+
+
+
+class DeleteDQE(generics.DestroyAPIView):
+    #permission_classes = [IsAuthenticated]
+    queryset = DQE.objects.all()
+    serializer_class = DQESerializer
+
+
 class ListFacture(generics.ListAPIView):
     #permission_classes = [IsAuthenticated]
     queryset = Factures.objects.all()
