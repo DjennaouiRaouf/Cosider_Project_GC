@@ -185,7 +185,6 @@ class BonLivraisonSerializer(serializers.ModelSerializer):
     prix_unitaire = serializers.SerializerMethodField(label='Prix Unitaire')
     qte_cumule = serializers.SerializerMethodField(label="Quantité Cumulée")
 
-
     def get_montant_cumule(self, obj):
         return obj.montant_cumule
 
