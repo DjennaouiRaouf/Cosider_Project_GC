@@ -2,6 +2,7 @@ from django.contrib.auth import authenticate
 from django.shortcuts import render
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, generics
+from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -262,8 +263,16 @@ class UpdateDQE(generics.UpdateAPIView):
     #permission_classes = [IsAuthenticated]
     queryset = DQE.objects.all()
     serializer_class = DQESerializer
+    lookup_field = "pk"
+    def get_object(self):
+        pk = self.request.data.get(DQE._meta.pk.name)
+        try:
+            obj = DQE.objects.get(pk=pk)
+        except DQE.DoesNotExist:
+            raise NotFound("Object n'éxiste pas")
+        self.check_object_permissions(self.request, obj)
 
-
+        return obj
 
 
 class DeleteDQE(generics.DestroyAPIView):
