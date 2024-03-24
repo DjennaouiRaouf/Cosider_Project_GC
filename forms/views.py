@@ -468,7 +468,7 @@ class BLFilterForm(APIView):
         field_info = []
         contrat = request.query_params.get('contrat', None)
         for field_name, field_instance  in BLFilter.base_filters.items():
-            if(field_name  not in ['deleted','deleted_by_cascade','contrat','ptc']):
+            if(field_name  not in ['deleted','deleted_by_cascade','contrat','ptc','montant','qte']):
 
                 obj = {
                     'name': field_name,

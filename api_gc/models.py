@@ -11,6 +11,9 @@ from dateutil.relativedelta import relativedelta
 class DeletedModelManager(SafeDeleteManager):
     _safedelete_visibility = DELETED_VISIBLE_BY_PK
 
+
+
+
 class Unite(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
     id=models.CharField(max_length=500,primary_key=True,verbose_name='Code Unité',db_column='code_unite')
@@ -340,6 +343,7 @@ class Factures(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
     numero_facture=models.CharField(max_length=500,primary_key=True,null=False, verbose_name='Numero de facture',editable=False)
     contrat=models.ForeignKey(Contrat, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
+    unite=models.ForeignKey(Unite, on_delete=models.DO_NOTHING, null=False, verbose_name='Unite')
     date= models.DateField(auto_now=True, verbose_name='Date')
     du = models.DateField(null=False, verbose_name='Du')
     au = models.DateField(null=False, verbose_name='Au')

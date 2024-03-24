@@ -69,26 +69,24 @@ def pre_save_bonlivraison(sender, instance, **kwargs):
 @receiver(pre_save, sender=Factures)
 def pre_save_facture(sender, instance, **kwargs):
     if not instance.pk:
-        instance.numero_facture=str(Factures.objects.all().count()+1)+'/'+str(datetime.now().year)
+        instance.numero_facture=str(Factures.objects.filter(date__year=datetime.now().year).count()+1)+'/'+str(datetime.now().year)
         if (instance.du > instance.au):
             raise ValidationError('Date de debut doit etre inferieur à la date de fin')
         else:
             debut = instance.du
             fin = instance.au
             try:
-                details = BonLivraison.objects.filter(contrat=instance.contrat, date__lte=fin, date__gte=debut)
+                details = BonLivraison.objects.filter(contrat=instance.contrat, date__date__lte=fin, date__date__gte=debut)
                 sum=0
                 for d in details:
                     DetailFacture.objects.create(facture=instance, detail=d)
                     sum+=d.montant
             except BonLivraison.DoesNotExist:
                 raise ValidationError('Facturation impossible les bons de livraison ne sont pas disponible ')
-
         instance.montant=sum
         instance.montant_rb= round((instance.montant*instance.contrat.rabais/100),4)
         m = instance.montant - instance.montant_rb
         instance.montant_rg=round((m*instance.contrat.rg/100),4)
-
         instance.montant_facture_ht=round(instance.montant - instance.montant_rb - instance.montant_rg, 4)
         instance.montant_facture_ttc=round(instance.montant_facture_ht + (instance.montant_facture_ht * instance.contrat.tva / 100), 2)
 
