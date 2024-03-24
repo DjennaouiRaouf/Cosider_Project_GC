@@ -375,7 +375,7 @@ class DQEFieldsAddUpdate(APIView):
         field_info = []
         field_state = []
         state = {}
-
+        id = request.query_params.get('id', None)
         for field_name, field_instance in fields.items():
             if(field_name not in ['utilisateur','montant_qte','produit','unite','prix_unitaire','contrat','id']):
                 obj = {
@@ -386,13 +386,18 @@ class DQEFieldsAddUpdate(APIView):
                 }
                 if (str(field_instance.__class__.__name__) == "PrimaryKeyRelatedField" and field_name in [
                     'prixProduit']):
+                    try:
+                        dqe = DQE.objects.get(id=id)
+                        prod= dqe.prixProduit.produit
+                        serialized_data = PrixProduitSerializer(field_instance.queryset.filter(produit=prod), many=True).data
 
-                    serialized_data = PrixProduitSerializer(field_instance.queryset, many=True).data
+                    except DQE.DoesNotExist:
+                        serialized_data = PrixProduitSerializer(field_instance.queryset.filter(), many=True).data
                     filtered_data = []
                     for item in serialized_data:
                         filtered_item = {
                             'value': item['id'],
-                            'label': item['unite']+"-"+item['libelle_prod']+"-"+item['prix_unitaire']
+                            'label': item['unite']+" "+item['libelle_prod']+" "+item['prix_unitaire']
 
                         }
                         filtered_data.append(filtered_item)
@@ -400,21 +405,45 @@ class DQEFieldsAddUpdate(APIView):
                     obj['queryset'] = filtered_data
 
                 field_info.append(obj)
+                try:
+                    dqe=DQE.objects.get(id=id)
+                    if not (str(field_instance.__class__.__name__) == "PrimaryKeyRelatedField"):
+                        field_value = getattr(dqe, field_name)
+                        field_state.append({
+                            field_name: field_value,
+                        })
+                    else:
+                        if field_name in ['prixProduit']:
 
-                default_value = ''
-                if (str(field_instance.__class__.__name__) == "PrimaryKeyRelatedField"):
-                    default_value=[]
-                if str(field_instance.__class__.__name__) == 'BooleanField':
-                    default_value = False
-                if str(field_instance.__class__.__name__) in ['PositiveSmallIntegerField', 'DecimalField',
-                                                              'PositiveIntegerField',
-                                                              'IntegerField', ]:
-                    default_value = 0
-                field_state.append({
-                    field_name: default_value,
-                })
-                for d in field_state:
-                    state.update(d)
+                            serialized_data = PrixProduitSerializer(dqe.prixProduit, many=False).data
+
+                            field_state.append({
+                                field_name: [{
+                                    'value': serialized_data['id'],
+                                    'label': serialized_data['unite'] + " " + serialized_data['libelle_prod'] + " " + serialized_data['prix_unitaire']
+
+                                }]
+                            })
+
+                    for d in field_state:
+                        state.update(d)
+
+                except DQE.DoesNotExist:
+                    default_value = ''
+                    if (str(field_instance.__class__.__name__) == "PrimaryKeyRelatedField"):
+                        default_value = []
+                    if str(field_instance.__class__.__name__) == 'BooleanField':
+                        default_value = False
+                    if str(field_instance.__class__.__name__) in ['PositiveSmallIntegerField', 'DecimalField',
+                                                                  'PositiveIntegerField',
+                                                                  'IntegerField', ]:
+                        default_value = 0
+                    field_state.append({
+                        field_name: default_value,
+                    })
+                    for d in field_state:
+                        state.update(d)
+
 
         return Response({'fields': field_info,'state':state},
                         status=status.HTTP_200_OK)
