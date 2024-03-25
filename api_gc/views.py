@@ -280,6 +280,18 @@ class DeleteDQE(generics.DestroyAPIView):
     queryset = DQE.objects.all()
     serializer_class = DQESerializer
 
+    def delete(self, request, *args, **kwargs):
+        pk = request.data.get(DQE._meta.pk.name)
+        if pk:
+            queryset = self.filter_queryset(self.get_queryset())
+            queryset = queryset.filter(pk__in=pk)
+            self.perform_destroy(queryset)
+
+        return Response({'Message': pk}, status=status.HTTP_200_OK)
+
+
+
+
 
 class ListFacture(generics.ListAPIView):
     #permission_classes = [IsAuthenticated]
