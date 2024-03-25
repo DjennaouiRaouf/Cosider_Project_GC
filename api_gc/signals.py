@@ -1,15 +1,9 @@
-import sys
-from decimal import Decimal
-
-
 from datetime import datetime
-
 from django.core.exceptions import ValidationError
 from django.db.models import Q, F
 from django.db.models.signals import *
 from django.dispatch import *
 from safedelete.signals import *
-
 from api_gc.models import *
 
 @receiver(pre_save, sender=Parametres)
@@ -38,17 +32,16 @@ def pre_save_dqe(sender, instance, **kwargs):
     if not instance.pk:
         instance.id = str(instance.contrat.id)+"-"+str(instance.prixProduit.id)
 
-    instance.unite=Profile.objects.get(user=instance.user).unite
 
 
 
 @receiver(pre_save, sender=PrixProduit)
 def pre_save_prixProduit(sender, instance, **kwargs):
+    if (instance.unite == None):
+        instance.unite = Profile.objects.get(user=instance.user).unite
     if not instance.pk:
         count = PrixProduit.objects.filter(unite=instance.unite, produit=instance.produit).count()
         instance.id = str(instance.unite)+"-"+str(instance.produit.id)+"-"+str(count+1)
-
-    instance.unite = Profile.objects.get(user=instance.user).unite
 
 
 

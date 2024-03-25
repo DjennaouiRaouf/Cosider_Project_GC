@@ -6,13 +6,13 @@ from safedelete.models import SafeDeleteModel
 from simple_history.models import HistoricalRecords
 from dateutil.relativedelta import relativedelta
 from django.contrib.auth.models import User
-
-from django_currentuser.db.models import CurrentUserField
-
 # Create your models here.
 
 class DeletedModelManager(SafeDeleteManager):
     _safedelete_visibility = DELETED_VISIBLE_BY_PK
+
+
+
 
 class Unite(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
@@ -20,6 +20,7 @@ class Unite(SafeDeleteModel):
     libelle=models.CharField(max_length=500,null=False,verbose_name="Libelle")
     date_ouverture= models.DateField(null=False,verbose_name="Date d'ouverture")
     date_cloture = models.DateField(null=True,blank=True, verbose_name="Date de cloture")
+
     historique = HistoricalRecords()
     objects = DeletedModelManager()
 
@@ -34,7 +35,8 @@ class Unite(SafeDeleteModel):
 class Profile(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    unite = models.ForeignKey(Unite, on_delete=models.DO_NOTHING, db_column='Unité', null=True,blank=True, verbose_name='Unité')
+    unite = models.ForeignKey(Unite, on_delete=models.DO_NOTHING, db_column='Unité', null=True, verbose_name='Unité')
+
     historique = HistoricalRecords()
     objects = DeletedModelManager()
 
@@ -135,9 +137,7 @@ class Produits(SafeDeleteModel):
 class PrixProduit(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
     id = models.CharField(max_length=500, primary_key=True, verbose_name='ID', db_column='id',editable=False)
-    user = CurrentUserField(on_update=True, verbose_name='Utilisateur')
     unite = models.ForeignKey(Unite, on_delete=models.DO_NOTHING, db_column='Unité', null=False, verbose_name='Unité')
-
     produit = models.ForeignKey(Produits, on_delete=models.DO_NOTHING,null=False,verbose_name='Produit')
     prix_unitaire = models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Prix unitaire')
     historique = HistoricalRecords()
@@ -206,10 +206,6 @@ class DQE(SafeDeleteModel):
     contrat=models.ForeignKey(Contrat, on_delete=models.DO_NOTHING,null=True,verbose_name='Contrat')
     prixProduit=models.ForeignKey(PrixProduit, on_delete=models.DO_NOTHING,null=False,verbose_name='Produit')
     qte=models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Quantité')
-    user = CurrentUserField(on_update=True, verbose_name='Utilisateur')
-    unite = models.ForeignKey(Unite, on_delete=models.DO_NOTHING, db_column='Unité', blank=True, null=True,
-                              verbose_name='Unité')
-
     historique = HistoricalRecords()
     objects = DeletedModelManager()
 
@@ -318,10 +314,6 @@ class BonLivraison(SafeDeleteModel):
     qte = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
                                   verbose_name='QTE', editable=False)
 
-    user= CurrentUserField(on_update=True,verbose_name='Utilisateur')
-    unite = models.ForeignKey(Unite, on_delete=models.DO_NOTHING, db_column='Unité', blank=True, null=True,
-                              verbose_name='Unité')
-
     historique = HistoricalRecords()
     objects = DeletedModelManager()
 
@@ -363,7 +355,7 @@ class BonLivraison(SafeDeleteModel):
 
 class Factures(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
-    numero_facture=models.CharField(max_length=500,primary_key=True,null=False, verbose_name='Numero de facture',editable=False)
+    id=models.CharField(max_length=500,primary_key=True,null=False, verbose_name='Numero de facture',editable=False)
     contrat=models.ForeignKey(Contrat, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
     date= models.DateField(auto_now=True, verbose_name='Date')
     du = models.DateField(null=False, verbose_name='Du')
