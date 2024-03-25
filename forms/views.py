@@ -344,7 +344,7 @@ class DQEFilterForm(APIView):
         field_info = []
 
         for field_name, field_instance  in DQEFilter.base_filters.items():
-            if(field_name  not in ['deleted','deleted_by_cascade','id','contrat','prixProduit','qte']):
+            if(field_name  not in ['deleted','deleted_by_cascade','id','contrat','prixProduit','qte','user']):
 
                 obj = {
                     'name': field_name,
@@ -377,7 +377,7 @@ class DQEFieldsAddUpdate(APIView):
         state = {}
         id = request.query_params.get('id', None)
         for field_name, field_instance in fields.items():
-            if(field_name not in ['utilisateur','montant_qte','produit','unite','prix_unitaire','contrat','id']):
+            if(field_name not in ['utilisateur','montant_qte','produit','unite','prix_unitaire','contrat','id','unite','user']):
                 obj = {
                     'name': field_name,
                     'type': str(field_instance.__class__.__name__),

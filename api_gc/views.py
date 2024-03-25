@@ -122,13 +122,16 @@ class ListBL(generics.ListAPIView):
     filterset_class = BLFilter
 
     def get_queryset(self):
-        # Retrieve the current user
         user = self.request.user
-        profile=Profile.objects.get(user=user)
-        if(profile.unite == None):
+        try:
+            profile=Profile.objects.get(user=user)
+            if(profile==None):
+                return BonLivraison.objects.all()
+            else:
+                return BonLivraison.objects.filter(unite=profile.unite)
+        except Profile.DoesNotExist:
             return BonLivraison.objects.all()
-        else:
-            return
+
 
 class AddBL(generics.CreateAPIView):
     # permission_classes = [IsAuthenticated]
