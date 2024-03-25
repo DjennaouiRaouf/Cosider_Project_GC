@@ -65,6 +65,9 @@ def pre_save_bonlivraison(sender, instance, **kwargs):
         instance.qte = instance.ptc - instance.camion.tare
         instance.montant = round(instance.qte * instance.dqe.prixProduit.prix_unitaire, 4)
 
+    instance.unite=Profile.objects.get(user=instance.user).unite
+
+
 
 @receiver(pre_save, sender=Factures)
 def pre_save_facture(sender, instance, **kwargs):

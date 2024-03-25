@@ -5,14 +5,14 @@ from safedelete.managers import SafeDeleteManager
 from safedelete.models import SafeDeleteModel
 from simple_history.models import HistoricalRecords
 from dateutil.relativedelta import relativedelta
+from django.contrib.auth.models import User
+
+from django_currentuser.db.models import CurrentUserField
 
 # Create your models here.
 
 class DeletedModelManager(SafeDeleteManager):
     _safedelete_visibility = DELETED_VISIBLE_BY_PK
-
-
-
 
 class Unite(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
@@ -30,6 +30,19 @@ class Unite(SafeDeleteModel):
         app_label = 'api_gc'
         verbose_name = 'Unités'
         verbose_name_plural = 'Unités'
+
+
+class Profile(SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    unite = models.ForeignKey(Unite, on_delete=models.DO_NOTHING, db_column='Unité', blank=True,null=True, verbose_name='Unité')
+    historique = HistoricalRecords()
+    objects = DeletedModelManager()
+
+    class Meta:
+        app_label = 'api_gc'
+        verbose_name = 'Profile'
+        verbose_name_plural = 'Profile'
 
 class Parametres(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
@@ -299,6 +312,10 @@ class BonLivraison(SafeDeleteModel):
 
     qte = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
                                   verbose_name='QTE', editable=False)
+
+    user= CurrentUserField(on_update=True,verbose_name='Utilisateur')
+    unite = models.ForeignKey(Unite, on_delete=models.DO_NOTHING, db_column='Unité', blank=True, null=True,
+                              verbose_name='Unité')
 
     historique = HistoricalRecords()
     objects = DeletedModelManager()

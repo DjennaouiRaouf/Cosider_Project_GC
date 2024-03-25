@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate
+from django.db.models import Max
 from django.shortcuts import render
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, generics
@@ -116,11 +117,18 @@ class ListContract(generics.ListAPIView):
 
 class ListBL(generics.ListAPIView):
     # permission_classes = [IsAuthenticated]
-    queryset= BonLivraison.objects.all()
     serializer_class = BonLivraisonSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = BLFilter
 
+    def get_queryset(self):
+        # Retrieve the current user
+        user = self.request.user
+        profile=Profile.objects.get(user=user)
+        if(profile.unite == None):
+            return BonLivraison.objects.all()
+        else:
+            return
 
 class AddBL(generics.CreateAPIView):
     # permission_classes = [IsAuthenticated]
