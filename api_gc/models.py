@@ -371,7 +371,7 @@ class Factures(SafeDeleteModel):
     @property
     def montant_cumule(self):
         try:
-            details = DetailFacture.objects.filter(facture=self.numero_facture,facture__date__lte=self.date)
+            details = DetailFacture.objects.filter(facture=self.id,facture__date__lte=self.date)
             montant_cumule = 0
             for detail in details:
                 montant_cumule = montant_cumule + detail.detail.montant
@@ -381,7 +381,7 @@ class Factures(SafeDeleteModel):
 
 
     def __str__(self):
-        return self.numero_facture
+        return self.id
 
     class Meta:
         app_label = 'api_gc'
@@ -393,7 +393,7 @@ class Factures(SafeDeleteModel):
 
 class DetailFacture(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
-    facture = models.ForeignKey(Factures, on_delete=models.DO_NOTHING,to_field="numero_facture")
+    facture = models.ForeignKey(Factures, on_delete=models.DO_NOTHING,to_field="id")
     detail = models.ForeignKey(BonLivraison, on_delete=models.DO_NOTHING)
     objects = DeletedModelManager()
 
