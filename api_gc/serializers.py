@@ -145,7 +145,6 @@ class DQESerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    unite=serializers.PrimaryKeyRelatedField(queryset=Unite.objects.all(),label='Unité',required=False)
     def get_fields(self, *args, **kwargs):
         fields = super().get_fields(*args, **kwargs)
         fields.pop('id', None)

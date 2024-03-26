@@ -19,21 +19,6 @@ class CreateUserView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            instance = serializer.save()
-            try:
-                unite=Unite.objects.get(id=request.data['unite'])
-                Profile.objects.create(user=instance,unite=unite)
-            except Unite.DoesNotExist:
-                pass
-            return Response({'message': 'Object created successfully', 'data': serializer.data},
-                            status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 class Login(APIView):
     permission_classes = []
     def post(self,request):
