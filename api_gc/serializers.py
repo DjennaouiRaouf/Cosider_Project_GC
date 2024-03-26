@@ -61,10 +61,7 @@ class ImagesSerilizer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ClientSerilizer(serializers.ModelSerializer):
-    utilisateur = serializers.SerializerMethodField()
-    def get_utilisateur(self, obj):
-        user_fullname = obj.historique.latest().history_user.username
-        return user_fullname
+
     def get_fields(self, *args, **kwargs):
         fields = super().get_fields(*args, **kwargs)
         fields.pop('deleted', None)

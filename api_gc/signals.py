@@ -6,10 +6,10 @@ from django.dispatch import *
 from safedelete.signals import *
 from api_gc.models import *
 
-@receiver(pre_save, sender=Parametres)
+@receiver(pre_save, sender=Configurations)
 def pre_save_params(sender, instance, **kwargs):
     if not instance.pk:
-        count=Parametres.objects.all().count()
+        count=Configurations.objects.all().count()
         if( count > 0):
             raise ValidationError('Impossible d\'ajouter un parametre')
 
@@ -53,10 +53,14 @@ def pre_save_planing(sender, instance, **kwargs):
 @receiver(pre_save, sender=BonLivraison)
 def pre_save_bonlivraison(sender, instance, **kwargs):
     if not instance.pk:
+        config=Configurations.objects.first()
+        num=BonLivraison.objects.all_with_deleted().count()
+        instance.id=str(num)+"/"+config.unite
+
         instance.qte = instance.ptc - instance.camion.tare
         instance.montant = round(instance.qte * instance.dqe.prixProduit.prix_unitaire, 4)
 
-    instance.unite=Profile.objects.get(user=instance.user).unite
+
 
 
 

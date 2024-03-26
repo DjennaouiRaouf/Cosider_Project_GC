@@ -20,6 +20,7 @@ class Unite(SafeDeleteModel):
     libelle=models.CharField(max_length=500,null=False,verbose_name="Libelle")
     date_ouverture= models.DateField(null=False,verbose_name="Date d'ouverture")
     date_cloture = models.DateField(null=True,blank=True, verbose_name="Date de cloture")
+
     historique = HistoricalRecords()
     objects = DeletedModelManager()
 
@@ -31,30 +32,21 @@ class Unite(SafeDeleteModel):
         verbose_name_plural = 'Unités'
 
 
-class Profile(SafeDeleteModel):
-    _safedelete_policy = SOFT_DELETE_CASCADE
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    unite = models.ForeignKey(Unite, on_delete=models.DO_NOTHING, db_column='Unité', null=True, verbose_name='Unité')
-    historique = HistoricalRecords()
-    objects = DeletedModelManager()
 
-    class Meta:
-        app_label = 'api_gc'
-        verbose_name = 'Profile'
-        verbose_name_plural = 'Profile'
-        unique_together=(('user', 'unite'),)
 
-class Parametres(SafeDeleteModel):
+class Configurations(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
+    unite=models.ForeignKey(Unite,null=True,blank=True,verbose_name='Unite',db_column='unite',on_delete=models.DO_NOTHING)
     saisie_automatique=models.BooleanField(default=False, verbose_name="Saisie Automatique")
     port=models.CharField(max_length=500,default='COM1',null=False,verbose_name='Port')
+
     historique = HistoricalRecords()
     objects = DeletedModelManager()
 
     class Meta:
         app_label = 'api_gc'
-        verbose_name = 'Parametres'
-        verbose_name_plural = 'Parametres'
+        verbose_name = 'Configurations'
+        verbose_name_plural = 'Configurations'
 
 
 
@@ -120,6 +112,8 @@ class Produits(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
     id=models.CharField(db_column='code_produits', max_length=500, primary_key=True)
     libelle = models.CharField(db_column='nom_produit', max_length=500, blank=True, null=False, verbose_name='Nom Produit')
+    unite = models.ForeignKey(UniteMesure, on_delete=models.DO_NOTHING,null=False,verbose_name='Unite de Mesure')
+    famille=models.CharField(db_column='famille', max_length=500,  null=True, verbose_name='Famille')
     historique = HistoricalRecords()
     objects = DeletedModelManager()
 
@@ -160,6 +154,7 @@ class Contrat(SafeDeleteModel):
     rg = models.DecimalField(max_digits=38, decimal_places=3,
                                  validators=[MinValueValidator(0), MaxValueValidator(100)], default=0,
                                  verbose_name='Retenue de garantie')
+
     client=models.ForeignKey(Clients, on_delete=models.DO_NOTHING,null=False,verbose_name='Client')
     date_signature=models.DateField(db_column='date_signature', null=False, blank=False, verbose_name='Date de Signature')
     date_expiration=models.DateField(db_column='date_expiration', null=True, verbose_name='Date d\'expiration')
@@ -291,9 +286,11 @@ class Camion(SafeDeleteModel):
         verbose_name_plural = 'Camions'
 
 
-# mode hors connexion
+# mode hors connexion 1 2 3 4 5
 class BonLivraison(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
+    id = models.CharField(max_length=500, primary_key=True, null=False, verbose_name='N° BL',
+                          editable=False)
     conducteur=models.CharField(max_length=500, null=False, verbose_name='Conducteur')
     camion = models.ForeignKey(Camion, null=False, on_delete=models.DO_NOTHING, verbose_name='Camion')
     numero_permis_c=models.CharField(max_length=500,null=True,verbose_name='N° P.Conduire')
@@ -363,6 +360,7 @@ class Factures(SafeDeleteModel):
     montant_facture_ht=models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Montant Facture (en HT)',editable=False)
     montant_facture_ttc=models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Montant Facture (en TTC)',editable=False)
     objects = DeletedModelManager()
+
     @property
     def montant_cumule(self):
         try:

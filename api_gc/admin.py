@@ -5,7 +5,7 @@ from simple_history.admin import SimpleHistoryAdmin
 
 from api_gc.models import *
 
-from api_gc.models import Profile
+
 
 # Register your models here.
 lp=20
@@ -46,10 +46,10 @@ class ContratAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,adm
     def montant_ht(self,obj):
         return obj.montant_ht
 
-@admin.register(Parametres)
+@admin.register(Configurations)
 class ParametresAdmin(SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin):
     list_per_page = lp
-    list_display = [field.name for field in Parametres._meta.fields if field.name not in ['deleted', 'deleted_by_cascade']]
+    list_display = [field.name for field in Configurations._meta.fields if field.name not in ['deleted', 'deleted_by_cascade']]
 
     list_filter = (
         SafeDeleteAdminFilter,
@@ -223,14 +223,3 @@ class DetailFactureAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdm
     def has_add_permission(self, request):
         return True
 
-
-@admin.register(Profile)
-class ProfileAdmin(admin.ModelAdmin):
-    save_as = True
-    list_per_page = lp
-    list_display = [field.name for field in Profile._meta.fields if
-                    field.name not in ['deleted', 'deleted_by_cascade']]
-
-    list_filter = (
-        SafeDeleteAdminFilter,
-    )
