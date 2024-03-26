@@ -150,7 +150,6 @@ class UserSerializer(serializers.ModelSerializer):
         fields.pop('id', None)
         return fields
     class Meta:
-
         model = User
         fields = ['id', 'username', 'email', 'first_name', 'last_name','password']
         extra_kwargs = {'password': {'write_only': True}}
