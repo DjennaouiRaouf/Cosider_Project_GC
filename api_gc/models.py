@@ -20,7 +20,6 @@ class Unite(SafeDeleteModel):
     libelle=models.CharField(max_length=500,null=False,verbose_name="Libelle")
     date_ouverture= models.DateField(null=False,verbose_name="Date d'ouverture")
     date_cloture = models.DateField(null=True,blank=True, verbose_name="Date de cloture")
-
     historique = HistoricalRecords()
     objects = DeletedModelManager()
 
@@ -36,7 +35,6 @@ class Profile(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     unite = models.ForeignKey(Unite, on_delete=models.DO_NOTHING, db_column='Unité', null=True, verbose_name='Unité')
-
     historique = HistoricalRecords()
     objects = DeletedModelManager()
 
