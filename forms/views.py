@@ -13,7 +13,6 @@ from api_gc.serializers import *
 #--------------------------------------- user
 class SignupFields(APIView):
     def get(self, request):
-
         serializer = UserSerializer()
         fields = serializer.get_fields()
         field_info = []
@@ -24,6 +23,18 @@ class SignupFields(APIView):
                         'required': field_instance.required,
                         'label': field_instance.label or field_name,
                 }
+            if (str(field_instance.__class__.__name__) == "PrimaryKeyRelatedField"):
+                anySerilizer = create_dynamic_serializer(field_instance.queryset.model)
+                serialized_data = anySerilizer(field_instance.queryset, many=True).data
+                filtered_data = []
+                for item in serialized_data:
+                    filtered_item = {
+                        'value': item['id'],
+                        'label': item['libelle']
+                    }
+                    filtered_data.append(filtered_item)
+
+                obj['queryset'] = filtered_data
 
             field_info.append(obj)
             if (field_name == "password"):

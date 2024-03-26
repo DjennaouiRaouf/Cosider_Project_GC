@@ -44,6 +44,7 @@ class Profile(SafeDeleteModel):
         app_label = 'api_gc'
         verbose_name = 'Profile'
         verbose_name_plural = 'Profile'
+        unique_together=(('user', 'unite'),)
 
 class Parametres(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
@@ -367,7 +368,6 @@ class Factures(SafeDeleteModel):
     montant_facture_ht=models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Montant Facture (en HT)',editable=False)
     montant_facture_ttc=models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Montant Facture (en TTC)',editable=False)
     objects = DeletedModelManager()
-
     @property
     def montant_cumule(self):
         try:
