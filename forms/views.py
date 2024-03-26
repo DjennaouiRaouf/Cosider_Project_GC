@@ -586,7 +586,7 @@ class BLFieldsAddUpdate(APIView):
                     'label': field_instance.label or field_name,
                 }
                 if (field_name in ['ptc']):
-                    params = Parametres.objects.all().first()
+                    params = Configurations.objects.all().first()
                     obj['readOnly'] = params.saisie_automatique
 
                 if (str(field_instance.__class__.__name__) == "PrimaryKeyRelatedField" and field_name in [
@@ -634,7 +634,7 @@ class BLFieldsAddUpdate(APIView):
                                                               'PositiveIntegerField',
                                                               'IntegerField', ]:
                     if (field_name in ['ptc']):
-                        params = Parametres.objects.all().first()
+                        params = Configurations.objects.all().first()
                         if (params.saisie_automatique):
                             default_value = 150
                         else:
@@ -711,7 +711,7 @@ class CamionAddUpdate(APIView):
                 obj['queryset'] = filtered_data
 
             if (field_name in ['tare']):
-                params = Parametres.objects.all().first()
+                params = Configurations.objects.all().first()
                 obj['readOnly'] = params.saisie_automatique
 
             field_info.append(obj)
@@ -725,7 +725,7 @@ class CamionAddUpdate(APIView):
                                                                   'PositiveIntegerField',
                                                                   'IntegerField', ]:
                 if (field_name in ['tare']):
-                    params = Parametres.objects.all().first()
+                    params = Configurations.objects.all().first()
                     if (params.saisie_automatique):
                         default_value = 150
                     else:
