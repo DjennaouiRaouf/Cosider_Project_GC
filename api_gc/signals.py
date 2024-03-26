@@ -55,7 +55,7 @@ def pre_save_bonlivraison(sender, instance, **kwargs):
     if not instance.pk:
         config=Configurations.objects.first()
         num=BonLivraison.objects.all_with_deleted().count()
-        instance.id=str(num)+"/"+config.unite
+        instance.id=str(num+1)+"/"+str(config.unite)
 
         instance.qte = instance.ptc - instance.camion.tare
         instance.montant = round(instance.qte * instance.dqe.prixProduit.prix_unitaire, 4)
