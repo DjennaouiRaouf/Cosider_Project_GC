@@ -162,7 +162,6 @@ class Contrat(SafeDeleteModel):
     rg = models.DecimalField(max_digits=38, decimal_places=3,
                                  validators=[MinValueValidator(0), MaxValueValidator(100)], default=0,
                                  verbose_name='Retenue de garantie')
-
     client=models.ForeignKey(Clients, on_delete=models.DO_NOTHING,null=False,verbose_name='Client')
     date_signature=models.DateField(db_column='date_signature', null=False, blank=False, verbose_name='Date de Signature')
     date_expiration=models.DateField(db_column='date_expiration', null=True, verbose_name='Date d\'expiration')
