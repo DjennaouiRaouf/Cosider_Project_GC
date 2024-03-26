@@ -5,7 +5,6 @@ from safedelete.managers import SafeDeleteManager
 from safedelete.models import SafeDeleteModel
 from simple_history.models import HistoricalRecords
 from dateutil.relativedelta import relativedelta
-from django.contrib.auth.models import User
 # Create your models here.
 
 class DeletedModelManager(SafeDeleteManager):
