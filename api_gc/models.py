@@ -71,10 +71,10 @@ class Clients(SafeDeleteModel):
                                                    verbose_name='Type de Client')
     est_client_cosider = models.BooleanField(db_column='Est_Client_Cosider', blank=True, null=False
                                              , verbose_name='Est Client Cosider')
-    libelle = models.CharField(db_column='Libelle_Client', max_length=300, blank=True, null=True,
+    libelle = models.CharField(db_column='Libelle_Client', max_length=300, null=False,
                                verbose_name='Libelle')
 
-    adresse = models.CharField(db_column='adresse', max_length=500, null=True,
+    adresse = models.CharField(db_column='adresse', max_length=500, null=False,
                                verbose_name='Adresse')
 
     nif = models.CharField(db_column='NIF', unique=True, max_length=50, blank=True, null=True, verbose_name='NIF')

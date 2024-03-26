@@ -61,18 +61,14 @@ class ImagesSerilizer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ClientSerilizer(serializers.ModelSerializer):
-
     def get_fields(self, *args, **kwargs):
         fields = super().get_fields(*args, **kwargs)
         fields.pop('deleted', None)
         fields.pop('deleted_by_cascade', None)
-
         return fields
     class Meta:
         model = Clients
         fields = '__all__'
-
-
 
 class PrixProduitSerializer(serializers.ModelSerializer):
     libelle_prod=serializers.SerializerMethodField(label='libelle du produit')
