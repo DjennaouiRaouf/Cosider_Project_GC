@@ -120,8 +120,6 @@ class Produits(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
     id=models.CharField(db_column='code_produits', max_length=500, primary_key=True)
     libelle = models.CharField(db_column='nom_produit', max_length=500, blank=True, null=False, verbose_name='Nom Produit')
-    unite = models.ForeignKey(UniteMesure, on_delete=models.DO_NOTHING,null=False,verbose_name='Unite de Mesure')
-    famille=models.CharField(db_column='famille', max_length=500,  null=True, verbose_name='Famille')
     historique = HistoricalRecords()
     objects = DeletedModelManager()
 
