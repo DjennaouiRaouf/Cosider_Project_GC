@@ -32,11 +32,12 @@ def pre_save_dqe(sender, instance, **kwargs):
     if not instance.pk:
         instance.id = str(instance.contrat.id)+"-"+str(instance.prixProduit.id)
 
-@receiver(post_save, sender=PrixProduit)
-def post_save_prixProduit(sender, instance,created, **kwargs):
+
+@receiver(pre_save, sender=PrixProduit)
+def pre_save_prixProduit(sender, instance, **kwargs):
     if not instance.pk:
         count = PrixProduit.objects.filter(unite=instance.unite, produit=instance.produit).count()
-        instance.id = str(instance.unite) + "-" + str(instance.produit.id) + "-" + str(count + 1)
+        instance.id = str(instance.unite) + "-" + str(instance.produit) + "-" + str(count + 1)
 
 
 
