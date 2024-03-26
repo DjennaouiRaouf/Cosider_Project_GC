@@ -120,6 +120,22 @@ class ListBL(generics.ListAPIView):
     serializer_class = BonLivraisonSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = BLFilter
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        qt = 0
+        mt = 0
+        response_data = super().list(request, *args, **kwargs).data
+        for q in queryset:
+            qt = qt + q.qte
+            mt = mt + q.montant
+
+        return Response({'bl': response_data,
+                         'extra': {
+                             'qt': qt,
+                             'mt': mt,
+
+
+                         }}, status=status.HTTP_200_OK)
 
 
 
