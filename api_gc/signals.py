@@ -26,7 +26,6 @@ def update_on_softdelete(sender, instance, **kwargs):
     except Encaissement.DoesNotExist:
         pass
 
-
 @receiver(pre_save, sender=DQE)
 def pre_save_dqe(sender, instance, **kwargs):
     if not instance.pk:
