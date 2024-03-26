@@ -83,7 +83,7 @@ class WhoamiView(APIView):
 class GetWeight(APIView):
     #permission_classes = [IsAuthenticated]
     def get(self, request):
-        port=Parametres.objects.all().first().port
+        port=Configurations.objects.all().first().port
         print(port)
         baudrate = 9600
         data=None
@@ -283,6 +283,25 @@ class DeleteDQE(generics.DestroyAPIView):
 
     def delete(self, request, *args, **kwargs):
         pk = request.data.get(DQE._meta.pk.name)
+        if pk:
+            queryset = self.filter_queryset(self.get_queryset())
+            queryset = queryset.filter(pk__in=pk)
+            self.perform_destroy(queryset)
+
+        return Response({'Message': pk}, status=status.HTTP_200_OK)
+
+
+
+
+
+
+class DeleteBL(generics.DestroyAPIView):
+    #permission_classes = [IsAuthenticated]
+    queryset = BonLivraison.objects.all()
+    serializer_class = BonLivraisonSerializer
+
+    def delete(self, request, *args, **kwargs):
+        pk = request.data.get(BonLivraison._meta.pk.name)
         if pk:
             queryset = self.filter_queryset(self.get_queryset())
             queryset = queryset.filter(pk__in=pk)

@@ -19,6 +19,7 @@ urlpatterns = [
     path('adddqe/',AddDQE.as_view()),
     path('getimg/',ListImages.as_view()),
 
+    path('delbl/',DeleteBL.as_view()),
     path('getunite/',GetUnites.as_view()),
     path('getprod/',GetProds.as_view()),
     path('getbl/',ListBL.as_view()),
