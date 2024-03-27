@@ -453,6 +453,7 @@ class DQEFieldsAddUpdate(APIView):
 
 class FactureFieldsAddUpdate(APIView):
     def get(self, request):
+
         serializer = FactureSerializer()
         fields = serializer.get_fields()
         field_info = []
@@ -460,8 +461,9 @@ class FactureFieldsAddUpdate(APIView):
         state = {}
 
         for field_name, field_instance in fields.items():
-            if(field_name not in ['date','contrat','montant','montant_rg','montant_rb','numero_facture','paye',
+            if(field_name not in ['date','contrat','montant','montant_rg','montant_rb','id','paye',
                                   'montant_facture_ht','montant_facture_ttc']):
+
                 obj = {
                     'name': field_name,
                     'type': str(field_instance.__class__.__name__),
@@ -470,7 +472,6 @@ class FactureFieldsAddUpdate(APIView):
                 }
 
                 field_info.append(obj)
-
                 default_value = ''
                 if str(field_instance.__class__.__name__) == 'BooleanField':
                     default_value = False
@@ -478,9 +479,11 @@ class FactureFieldsAddUpdate(APIView):
                                                               'PositiveIntegerField',
                                                               'IntegerField', ]:
                     default_value = 0
+
                 field_state.append({
                     field_name: default_value,
                 })
+
                 for d in field_state:
                     state.update(d)
 
