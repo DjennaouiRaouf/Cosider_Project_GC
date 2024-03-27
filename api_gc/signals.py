@@ -68,7 +68,8 @@ def pre_save_bonlivraison(sender, instance, **kwargs):
 def pre_save_facture(sender, instance, **kwargs):
     if not instance.pk:
         config=Configurations.objects.first()
-        instance.numero_facture=str(Factures.objects.filter(date__year=datetime.now().year).count()+1)+'/'+str(datetime.now().year)+"/"+str(config.unite)
+        instance.id=str(Factures.objects.filter(date__year=datetime.now().year).count()+1)+'/'+str(datetime.now().year)+"/"+str(config.unite)
+
         if (instance.du > instance.au):
             raise ValidationError('Date de debut doit etre inferieur à la date de fin')
         else:
