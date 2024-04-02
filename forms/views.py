@@ -811,7 +811,7 @@ class AvanceFieldsList(APIView):
 
                 }
 
-                if (field_name in ['id']):
+                if (field_name in ['id','contrat']):
                     obj['hide'] = True
 
                 if(field_name in ['montant_avance','montant_restant']):
@@ -821,4 +821,46 @@ class AvanceFieldsList(APIView):
 
         return Response({'fields': field_info},
                         status=status.HTTP_200_OK)
+
+
+
+
+class AvanceFieldsAdd(APIView):
+    def get(self, request):
+        serializer = AvanceSerializer()
+        fields = serializer.get_fields()
+        field_info = []
+        field_state = []
+        state = {}
+        for field_name, field_instance in fields.items():
+            if(field_name not in ['montant_restant','id','contrat','num_avance']):
+                obj = {
+                    'name': field_name,
+                    'type': str(field_instance.__class__.__name__),
+                    'required': field_instance.required,
+                    'label': field_instance.label or field_name,
+                }
+
+
+                field_info.append(obj)
+
+                default_value = ''
+                if (str(field_instance.__class__.__name__) == "PrimaryKeyRelatedField"):
+                        default_value = []
+                if str(field_instance.__class__.__name__) == 'BooleanField':
+                    default_value = False
+                if str(field_instance.__class__.__name__) in ['PositiveSmallIntegerField', 'DecimalField',
+                                                                  'PositiveIntegerField',
+                                                                  'IntegerField', ]:
+                    default_value = 0
+                field_state.append({
+                        field_name: default_value,
+                })
+                for d in field_state:
+                    state.update(d)
+
+
+        return Response({'fields': field_info,'state':state},
+                        status=status.HTTP_200_OK)
+
 

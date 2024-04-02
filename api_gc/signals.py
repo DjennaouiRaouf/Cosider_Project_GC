@@ -23,6 +23,7 @@ def pre_save_avance(sender, instance, **kwargs):
         instance.montant_restant=instance.montant_avance
 
 
+
 @receiver(pre_save,  sender=Encaissement)
 def pre_save_encaissement(sender, instance, **kwargs):
     pass
