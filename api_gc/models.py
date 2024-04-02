@@ -385,7 +385,7 @@ class Factures(SafeDeleteModel):
 
 class DetailFacture(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
-    facture = models.ForeignKey(Factures, on_delete=models.DO_NOTHING,to_field="id")
+    facture = models.ForeignKey(Factures,null=True, on_delete=models.DO_NOTHING,to_field="id")
     detail = models.ForeignKey(BonLivraison, on_delete=models.DO_NOTHING)
     objects = DeletedModelManager()
 

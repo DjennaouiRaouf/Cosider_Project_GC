@@ -40,7 +40,7 @@ urlpatterns = [
     path('updatedqe/',UpdateDQE.as_view()),
     path('deldqe/',DeleteDQE.as_view()),
 
-    #path('delinvoice/',DeleteInvoice.as_view()),
+    path('delinvoice/',DeleteInvoice.as_view()),
 
 
 ]

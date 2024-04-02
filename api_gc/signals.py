@@ -91,3 +91,8 @@ def pre_save_facture(sender, instance, **kwargs):
         instance.montant_facture_ttc=round(instance.montant_facture_ht + (instance.montant_facture_ht * instance.contrat.tva / 100), 2)
 
 
+
+@receiver(post_softdelete, sender=Factures)
+def update_on_softdelete(sender, instance, **kwargs):
+    DetailFacture.objects.filter(facture=instance.pk).delete()
+

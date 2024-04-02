@@ -308,6 +308,23 @@ class DeleteDQE(generics.DestroyAPIView):
 
 
 
+class DeleteInvoice(generics.DestroyAPIView):
+    #permission_classes = [IsAuthenticated]
+    queryset = Factures.objects.all()
+    serializer_class = FactureSerializer
+
+    def delete(self, request, *args, **kwargs):
+        pk = request.data.get(DQE._meta.pk.name)
+        if pk:
+            queryset = self.filter_queryset(self.get_queryset())
+            queryset = queryset.filter(pk__in=pk)
+            self.perform_destroy(queryset)
+
+        return Response({'Message': pk}, status=status.HTTP_200_OK)
+
+
+
+
 
 
 
