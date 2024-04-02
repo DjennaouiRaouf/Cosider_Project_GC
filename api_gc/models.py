@@ -227,19 +227,12 @@ class ODS(SafeDeleteModel):
         verbose_name_plural = 'ODS'
 
 
-class CumuleAvance(SafeDeleteModel):
-    _safedelete_policy = SOFT_DELETE_CASCADE
-    contrat = models.ForeignKey(Contrat, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
-    montant_cumule = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
-                                         verbose_name='Montant de l\'avance')
-    montant_restant = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
-                                          verbose_name='Montant restant de l\'avance', editable=False)
 
 
 class Avances(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
     contrat = models.ForeignKey(Contrat, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
-    num_avance=models.PositiveIntegerField(default=0, null=False, verbose_name='Num avance')
+    num_avance=models.PositiveIntegerField(default=0, null=False, verbose_name='Num avance',editable=False)
 
     montant_avance = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
                                          verbose_name='Montant de l\'avance')
