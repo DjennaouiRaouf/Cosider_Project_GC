@@ -20,6 +20,16 @@ class ImagesAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,admi
         SafeDeleteAdminFilter,
     )
 
+
+@admin.register(Avances)
+class AvancesAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin):
+    list_per_page = lp
+    list_display = [field.name for field in Avances._meta.fields  if field.name not in ['deleted', 'deleted_by_cascade']]
+    list_filter = (
+        SafeDeleteAdminFilter,
+    )
+
+
 @admin.register(Unite)
 class UniteAdmin(SafeDeleteAdmin,SimpleHistoryAdmin,ImportExportModelAdmin,admin.ModelAdmin):
     list_per_page = lp

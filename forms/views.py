@@ -758,3 +758,67 @@ class CamionFilterForm(APIView):
                 }
                 field_info.append(obj)
         return Response({'fields': field_info},status=status.HTTP_200_OK)
+
+
+
+
+
+
+
+
+
+class DetailFieldsList(APIView):
+    def get(self, request):
+        serializer = DetailFactureSerializer()
+        fields = serializer.get_fields()
+        field_info = []
+        for field_name, field_instance in fields.items():
+            if(field_name not in ['detail','id']):
+                obj = {
+                        'field': field_name,
+                        'headerName': field_instance.label or field_name,
+
+
+                }
+
+                if(field_name in ['facture']):
+                    obj['hide'] = True
+
+
+                if(field_name in ['date','montant','prix_u']):
+                    obj['cellRenderer'] = 'InfoRenderer'
+
+                field_info.append(obj)
+
+        return Response({'fields': field_info},
+                        status=status.HTTP_200_OK)
+
+
+
+
+
+class AvanceFieldsList(APIView):
+    def get(self, request):
+        serializer = AvanceSerializer()
+        fields = serializer.get_fields()
+        field_info = []
+        for field_name, field_instance in fields.items():
+            if(field_name not in ['',]):
+                obj = {
+                        'field': field_name,
+                        'headerName': field_instance.label or field_name,
+
+
+                }
+
+                if (field_name in ['id']):
+                    obj['hide'] = True
+
+                if(field_name in ['montant_avance','montant_restant']):
+                    obj['cellRenderer'] = 'InfoRenderer'
+
+                field_info.append(obj)
+
+        return Response({'fields': field_info},
+                        status=status.HTTP_200_OK)
+

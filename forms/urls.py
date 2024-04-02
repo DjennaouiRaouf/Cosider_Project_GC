@@ -11,6 +11,9 @@ urlpatterns = [
     path('contrataddform/',ContratFieldsAddUpdate.as_view()),
     path('contratfilterform/',ContratFilterForm.as_view()),
 
+
+    path('detaillistform/',DetailFieldsList.as_view()),
+
     path('clientlistform/', ClientFieldsList.as_view()),
     path('clientaddform/', ClientFieldsAddUpdate.as_view()),
     path('clientfilterform/', ClientFilterForm.as_view()),
@@ -31,7 +34,7 @@ urlpatterns = [
     path('camionlistform/',CamionFieldsList.as_view()),
     path('camionaddform/',CamionAddUpdate.as_view()),
     path('camionfilterform/',CamionFilterForm.as_view()),
-
+    path('avancefilterform/',AvanceFieldsList.as_view())
 
 
 ]

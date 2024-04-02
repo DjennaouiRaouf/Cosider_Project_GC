@@ -230,16 +230,20 @@ class ODS(SafeDeleteModel):
 class Avances(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
     contrat = models.ForeignKey(Contrat, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
+    num_avance=models.PositiveIntegerField(default=0, null=False, verbose_name='Num avance')
+
     montant_avance = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
                                          verbose_name='Montant de l\'avance')
-    remboursee = models.BooleanField(editable=False, default=False, null=False, verbose_name='Est remboursée')
+    montant_restant= models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
+                                         verbose_name='Montant restant de l\'avance', editable=False)
+
     historique = HistoricalRecords()
     objects = DeletedModelManager()
     class Meta:
         app_label = 'api_gc'
         verbose_name = 'Avances'
         verbose_name_plural = 'Avances'
-
+        unique_together=(('contrat', 'montant_avance'),)
 
 class Planing(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
@@ -414,6 +418,7 @@ class Encaissement(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
     facture = models.ForeignKey(Factures, on_delete=models.DO_NOTHING, null=False, verbose_name="Facture")
     date_encaissement = models.DateField(null=False, verbose_name="Date d'encaissement")
+    avance= models.ForeignKey(Avances, on_delete=models.DO_NOTHING, null=True, verbose_name="Avance")
     mode_paiement = models.ForeignKey(ModePaiement, on_delete=models.DO_NOTHING, null=False,
                                       verbose_name="Mode de paiement")
     montant_encaisse = models.DecimalField(max_digits=38, decimal_places=3, blank=True, verbose_name="Montant encaissé",
