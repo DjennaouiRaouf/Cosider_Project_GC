@@ -138,3 +138,21 @@ class FacturesFilter(django_filters.FilterSet):
 
 
 
+
+
+
+class DetailFilter(django_filters.FilterSet):
+    class Meta:
+        model = DetailFacture
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field_instance in self.base_filters.items():
+            try:
+                model_field = self.Meta.model._meta.get_field(field_name)
+                field_instance.label = model_field.verbose_name
+            except:
+                pass
+
+

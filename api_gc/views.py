@@ -374,3 +374,11 @@ class ListFacture(generics.ListAPIView):
 
 
 
+
+
+class ListDetail(generics.ListAPIView):
+    #permission_classes = [IsAuthenticated]
+    queryset = DetailFacture.objects.all()
+    serializer_class =DetailFactureSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = DetailFilter

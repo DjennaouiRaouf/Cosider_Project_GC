@@ -42,5 +42,7 @@ urlpatterns = [
 
     path('delinvoice/',DeleteInvoice.as_view()),
 
+    path('getdet/',ListDetail.as_view()),
+
 
 ]

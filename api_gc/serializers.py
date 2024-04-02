@@ -226,3 +226,35 @@ class ODSSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class DetailFactureSerializer(serializers.ModelSerializer):
+    qte=serializers.SerializerMethodField()
+    date=serializers.SerializerMethodField()
+    montant=serializers.SerializerMethodField()
+    prix_u = serializers.SerializerMethodField()
+    produit = serializers.SerializerMethodField()
+
+    def get_qte(self, obj):
+        return obj.detail.qte
+
+    def get_date(self, obj):
+        return  obj.detail.date
+
+    def get_montant(self, obj):
+        return  obj.detail.montant
+
+    def get_prix_u(self,obj):
+        return obj.detail.dqe.prixProduit.prix_unitaire
+
+    def get_produit(self, obj):
+        return obj.detail.dqe.prixProduit.produit.libelle
+
+    def get_fields(self, *args, **kwargs):
+        fields = super().get_fields(*args, **kwargs)
+        fields.pop('deleted', None)
+        fields.pop('deleted_by_cascade', None)
+        return fields
+    class Meta:
+        model = DetailFacture
+        fields = '__all__'
+
+

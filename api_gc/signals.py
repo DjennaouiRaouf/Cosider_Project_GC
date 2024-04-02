@@ -1,5 +1,6 @@
 from datetime import datetime
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import Q, F
 from django.db.models.signals import *
 from django.dispatch import *
@@ -96,3 +97,10 @@ def pre_save_facture(sender, instance, **kwargs):
 def update_on_softdelete(sender, instance, **kwargs):
     DetailFacture.objects.filter(facture=instance.pk).delete()
 
+
+@receiver(post_undelete, sender=Factures)
+def update_on_undelete(sender, instance, **kwargs):
+    deleted_objects = DetailFacture.deleted_objects.filter(facture=instance.pk)
+    with transaction.atomic():
+        for obj in deleted_objects:
+            obj.undelete()
