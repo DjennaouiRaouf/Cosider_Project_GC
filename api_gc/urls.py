@@ -46,5 +46,7 @@ urlpatterns = [
 
     path('getavance/',ListAvance.as_view()),
 
+    path('addavance/',AddAvance.as_view()),
+
 
 ]

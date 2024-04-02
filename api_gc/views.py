@@ -410,3 +410,12 @@ class ListAvance(generics.ListAPIView):
 
 
                          }}, status=status.HTTP_200_OK)
+
+
+
+
+
+class AddAvance(generics.CreateAPIView):
+    # permission_classes = [IsAuthenticated]
+    queryset= Avances.objects.all()
+    serializer_class = AvanceSerializer
