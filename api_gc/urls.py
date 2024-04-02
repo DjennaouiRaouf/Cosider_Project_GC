@@ -44,5 +44,7 @@ urlpatterns = [
 
     path('getdet/',ListDetail.as_view()),
 
+    path('getavance/',ListAvance.as_view()),
+
 
 ]

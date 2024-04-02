@@ -21,6 +21,8 @@ def pre_save_avance(sender, instance, **kwargs):
     if not instance.pk:
         instance.num_avance = Avances.objects.filter(contrat=instance.contrat).count()
         instance.montant_restant=instance.montant_avance
+
+
 @receiver(pre_save,  sender=Encaissement)
 def pre_save_encaissement(sender, instance, **kwargs):
     pass

@@ -382,3 +382,31 @@ class ListDetail(generics.ListAPIView):
     serializer_class =DetailFactureSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = DetailFilter
+
+
+
+class ListAvance(generics.ListAPIView):
+    #permission_classes = [IsAuthenticated]
+    queryset = Avances.objects.all()
+    serializer_class =AvanceSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = AvanceFilter
+
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        total = 0
+        rst = 0
+        response_data = super().list(request, *args, **kwargs).data
+        for q in queryset:
+            total = total + q.montant_avance
+            rst = rst + q.montant_restant
+
+        return Response({'avances': response_data,
+                         'extra': {
+
+                             'total': total,
+                             'rst': rst,
+
+
+                         }}, status=status.HTTP_200_OK)
