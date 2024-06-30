@@ -127,12 +127,7 @@ class UniteMesureAdmin(admin.ModelAdmin):
 class UniteMesureAdmin(admin.ModelAdmin):
     save_as = True
     list_per_page = lp
-    list_display = [field.name for field in PrixProduit._meta.fields if field.name not in ['']]+['unite','index_prix']
-
-
-    def unite(self, obj):
-        return obj.unite,
-
+    list_display = [field.name for field in PrixProduit._meta.fields if field.name not in ['']]+['index_prix']
 
     def index_prix(self, obj):
         return obj.index_prix,
