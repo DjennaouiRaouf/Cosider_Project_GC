@@ -92,14 +92,34 @@ WSGI_APPLICATION = 'Cosider_Project_002.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
+'''
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+'''
 
+DATABASES = {
+    'default': {
+        "ENGINE": "mssql",
+        "NAME": "GEST_COM",
+        "USER": "",
+        "PASSWORD": "",
+        "HOST": "localhost\MSSQLSERVER1",
+        "PORT": "2448",
+        "OPTIONS": {"driver": "ODBC Driver 18 for SQL Server",
+                    'extra_params': "Encrypt=no;TrustServerCertificate=yes",
+                    'MARS_Connection': 'True',  # Enable Multiple Active Result Sets
+                    'host_is_server': 'True',  # Optimize connection settings
+
+                    },
+
+    },
+
+
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

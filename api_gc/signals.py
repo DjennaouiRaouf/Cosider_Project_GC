@@ -7,10 +7,10 @@ from django.dispatch import *
 
 from api_gc.models import *
 
-@receiver(pre_save, sender=Configurations)
+@receiver(pre_save, sender=Config)
 def pre_save_params(sender, instance, **kwargs):
     if not instance.pk:
-        count=Configurations.objects.all().count()
+        count=Config.objects.all().count()
         if( count > 0):
             raise ValidationError('Impossible d\'ajouter un parametre')
 
@@ -55,7 +55,7 @@ def pre_save_planing(sender, instance, **kwargs):
 @receiver(pre_save, sender=BonLivraison)
 def pre_save_bonlivraison(sender, instance, **kwargs):
     if not instance.pk:
-        config=Configurations.objects.first()
+        config=AppConfig.objects.first()
         num=BonLivraison.objects.all_with_deleted().filter(date__date__year=datetime.now().year).count()
         instance.id=str(num+1)+"/"+str(datetime.now().year)+"/"+str(config.unite)
 
@@ -69,7 +69,7 @@ def pre_save_bonlivraison(sender, instance, **kwargs):
 @receiver(pre_save, sender=Factures)
 def pre_save_facture(sender, instance, **kwargs):
     if not instance.pk:
-        config=Configurations.objects.first()
+        config=AppConfig.objects.first()
         instance.id=str(Factures.objects.filter(date__year=datetime.now().year).count()+1)+'/'+str(datetime.now().year)+"/"+str(config.unite)
 
         if (instance.du > instance.au):

@@ -79,38 +79,12 @@ class WhoamiView(APIView):
 
 
 
-class GetWeight(APIView):
-    #permission_classes = [IsAuthenticated]
-    def get(self, request):
-        port=Configurations.objects.all().first().port
-        print(port)
-        baudrate = 9600
-        data=None
-        try:
-            ser = serial.Serial(port, baudrate)
-        except Exception as e:
-            return Response({'message': str(e)}, status=status.HTTP_404_NOT_FOUND)
-        else:
-            try:
-                cpt=1
-                while data == None:
-                    data = ser.readline().decode().strip()
-                    cpt+=1
-                    if(cpt==3):
-                        break
-                if(data == None and cpt==3):
-                    return Response({'message': 'Impossible de capturer le poids'}, status=status.HTTP_404_NOT_FOUND)
-                return Response({'data': data}, status=status.HTTP_200_OK)
-            except :
-                return Response({'message': 'Erreur'}, status=status.HTTP_400_BAD_REQUEST)
-
-
 class ListContract(generics.ListAPIView):
     #permission_classes = [IsAuthenticated]
     queryset = Contrat.objects.all()
     serializer_class =ContratSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_class = ContratFilter
+
 
 
 class ListBL(generics.ListAPIView):
@@ -118,7 +92,7 @@ class ListBL(generics.ListAPIView):
     queryset = BonLivraison.objects.all()
     serializer_class = BonLivraisonSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_class = BLFilter
+
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         qt = 0
@@ -150,7 +124,7 @@ class ListDQE(generics.ListAPIView):
     queryset = DQE.objects.all()
     serializer_class =DQESerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_class = DQEFilter
+
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
@@ -174,7 +148,7 @@ class ListClient(generics.ListAPIView):
     queryset = Clients.objects.all()
     serializer_class =ClientSerilizer
     filter_backends = [DjangoFilterBackend]
-    filterset_class = ClientsFilter
+
 
 
 class ListPrixProduit(generics.ListAPIView):
@@ -182,7 +156,7 @@ class ListPrixProduit(generics.ListAPIView):
     queryset = PrixProduit.objects.all()
     serializer_class =PrixProduitSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_class = PrixProduitFilter
+
 
 
 class AddClient(generics.CreateAPIView):
@@ -236,7 +210,7 @@ class ListCamion(generics.ListAPIView):
     queryset = Camion.objects.all()
     serializer_class =CamionSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_class = CamionFilter
+
 
 
 
@@ -341,7 +315,7 @@ class ListFacture(generics.ListAPIView):
     queryset = Factures.objects.all()
     serializer_class =FactureSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_class = FacturesFilter
+
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
@@ -371,7 +345,7 @@ class ListDetail(generics.ListAPIView):
     queryset = DetailFacture.objects.all()
     serializer_class =DetailFactureSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_class = DetailFilter
+
 
 
 
@@ -380,7 +354,6 @@ class ListAvance(generics.ListAPIView):
     queryset = Avances.objects.all()
     serializer_class =AvanceSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_class = AvanceFilter
 
 
     def list(self, request, *args, **kwargs):

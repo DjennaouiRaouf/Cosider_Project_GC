@@ -5,28 +5,34 @@ from django.db.models import Q, F, IntegerField, Sum
 # Create your models here.
 
 
+
 class GeneralManager(models.Manager):
+
     def get_queryset(self):
         if(self.model in  [Contrat,Clients]):
             return super().get_queryset().filter(~Q(est_bloquer=True))
         else:
-            unite=Configurations.objects.first().unite
-            return super().get_queryset().filter(~Q(est_bloquer=True) & Q(pk__startswith=unite))
+            unite = Config.objects.first().unite.id
+
+            if( unite == 'DG'): # DG
+                return super().get_queryset().filter(~Q(est_bloquer=True))
+            else:
+                return super().get_queryset().filter(~Q(est_bloquer=True) & Q(pk__startswith=unite))
+
     def deleted(self):
+
         if (self.model in [Contrat,Clients]):
             return super().get_queryset().filter(Q(est_bloquer=True))
         else:
-            unite = Configurations.objects.first().unite
-            return super().get_queryset().filter(Q(est_bloquer=True)& Q(pk__startswith=unite))
+            unite = Config.objects.first().unite.id
+
+            if( unite == 'DG'): # DG
+                return super().get_queryset().filter(Q(est_bloquer=True))
+            else:
+                return super().get_queryset().filter(Q(est_bloquer=True)& Q(pk__startswith=unite))
 
 
-class GeneralManager_001(models.Manager):
-    def get_queryset(self):
-        unite = Configurations.objects.first().unite
-        return super().get_queryset().filter(~Q(est_bloquer=True) & Q(pk__startswith=unite))
 
-    def deleted(self):
-        return super().get_queryset().filter(Q(est_bloquer=True) & Q(pk__startswith=unite))
 
 
 class Unite(models.Model):
@@ -39,7 +45,7 @@ class Unite(models.Model):
     user_id = models.CharField(max_length=500, editable=False)
 
     date_modification = models.DateTimeField(editable=False, auto_now=True)
-    objects = GeneralManager()
+    
     def save(self, *args, **kwargs):
         if not self.user_id:
             current_user = get_current_user()
@@ -62,12 +68,10 @@ class Unite(models.Model):
         app_label = 'api_gc'
         verbose_name = 'Unités'
         verbose_name_plural = 'Unités'
+        db_table = 'Unite'
 
 
-
-
-class Configurations(models.Model):
-    
+class Config(models.Model):
     unite=models.ForeignKey(Unite,null=True,blank=True,verbose_name='Unite',db_column='unite',on_delete=models.DO_NOTHING)
     saisie_automatique=models.BooleanField(default=False, verbose_name="Saisie Automatique")
     port=models.CharField(max_length=500,default='COM1',null=False,verbose_name='Port')
@@ -92,8 +96,9 @@ class Configurations(models.Model):
 
     class Meta:
         app_label = 'api_gc'
-        verbose_name = 'Configurations'
-        verbose_name_plural = 'Configurations'
+        verbose_name = 'Config'
+        verbose_name_plural = 'Config'
+        db_table='Config'
 
 
 
@@ -104,7 +109,7 @@ class Images(models.Model):
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
-    objects = GeneralManager()
+    
 
     def save(self, *args, **kwargs):
         if not self.user_id:
@@ -125,7 +130,7 @@ class Images(models.Model):
         app_label = 'api_gc'
         verbose_name = 'Images'
         verbose_name_plural = 'Images'
-
+        db_table = 'Images'
 
 
 class Clients(models.Model):
@@ -153,7 +158,7 @@ class Clients(models.Model):
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
-    objects = GeneralManager()
+    
 
     def save(self, *args, **kwargs):
         if not self.user_id:
@@ -174,16 +179,16 @@ class Clients(models.Model):
         app_label = 'api_gc'
         verbose_name = 'Clients'
         verbose_name_plural = 'Clients'
+        db_table = 'Clients'
 
 class UniteMesure(models.Model):
-
+    id=models.CharField(max_length=10, primary_key=True)
     libelle = models.CharField(db_column='libelle', max_length=10, blank=True, null=True)
-    description = models.CharField(db_column='description', max_length=50, blank=True, null=True)
     est_bloquer = models.BooleanField(default=False, editable=False)
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
-    objects = GeneralManager()
+    
 
     def save(self, *args, **kwargs):
         if not self.user_id:
@@ -206,19 +211,18 @@ class UniteMesure(models.Model):
         app_label = 'api_gc'
         verbose_name = 'Unités de mesure'
         verbose_name_plural = 'Unités de mesure'
-
+        db_table = 'Unite_De_Mesure'
 
 class Produits(models.Model):
-
     id=models.CharField(db_column='code_produits', max_length=500, primary_key=True)
     libelle = models.CharField(db_column='nom_produit', max_length=500, blank=True, null=False, verbose_name='Nom Produit')
-    unite = models.ForeignKey(UniteMesure, on_delete=models.DO_NOTHING,null=False,verbose_name='Unite de Mesure')
+    unite_m = models.ForeignKey(UniteMesure, on_delete=models.DO_NOTHING,null=False,verbose_name='Unite de Mesure')
     famille=models.CharField(db_column='famille', max_length=500,  null=True, verbose_name='Famille')
     est_bloquer = models.BooleanField(default=False, editable=False)
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
-    objects = GeneralManager()
+    
 
     def save(self, *args, **kwargs):
         if not self.user_id:
@@ -236,26 +240,35 @@ class Produits(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.id+' '+self.libelle
+        return self.id
     class Meta:
         app_label = 'api_gc'
         verbose_name = 'Produits'
         verbose_name_plural = 'Produits'
-
+        db_table='Produit'
 
 class PrixProduit(models.Model):
 
     id = models.CharField(max_length=500, primary_key=True, verbose_name='ID', db_column='id',editable=False)
-    unite = models.ForeignKey(Unite, on_delete=models.DO_NOTHING, db_column='Unité', null=False, verbose_name='Unité')
     produit = models.ForeignKey(Produits, on_delete=models.DO_NOTHING,null=False,verbose_name='Produit')
     prix_unitaire = models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Prix unitaire')
     est_bloquer = models.BooleanField(default=False, editable=False)
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
+    objects= GeneralManager()
+    @property
+    def unite(self):
+        return self.id.split('_')[0]
 
-    objects = GeneralManager()
+    @property
+    def index_prix(self):
+        return self.id.split('_')[-1]
 
     def save(self, *args, **kwargs):
+        unite = Config.objects.first().unite
+        count=PrixProduit.objects.filter(id__startswith=str(unite) + '_' + str(self.produit)).count()
+        self.id = str(unite) + '_' + str(self.produit)+'_'+str(count+1)
+
         if not self.user_id:
             current_user = get_current_user()
             if current_user and hasattr(current_user, 'username'):
@@ -271,17 +284,15 @@ class PrixProduit(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return str(self.unite)+' '+str(self.produit)+' '+str(self.prix_unitaire)
+        return str(self.id.split('_')[0])+' '+str(self.produit)+' '+str(self.prix_unitaire)
     class Meta:
-        unique_together = (('produit', 'prix_unitaire','unite'))
+        unique_together = (('produit', 'prix_unitaire'))
         app_label = 'api_gc'
         verbose_name = 'Prix des Produits'
         verbose_name_plural = 'Prix des Produits'
-
+        db_table='Prix_Produit'
 
 class Contrat(models.Model):
-
-
     id=models.CharField(db_column='code_contrat', max_length=500, primary_key=True,verbose_name = 'Code du contrat')
     libelle=models.CharField(db_column='libelle', max_length=500, blank=True, null=False, verbose_name='libelle')
     tva=models.DecimalField(max_digits=38,decimal_places=3,validators=[MinValueValidator(0),MaxValueValidator(100)],default=0,verbose_name='TVA')
@@ -298,7 +309,7 @@ class Contrat(models.Model):
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
-    objects = GeneralManager()
+    
 
     def save(self, *args, **kwargs):
         if not self.user_id:
@@ -343,21 +354,29 @@ class Contrat(models.Model):
         app_label = 'api_gc'
         verbose_name = 'Contrats'
         verbose_name_plural = 'Contrats'
+        db_table = 'Contrats'
+
 
 class DQE(models.Model):
-
-
     id=models.CharField(max_length=500,primary_key=True,verbose_name='id',editable=False)
     contrat=models.ForeignKey(Contrat, on_delete=models.DO_NOTHING,null=True,verbose_name='Contrat')
     prixProduit=models.ForeignKey(PrixProduit, on_delete=models.DO_NOTHING,null=False,verbose_name='Produit')
     qte=models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Quantité')
+    prix_transport = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
+                              verbose_name='Tarif de Transport')
     est_bloquer = models.BooleanField(default=False, editable=False)
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
-    objects = GeneralManager()
+    
 
     def save(self, *args, **kwargs):
+
+        self.id=str(self.prixProduit)
+
+        if(self.contrat.transport != True):
+            self.prix_transport = 0
+
         if not self.user_id:
             current_user = get_current_user()
             if current_user and hasattr(current_user, 'username'):
@@ -379,7 +398,7 @@ class DQE(models.Model):
         app_label = 'api_gc'
         verbose_name = 'DQE'
         verbose_name_plural = 'DQE'
-
+        db_table = 'DQE'
 
 
 
@@ -397,7 +416,7 @@ class Avances(models.Model):
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
-    objects = GeneralManager()
+    
 
     def save(self, *args, **kwargs):
         if not self.user_id:
@@ -419,7 +438,7 @@ class Avances(models.Model):
         verbose_name = 'Avances'
         verbose_name_plural = 'Avances'
         unique_together=(('contrat', 'montant_avance'),)
-
+        db_table='Avances'
 class Planing(models.Model):
 
     contrat = models.ForeignKey(Contrat, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
@@ -431,7 +450,7 @@ class Planing(models.Model):
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
-    objects = GeneralManager()
+    
 
     def save(self, *args, **kwargs):
         if not self.user_id:
@@ -466,7 +485,7 @@ class Planing(models.Model):
         app_label = 'api_gc'
         verbose_name = 'Planing'
         verbose_name_plural = 'Planing'
-
+        db_table = 'Planing'
 
 
 class Camion(models.Model):
@@ -479,7 +498,7 @@ class Camion(models.Model):
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
-    objects = GeneralManager()
+    
 
     def save(self, *args, **kwargs):
         if not self.user_id:
@@ -500,7 +519,7 @@ class Camion(models.Model):
         app_label = 'api_gc'
         verbose_name = 'Camions'
         verbose_name_plural = 'Camions'
-
+        db_table = 'Camions'
 
 # mode hors connexion 1 2 3 4 5
 class BonLivraison(models.Model):
@@ -527,7 +546,7 @@ class BonLivraison(models.Model):
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
-    objects = GeneralManager()
+    
 
     def save(self, *args, **kwargs):
         if not self.user_id:
@@ -573,7 +592,7 @@ class BonLivraison(models.Model):
         app_label = 'api_gc'
         verbose_name = 'Bon de livraison'
         verbose_name_plural = 'Bon de livraison'
-
+        db_table = 'Bon_De_Livraison'
 
 
 
@@ -598,7 +617,7 @@ class Factures(models.Model):
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
-    objects = GeneralManager()
+    
 
     def save(self, *args, **kwargs):
         if not self.user_id:
@@ -634,7 +653,7 @@ class Factures(models.Model):
         app_label = 'api_gc'
         verbose_name = 'Factures'
         verbose_name_plural = 'Factures'
-
+        db_table = 'Factures'
 
 
 
@@ -646,7 +665,7 @@ class DetailFacture(models.Model):
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
-    objects = GeneralManager()
+    
 
     def save(self, *args, **kwargs):
         if not self.user_id:
@@ -666,16 +685,16 @@ class DetailFacture(models.Model):
     class Meta:
         unique_together = (('facture', 'detail',))
         app_label = 'api_gc'
-
         verbose_name = 'Details'
         verbose_name_plural = 'Details'
-
+        db_table = 'Details'
 class ModePaiement(models.Model):
+    id=models.CharField(max_length=30, primary_key=True)
     libelle = models.CharField(max_length=500, null=False, unique=True)
     est_bloquer = models.BooleanField(default=False, editable=False)
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
-    objects = GeneralManager()
+    
 
     def save(self, *args, **kwargs):
         if not self.user_id:
@@ -699,7 +718,7 @@ class ModePaiement(models.Model):
 
         verbose_name = 'Mode de Paiement'
         verbose_name_plural = 'Mode de Paiement'
-
+        db_table = 'Mode_De_Paiement'
 
 class Encaissement(models.Model):
 
@@ -716,7 +735,7 @@ class Encaissement(models.Model):
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
-    objects = GeneralManager()
+    
 
     def save(self, *args, **kwargs):
         if not self.user_id:
@@ -752,6 +771,9 @@ class Encaissement(models.Model):
         app_label = 'api_gc'
         verbose_name = 'Encaissements'
         verbose_name_plural = 'Encaissements'
+        db_table = 'Encaissements'
+
+
 
 
 
