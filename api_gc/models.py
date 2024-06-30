@@ -7,13 +7,26 @@ from django.db.models import Q, F, IntegerField, Sum
 
 class GeneralManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(~Q(est_bloquer=True))
+        if(self.model in  [Contrat,Clients]):
+            return super().get_queryset().filter(~Q(est_bloquer=True))
+        else:
+            unite=Configurations.objects.first().unite
+            return super().get_queryset().filter(~Q(est_bloquer=True) & Q(pk__startswith=unite))
     def deleted(self):
-        return super().get_queryset().filter(Q(est_bloquer=True))
-    
-    
+        if (self.model in [Contrat,Clients]):
+            return super().get_queryset().filter(Q(est_bloquer=True))
+        else:
+            unite = Configurations.objects.first().unite
+            return super().get_queryset().filter(Q(est_bloquer=True)& Q(pk__startswith=unite))
 
 
+class GeneralManager_001(models.Manager):
+    def get_queryset(self):
+        unite = Configurations.objects.first().unite
+        return super().get_queryset().filter(~Q(est_bloquer=True) & Q(pk__startswith=unite))
+
+    def deleted(self):
+        return super().get_queryset().filter(Q(est_bloquer=True) & Q(pk__startswith=unite))
 
 
 class Unite(models.Model):
@@ -59,7 +72,7 @@ class Configurations(models.Model):
     saisie_automatique=models.BooleanField(default=False, verbose_name="Saisie Automatique")
     port=models.CharField(max_length=500,default='COM1',null=False,verbose_name='Port')
     est_bloquer = models.BooleanField(default=False, editable=False)
-    user_id = models.CharField(max_length=500, editable=False, default=get_current_user)
+    user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
     def save(self, *args, **kwargs):
@@ -86,10 +99,9 @@ class Configurations(models.Model):
 
 
 class Images(models.Model):
-    
     src= models.ImageField(upload_to="Images", null=False)
     est_bloquer = models.BooleanField(default=False, editable=False)
-    user_id = models.CharField(max_length=500, editable=False, default=get_current_user)
+    user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
     objects = GeneralManager()
@@ -138,7 +150,7 @@ class Clients(models.Model):
     sous_client = models.ForeignKey('Clients', on_delete=models.DO_NOTHING, db_column='sous_client',null=True, blank=True,verbose_name='Est client de')
 
     est_bloquer = models.BooleanField(default=False, editable=False)
-    user_id = models.CharField(max_length=500, editable=False, default=get_current_user)
+    user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
     objects = GeneralManager()
@@ -168,7 +180,7 @@ class UniteMesure(models.Model):
     libelle = models.CharField(db_column='libelle', max_length=10, blank=True, null=True)
     description = models.CharField(db_column='description', max_length=50, blank=True, null=True)
     est_bloquer = models.BooleanField(default=False, editable=False)
-    user_id = models.CharField(max_length=500, editable=False, default=get_current_user)
+    user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
     objects = GeneralManager()
@@ -203,7 +215,7 @@ class Produits(models.Model):
     unite = models.ForeignKey(UniteMesure, on_delete=models.DO_NOTHING,null=False,verbose_name='Unite de Mesure')
     famille=models.CharField(db_column='famille', max_length=500,  null=True, verbose_name='Famille')
     est_bloquer = models.BooleanField(default=False, editable=False)
-    user_id = models.CharField(max_length=500, editable=False, default=get_current_user)
+    user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
     objects = GeneralManager()
@@ -238,7 +250,7 @@ class PrixProduit(models.Model):
     produit = models.ForeignKey(Produits, on_delete=models.DO_NOTHING,null=False,verbose_name='Produit')
     prix_unitaire = models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Prix unitaire')
     est_bloquer = models.BooleanField(default=False, editable=False)
-    user_id = models.CharField(max_length=500, editable=False, default=get_current_user)
+    user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
     objects = GeneralManager()
@@ -283,7 +295,7 @@ class Contrat(models.Model):
     date_signature=models.DateField(db_column='date_signature', null=False, blank=False, verbose_name='Date de Signature')
     date_expiration=models.DateField(db_column='date_expiration', null=True, verbose_name='Date d\'expiration')
     est_bloquer = models.BooleanField(default=False, editable=False)
-    user_id = models.CharField(max_length=500, editable=False, default=get_current_user)
+    user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
     objects = GeneralManager()
@@ -340,7 +352,7 @@ class DQE(models.Model):
     prixProduit=models.ForeignKey(PrixProduit, on_delete=models.DO_NOTHING,null=False,verbose_name='Produit')
     qte=models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Quantité')
     est_bloquer = models.BooleanField(default=False, editable=False)
-    user_id = models.CharField(max_length=500, editable=False, default=get_current_user)
+    user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
     objects = GeneralManager()
@@ -382,7 +394,7 @@ class Avances(models.Model):
                                          verbose_name='Montant restant de l\'avance', editable=False)
 
     est_bloquer = models.BooleanField(default=False, editable=False)
-    user_id = models.CharField(max_length=500, editable=False, default=get_current_user)
+    user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
     objects = GeneralManager()
@@ -416,7 +428,7 @@ class Planing(models.Model):
     qte_livre=models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Quantité à livré')
 
     est_bloquer = models.BooleanField(default=False, editable=False)
-    user_id = models.CharField(max_length=500, editable=False, default=get_current_user)
+    user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
     objects = GeneralManager()
@@ -464,7 +476,7 @@ class Camion(models.Model):
     unite = models.ForeignKey(UniteMesure, on_delete=models.DO_NOTHING,null=False,verbose_name='Unite de Mesure')
 
     est_bloquer = models.BooleanField(default=False, editable=False)
-    user_id = models.CharField(max_length=500, editable=False, default=get_current_user)
+    user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
     objects = GeneralManager()
@@ -512,7 +524,7 @@ class BonLivraison(models.Model):
                                   verbose_name='QTE', editable=False)
 
     est_bloquer = models.BooleanField(default=False, editable=False)
-    user_id = models.CharField(max_length=500, editable=False, default=get_current_user)
+    user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
     objects = GeneralManager()
@@ -583,7 +595,7 @@ class Factures(models.Model):
     montant_facture_ttc=models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Montant Facture (en TTC)',editable=False)
 
     est_bloquer = models.BooleanField(default=False, editable=False)
-    user_id = models.CharField(max_length=500, editable=False, default=get_current_user)
+    user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
     objects = GeneralManager()
@@ -631,7 +643,7 @@ class DetailFacture(models.Model):
     facture = models.ForeignKey(Factures,null=True, on_delete=models.DO_NOTHING,to_field="id")
     detail = models.ForeignKey(BonLivraison, on_delete=models.DO_NOTHING)
     est_bloquer = models.BooleanField(default=False, editable=False)
-    user_id = models.CharField(max_length=500, editable=False, default=get_current_user)
+    user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
     objects = GeneralManager()
@@ -661,7 +673,7 @@ class DetailFacture(models.Model):
 class ModePaiement(models.Model):
     libelle = models.CharField(max_length=500, null=False, unique=True)
     est_bloquer = models.BooleanField(default=False, editable=False)
-    user_id = models.CharField(max_length=500, editable=False, default=get_current_user)
+    user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
     objects = GeneralManager()
 
@@ -701,7 +713,7 @@ class Encaissement(models.Model):
     numero_piece = models.CharField(max_length=300, null=False, verbose_name="Numero de piéce")
 
     est_bloquer = models.BooleanField(default=False, editable=False)
-    user_id = models.CharField(max_length=500, editable=False, default=get_current_user)
+    user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
     objects = GeneralManager()
