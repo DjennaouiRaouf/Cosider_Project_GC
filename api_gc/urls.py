@@ -33,8 +33,7 @@ urlpatterns = [
     path('addfacture/', AddFacture.as_view()),
     path('getfacture/', ListFacture.as_view()),
 
-    path('addods/', AddODS.as_view()),
-    path('getods/', ListODS.as_view()),
+
 
 
     path('updatedqe/',UpdateDQE.as_view()),

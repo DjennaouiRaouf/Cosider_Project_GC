@@ -4,7 +4,7 @@ from django.db import transaction
 from django.db.models import Q, F
 from django.db.models.signals import *
 from django.dispatch import *
-from safedelete.signals import *
+
 from api_gc.models import *
 
 @receiver(pre_save, sender=Configurations)
@@ -27,15 +27,6 @@ def pre_save_avance(sender, instance, **kwargs):
 @receiver(pre_save,  sender=Encaissement)
 def pre_save_encaissement(sender, instance, **kwargs):
     pass
-@receiver(post_softdelete, sender=Encaissement)
-def update_on_softdelete(sender, instance, **kwargs):
-    try:
-        encaissements=Encaissement.objects.filter(Q(id__gt=instance.id))
-        if(encaissements):
-            encaissements.update(montant_creance=F('montant_creance') + instance.montant_encaisse)
-
-    except Encaissement.DoesNotExist:
-        pass
 
 @receiver(pre_save, sender=DQE)
 def pre_save_dqe(sender, instance, **kwargs):
@@ -101,16 +92,3 @@ def pre_save_facture(sender, instance, **kwargs):
         instance.montant_facture_ht=round(instance.montant - instance.montant_rb - instance.montant_rg, 4)
         instance.montant_facture_ttc=round(instance.montant_facture_ht + (instance.montant_facture_ht * instance.contrat.tva / 100), 2)
 
-
-
-@receiver(post_softdelete, sender=Factures)
-def update_on_softdelete(sender, instance, **kwargs):
-    DetailFacture.objects.filter(facture=instance.pk).delete()
-
-
-@receiver(post_undelete, sender=Factures)
-def update_on_undelete(sender, instance, **kwargs):
-    deleted_objects = DetailFacture.deleted_objects.filter(facture=instance.pk)
-    with transaction.atomic():
-        for obj in deleted_objects:
-            obj.undelete()

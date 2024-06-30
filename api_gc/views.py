@@ -11,8 +11,7 @@ from rest_framework.authtoken.models import Token
 from api_gc.filters import *
 from api_gc.models import *
 from api_gc.serializers import *
-import serial
-import serial.tools.list_ports
+
 # Create your views here.
 
 class CreateUserView(generics.CreateAPIView):
@@ -255,10 +254,6 @@ class contratKeys(APIView):
 
 
 
-class AddODS(generics.CreateAPIView):
-    #permission_classes = [IsAuthenticated]
-    queryset = ODS.objects.all()
-    serializer_class = ODSSerializer
 
 
 
@@ -268,12 +263,7 @@ class AddFacture(generics.CreateAPIView):
     queryset = Factures.objects.all()
     serializer_class = FactureSerializer
 
-class ListODS(generics.ListAPIView):
-    #permission_classes = [IsAuthenticated]
-    queryset = ODS.objects.all()
-    serializer_class =ODSSerializer
-    #filter_backends = [DjangoFilterBackend]
-    #filterset_class = FacturesFilter
+
 
 
 class UpdateDQE(generics.UpdateAPIView):

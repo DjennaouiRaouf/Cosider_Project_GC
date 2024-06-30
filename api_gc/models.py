@@ -1,27 +1,47 @@
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
-from safedelete import SOFT_DELETE_CASCADE, DELETED_VISIBLE_BY_PK, SOFT_DELETE, HARD_DELETE
-from safedelete.managers import SafeDeleteManager
-from safedelete.models import SafeDeleteModel
-from simple_history.models import HistoricalRecords
-from dateutil.relativedelta import relativedelta
+from django_currentuser.middleware import get_current_user
+from django.db.models import Q, F, IntegerField, Sum
 # Create your models here.
 
-class DeletedModelManager(SafeDeleteManager):
-    _safedelete_visibility = DELETED_VISIBLE_BY_PK
+
+class GeneralManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(~Q(est_bloquer=True))
+    def deleted(self):
+        return super().get_queryset().filter(Q(est_bloquer=True))
+    
+    
 
 
 
 
-class Unite(SafeDeleteModel):
-    _safedelete_policy = SOFT_DELETE_CASCADE
+class Unite(models.Model):
+    
     id=models.CharField(max_length=500,primary_key=True,verbose_name='Code Unité',db_column='code_unite')
     libelle=models.CharField(max_length=500,null=False,verbose_name="Libelle")
     date_ouverture= models.DateField(null=False,verbose_name="Date d'ouverture")
     date_cloture = models.DateField(null=True,blank=True, verbose_name="Date de cloture")
+    est_bloquer = models.BooleanField(default=False,editable=False)
+    user_id = models.CharField(max_length=500, editable=False)
 
-    historique = HistoricalRecords()
-    objects = DeletedModelManager()
+    date_modification = models.DateTimeField(editable=False, auto_now=True)
+    objects = GeneralManager()
+    def save(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        self.est_bloquer = True
+        super().save(*args, **kwargs)
+
 
     def __str__(self):
         return self.id
@@ -33,14 +53,29 @@ class Unite(SafeDeleteModel):
 
 
 
-class Configurations(SafeDeleteModel):
-    _safedelete_policy = SOFT_DELETE_CASCADE
+class Configurations(models.Model):
+    
     unite=models.ForeignKey(Unite,null=True,blank=True,verbose_name='Unite',db_column='unite',on_delete=models.DO_NOTHING)
     saisie_automatique=models.BooleanField(default=False, verbose_name="Saisie Automatique")
     port=models.CharField(max_length=500,default='COM1',null=False,verbose_name='Port')
+    est_bloquer = models.BooleanField(default=False, editable=False)
+    user_id = models.CharField(max_length=500, editable=False, default=get_current_user)
+    date_modification = models.DateTimeField(editable=False, auto_now=True)
 
-    historique = HistoricalRecords()
-    objects = DeletedModelManager()
+    def save(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        self.est_bloquer = True
+        super().save(*args, **kwargs)
 
     class Meta:
         app_label = 'api_gc'
@@ -50,11 +85,29 @@ class Configurations(SafeDeleteModel):
 
 
 
-class Images(SafeDeleteModel):
-    _safedelete_policy = SOFT_DELETE_CASCADE
+class Images(models.Model):
+    
     src= models.ImageField(upload_to="Images", null=False)
-    historique = HistoricalRecords()
-    objects = DeletedModelManager()
+    est_bloquer = models.BooleanField(default=False, editable=False)
+    user_id = models.CharField(max_length=500, editable=False, default=get_current_user)
+    date_modification = models.DateTimeField(editable=False, auto_now=True)
+
+    objects = GeneralManager()
+
+    def save(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        self.est_bloquer = True
+        super().save(*args, **kwargs)
 
     class Meta:
         app_label = 'api_gc'
@@ -63,8 +116,8 @@ class Images(SafeDeleteModel):
 
 
 
-class Clients(SafeDeleteModel):
-    _safedelete_policy = SOFT_DELETE_CASCADE
+class Clients(models.Model):
+
     id = models.CharField(db_column='Code_Client', primary_key=True, max_length=500, verbose_name='Code du Client')
     type_client = models.PositiveSmallIntegerField(db_column='Type_Client', blank=True, null=True,
                                                    verbose_name='Type de Client')
@@ -84,20 +137,56 @@ class Clients(SafeDeleteModel):
 
     sous_client = models.ForeignKey('Clients', on_delete=models.DO_NOTHING, db_column='sous_client',null=True, blank=True,verbose_name='Est client de')
 
-    historique = HistoricalRecords()
-    objects = DeletedModelManager()
+    est_bloquer = models.BooleanField(default=False, editable=False)
+    user_id = models.CharField(max_length=500, editable=False, default=get_current_user)
+    date_modification = models.DateTimeField(editable=False, auto_now=True)
+
+    objects = GeneralManager()
+
+    def save(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        self.est_bloquer = True
+        super().save(*args, **kwargs)
 
     class Meta:
         app_label = 'api_gc'
         verbose_name = 'Clients'
         verbose_name_plural = 'Clients'
 
-class UniteMesure(SafeDeleteModel):
-    _safedelete_policy = SOFT_DELETE_CASCADE
+class UniteMesure(models.Model):
+
     libelle = models.CharField(db_column='libelle', max_length=10, blank=True, null=True)
     description = models.CharField(db_column='description', max_length=50, blank=True, null=True)
-    historique = HistoricalRecords()
-    objects = DeletedModelManager()
+    est_bloquer = models.BooleanField(default=False, editable=False)
+    user_id = models.CharField(max_length=500, editable=False, default=get_current_user)
+    date_modification = models.DateTimeField(editable=False, auto_now=True)
+
+    objects = GeneralManager()
+
+    def save(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        self.est_bloquer = True
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.libelle
@@ -107,14 +196,32 @@ class UniteMesure(SafeDeleteModel):
         verbose_name_plural = 'Unités de mesure'
 
 
-class Produits(SafeDeleteModel):
-    _safedelete_policy = SOFT_DELETE_CASCADE
+class Produits(models.Model):
+
     id=models.CharField(db_column='code_produits', max_length=500, primary_key=True)
     libelle = models.CharField(db_column='nom_produit', max_length=500, blank=True, null=False, verbose_name='Nom Produit')
     unite = models.ForeignKey(UniteMesure, on_delete=models.DO_NOTHING,null=False,verbose_name='Unite de Mesure')
     famille=models.CharField(db_column='famille', max_length=500,  null=True, verbose_name='Famille')
-    historique = HistoricalRecords()
-    objects = DeletedModelManager()
+    est_bloquer = models.BooleanField(default=False, editable=False)
+    user_id = models.CharField(max_length=500, editable=False, default=get_current_user)
+    date_modification = models.DateTimeField(editable=False, auto_now=True)
+
+    objects = GeneralManager()
+
+    def save(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        self.est_bloquer = True
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.id+' '+self.libelle
@@ -124,14 +231,32 @@ class Produits(SafeDeleteModel):
         verbose_name_plural = 'Produits'
 
 
-class PrixProduit(SafeDeleteModel):
-    _safedelete_policy = SOFT_DELETE_CASCADE
+class PrixProduit(models.Model):
+
     id = models.CharField(max_length=500, primary_key=True, verbose_name='ID', db_column='id',editable=False)
     unite = models.ForeignKey(Unite, on_delete=models.DO_NOTHING, db_column='Unité', null=False, verbose_name='Unité')
     produit = models.ForeignKey(Produits, on_delete=models.DO_NOTHING,null=False,verbose_name='Produit')
     prix_unitaire = models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Prix unitaire')
-    historique = HistoricalRecords()
-    objects = DeletedModelManager()
+    est_bloquer = models.BooleanField(default=False, editable=False)
+    user_id = models.CharField(max_length=500, editable=False, default=get_current_user)
+    date_modification = models.DateTimeField(editable=False, auto_now=True)
+
+    objects = GeneralManager()
+
+    def save(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        self.est_bloquer = True
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return str(self.unite)+' '+str(self.produit)+' '+str(self.prix_unitaire)
@@ -142,8 +267,8 @@ class PrixProduit(SafeDeleteModel):
         verbose_name_plural = 'Prix des Produits'
 
 
-class Contrat(SafeDeleteModel):
-    _safedelete_policy = SOFT_DELETE_CASCADE
+class Contrat(models.Model):
+
 
     id=models.CharField(db_column='code_contrat', max_length=500, primary_key=True,verbose_name = 'Code du contrat')
     libelle=models.CharField(db_column='libelle', max_length=500, blank=True, null=False, verbose_name='libelle')
@@ -157,8 +282,26 @@ class Contrat(SafeDeleteModel):
     client=models.ForeignKey(Clients, on_delete=models.DO_NOTHING,null=False,verbose_name='Client')
     date_signature=models.DateField(db_column='date_signature', null=False, blank=False, verbose_name='Date de Signature')
     date_expiration=models.DateField(db_column='date_expiration', null=True, verbose_name='Date d\'expiration')
-    historique = HistoricalRecords()
-    objects = DeletedModelManager()
+    est_bloquer = models.BooleanField(default=False, editable=False)
+    user_id = models.CharField(max_length=500, editable=False, default=get_current_user)
+    date_modification = models.DateTimeField(editable=False, auto_now=True)
+
+    objects = GeneralManager()
+
+    def save(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        self.est_bloquer = True
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.id
@@ -189,15 +332,33 @@ class Contrat(SafeDeleteModel):
         verbose_name = 'Contrats'
         verbose_name_plural = 'Contrats'
 
-class DQE(SafeDeleteModel):
-    _safedelete_policy = SOFT_DELETE_CASCADE
+class DQE(models.Model):
+
 
     id=models.CharField(max_length=500,primary_key=True,verbose_name='id',editable=False)
     contrat=models.ForeignKey(Contrat, on_delete=models.DO_NOTHING,null=True,verbose_name='Contrat')
     prixProduit=models.ForeignKey(PrixProduit, on_delete=models.DO_NOTHING,null=False,verbose_name='Produit')
     qte=models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Quantité')
-    historique = HistoricalRecords()
-    objects = DeletedModelManager()
+    est_bloquer = models.BooleanField(default=False, editable=False)
+    user_id = models.CharField(max_length=500, editable=False, default=get_current_user)
+    date_modification = models.DateTimeField(editable=False, auto_now=True)
+
+    objects = GeneralManager()
+
+    def save(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        self.est_bloquer = True
+        super().save(*args, **kwargs)
 
     @property
     def montant_qte(self):
@@ -207,30 +368,11 @@ class DQE(SafeDeleteModel):
         verbose_name = 'DQE'
         verbose_name_plural = 'DQE'
 
-class ODS(SafeDeleteModel):
-    _safedelete_policy = SOFT_DELETE_CASCADE
-
-    Types=[
-        ('Interruption','Interruption',),('Reprise','Reprise')
-    ]
-    contrat = models.ForeignKey(Contrat, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
-    type=models.CharField(max_length=500, choices=Types, verbose_name='Type d\'Ordre de Service',null=False)
-    date=models.DateField(null=False,verbose_name='Date d\'Ordre de Service')
-    motif=models.TextField(null=True, verbose_name='Motif')
-    historique = HistoricalRecords()
-    objects = DeletedModelManager()
-
-    class Meta:
-        unique_together = (('contrat', 'type', 'date'),)
-        app_label = 'api_gc'
-        verbose_name = 'ODS'
-        verbose_name_plural = 'ODS'
 
 
 
+class Avances(models.Model):
 
-class Avances(SafeDeleteModel):
-    _safedelete_policy = SOFT_DELETE_CASCADE
     contrat = models.ForeignKey(Contrat, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
     num_avance=models.PositiveIntegerField(default=0, null=False, verbose_name='Num avance',editable=False)
 
@@ -239,23 +381,60 @@ class Avances(SafeDeleteModel):
     montant_restant= models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
                                          verbose_name='Montant restant de l\'avance', editable=False)
 
-    historique = HistoricalRecords()
-    objects = DeletedModelManager()
+    est_bloquer = models.BooleanField(default=False, editable=False)
+    user_id = models.CharField(max_length=500, editable=False, default=get_current_user)
+    date_modification = models.DateTimeField(editable=False, auto_now=True)
+
+    objects = GeneralManager()
+
+    def save(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        self.est_bloquer = True
+        super().save(*args, **kwargs)
+
     class Meta:
         app_label = 'api_gc'
         verbose_name = 'Avances'
         verbose_name_plural = 'Avances'
         unique_together=(('contrat', 'montant_avance'),)
 
-class Planing(SafeDeleteModel):
-    _safedelete_policy = SOFT_DELETE_CASCADE
+class Planing(models.Model):
+
     contrat = models.ForeignKey(Contrat, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
     dqe=models.ForeignKey(DQE, on_delete=models.DO_NOTHING, null=False, verbose_name='dqe')
     date=models.DateField(null=False, verbose_name='Date')
     qte_livre=models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Quantité à livré')
 
-    historique = HistoricalRecords()
-    objects = DeletedModelManager()
+    est_bloquer = models.BooleanField(default=False, editable=False)
+    user_id = models.CharField(max_length=500, editable=False, default=get_current_user)
+    date_modification = models.DateTimeField(editable=False, auto_now=True)
+
+    objects = GeneralManager()
+
+    def save(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        self.est_bloquer = True
+        super().save(*args, **kwargs)
 
     @property
     def cumule(self):
@@ -278,13 +457,33 @@ class Planing(SafeDeleteModel):
 
 
 
-class Camion(SafeDeleteModel):
-    _safedelete_policy = SOFT_DELETE_CASCADE
+class Camion(models.Model):
+
     matricule=models.CharField(max_length=500, primary_key=True, verbose_name='Matricule')
     tare=models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Tare')
     unite = models.ForeignKey(UniteMesure, on_delete=models.DO_NOTHING,null=False,verbose_name='Unite de Mesure')
-    historique = HistoricalRecords()
-    objects = DeletedModelManager()
+
+    est_bloquer = models.BooleanField(default=False, editable=False)
+    user_id = models.CharField(max_length=500, editable=False, default=get_current_user)
+    date_modification = models.DateTimeField(editable=False, auto_now=True)
+
+    objects = GeneralManager()
+
+    def save(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        self.est_bloquer = True
+        super().save(*args, **kwargs)
+
     class Meta:
         app_label = 'api_gc'
         verbose_name = 'Camions'
@@ -292,8 +491,8 @@ class Camion(SafeDeleteModel):
 
 
 # mode hors connexion 1 2 3 4 5
-class BonLivraison(SafeDeleteModel):
-    _safedelete_policy = SOFT_DELETE_CASCADE
+class BonLivraison(models.Model):
+
     id = models.CharField(max_length=500, primary_key=True, null=False, verbose_name='N° BL',
                           editable=False)
     conducteur=models.CharField(max_length=500, null=False, verbose_name='Conducteur')
@@ -312,8 +511,26 @@ class BonLivraison(SafeDeleteModel):
     qte = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
                                   verbose_name='QTE', editable=False)
 
-    historique = HistoricalRecords()
-    objects = DeletedModelManager()
+    est_bloquer = models.BooleanField(default=False, editable=False)
+    user_id = models.CharField(max_length=500, editable=False, default=get_current_user)
+    date_modification = models.DateTimeField(editable=False, auto_now=True)
+
+    objects = GeneralManager()
+
+    def save(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        self.est_bloquer = True
+        super().save(*args, **kwargs)
 
     @property
     def qte_cumule(self):
@@ -351,8 +568,8 @@ class BonLivraison(SafeDeleteModel):
 
 
 
-class Factures(SafeDeleteModel):
-    _safedelete_policy = SOFT_DELETE_CASCADE
+class Factures(models.Model):
+
     id=models.CharField(max_length=500,primary_key=True,null=False, verbose_name='Numero de facture',editable=False)
     contrat=models.ForeignKey(Contrat, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
     date= models.DateField(auto_now=True, verbose_name='Date')
@@ -364,7 +581,27 @@ class Factures(SafeDeleteModel):
     montant_rg=  models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Montant RG',editable=False)
     montant_facture_ht=models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Montant Facture (en HT)',editable=False)
     montant_facture_ttc=models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Montant Facture (en TTC)',editable=False)
-    objects = DeletedModelManager()
+
+    est_bloquer = models.BooleanField(default=False, editable=False)
+    user_id = models.CharField(max_length=500, editable=False, default=get_current_user)
+    date_modification = models.DateTimeField(editable=False, auto_now=True)
+
+    objects = GeneralManager()
+
+    def save(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        self.est_bloquer = True
+        super().save(*args, **kwargs)
 
     @property
     def montant_cumule(self):
@@ -389,11 +626,30 @@ class Factures(SafeDeleteModel):
 
 
 
-class DetailFacture(SafeDeleteModel):
-    _safedelete_policy = SOFT_DELETE_CASCADE
+class DetailFacture(models.Model):
+
     facture = models.ForeignKey(Factures,null=True, on_delete=models.DO_NOTHING,to_field="id")
     detail = models.ForeignKey(BonLivraison, on_delete=models.DO_NOTHING)
-    objects = DeletedModelManager()
+    est_bloquer = models.BooleanField(default=False, editable=False)
+    user_id = models.CharField(max_length=500, editable=False, default=get_current_user)
+    date_modification = models.DateTimeField(editable=False, auto_now=True)
+
+    objects = GeneralManager()
+
+    def save(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        self.est_bloquer = True
+        super().save(*args, **kwargs)
 
     class Meta:
         unique_together = (('facture', 'detail',))
@@ -402,10 +658,27 @@ class DetailFacture(SafeDeleteModel):
         verbose_name = 'Details'
         verbose_name_plural = 'Details'
 
-class ModePaiement(SafeDeleteModel):
+class ModePaiement(models.Model):
     libelle = models.CharField(max_length=500, null=False, unique=True)
-    historique = HistoricalRecords()
-    objects = DeletedModelManager()
+    est_bloquer = models.BooleanField(default=False, editable=False)
+    user_id = models.CharField(max_length=500, editable=False, default=get_current_user)
+    date_modification = models.DateTimeField(editable=False, auto_now=True)
+    objects = GeneralManager()
+
+    def save(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        self.est_bloquer = True
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.libelle
@@ -416,8 +689,8 @@ class ModePaiement(SafeDeleteModel):
         verbose_name_plural = 'Mode de Paiement'
 
 
-class Encaissement(SafeDeleteModel):
-    _safedelete_policy = SOFT_DELETE_CASCADE
+class Encaissement(models.Model):
+
     facture = models.ForeignKey(Factures, on_delete=models.DO_NOTHING, null=False, verbose_name="Facture")
     date_encaissement = models.DateField(null=False, verbose_name="Date d'encaissement")
     avance= models.ForeignKey(Avances, on_delete=models.DO_NOTHING, null=True, verbose_name="Avance")
@@ -426,8 +699,27 @@ class Encaissement(SafeDeleteModel):
     montant_encaisse = models.DecimalField(max_digits=38, decimal_places=3, blank=True, verbose_name="Montant encaissé",
                                            validators=[MinValueValidator(0)], default=0)
     numero_piece = models.CharField(max_length=300, null=False, verbose_name="Numero de piéce")
-    historique = HistoricalRecords()
-    objects = DeletedModelManager()
+
+    est_bloquer = models.BooleanField(default=False, editable=False)
+    user_id = models.CharField(max_length=500, editable=False, default=get_current_user)
+    date_modification = models.DateTimeField(editable=False, auto_now=True)
+
+    objects = GeneralManager()
+
+    def save(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        self.est_bloquer = True
+        super().save(*args, **kwargs)
 
     @property
     def montant_creance(self):
