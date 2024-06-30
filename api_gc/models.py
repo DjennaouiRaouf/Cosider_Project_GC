@@ -250,16 +250,14 @@ class Produits(models.Model):
 class PrixProduit(models.Model):
 
     id = models.CharField(max_length=500, primary_key=True, verbose_name='ID', db_column='id',editable=False)
-    unite=models.ForeignKey(Unite, on_delete=models.DO_NOTHING,null=False,verbose_name='unite' )
+    u=models.ForeignKey(Unite, on_delete=models.DO_NOTHING,null=False,verbose_name='unite' )
     produit = models.ForeignKey(Produits, on_delete=models.DO_NOTHING,null=False,verbose_name='Produit')
     prix_unitaire = models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Prix unitaire')
     est_bloquer = models.BooleanField(default=False, editable=False)
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
-    #objects= GeneralManager()
-    @property
-    def unite(self):
-        return self.id.split('_')[0]
+
+
 
     @property
     def index_prix(self):
