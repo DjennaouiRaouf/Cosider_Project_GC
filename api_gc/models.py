@@ -267,6 +267,8 @@ class PrixProduit(models.Model):
         unite = Config.objects.first().unite
         count=PrixProduit.objects.filter(id__startswith=str(unite) + '_' + str(self.produit)).count()
         self.id = str(unite) + '_' + str(self.produit)+'_'+str(count+1)
+        if(unite.id != 'DG'):
+            self.u=inite
 
         if not self.user_id:
             current_user = get_current_user()
