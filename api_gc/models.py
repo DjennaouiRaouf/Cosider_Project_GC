@@ -9,7 +9,7 @@ from django.db.models import Q, F, IntegerField, Sum
 class GeneralManager(models.Manager):
 
     def get_queryset(self):
-        if(self.model in  [Contrat,Clients,Camion,UniteMesure,DetailFacture,ModePaiement]):
+        if(self.model in  [Contrat,Clients,Camion,UniteMesure,DetailFacture,ModePaiement,Tva]):
             return super().get_queryset().filter(~Q(est_bloquer=True))
         else:
             unite = Config.objects.first().unite.id
@@ -21,7 +21,7 @@ class GeneralManager(models.Manager):
 
     def deleted(self):
 
-        if (self.model in [Contrat,Clients,Camion,UniteMesure,DetailFacture,ModePaiement]):
+        if (self.model in [Contrat,Clients,Camion,UniteMesure,DetailFacture,ModePaiement,Tva]):
             return super().get_queryset().filter(Q(est_bloquer=True))
         else:
             unite = Config.objects.first().unite.id
@@ -39,7 +39,28 @@ class GeneralManager(models.Manager):
             return super().get_queryset().filter(Q(pk__contains=unite))
 
 
+class Tva(models.Model):
+    id=models.CharField(max_length=10,primary_key=True,editable=False)
+    valeur=models.DecimalField(max_digits=38,decimal_places=3,validators=[MinValueValidator(0),MaxValueValidator(100)],default=0,verbose_name='TVA')
+    est_bloquer = models.BooleanField(default=False, editable=False)
+    user_id = models.CharField(max_length=500, editable=False)
+    date_modification = models.DateTimeField(editable=False, auto_now=True)
+    objects=GeneralManager()
+    def save(self, *args, **kwargs):
+        self.id='tva_'+str(self.valeur)
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        super().save(*args, **kwargs)
 
+    def delete(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        self.est_bloquer = True
+        super().save(*args, **kwargs)
 
 
 class Unite(models.Model):
@@ -50,9 +71,8 @@ class Unite(models.Model):
     date_cloture = models.DateField(null=True,blank=True, verbose_name="Date de cloture")
     est_bloquer = models.BooleanField(default=False,editable=False)
     user_id = models.CharField(max_length=500, editable=False)
-
     date_modification = models.DateTimeField(editable=False, auto_now=True)
-    
+    objects = GeneralManager()
     def save(self, *args, **kwargs):
         if not self.user_id:
             current_user = get_current_user()
@@ -230,7 +250,7 @@ class Produits(models.Model):
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
-    
+
 
     def save(self, *args, **kwargs):
         if not self.user_id:
@@ -265,7 +285,7 @@ class PrixProduit(models.Model):
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
-    objects=GeneralManager()
+    objects = GeneralManager()
 
     @property
     def index_prix(self):
@@ -306,7 +326,7 @@ class PrixProduit(models.Model):
 class Contrat(models.Model):
     id=models.CharField(db_column='code_contrat', max_length=500, primary_key=True,verbose_name = 'Code du contrat')
     libelle=models.CharField(db_column='libelle', max_length=500, blank=True, null=False, verbose_name='libelle')
-    tva=models.DecimalField(max_digits=38,decimal_places=3,validators=[MinValueValidator(0),MaxValueValidator(100)],default=0,verbose_name='TVA')
+    tva=models.ForeignKey(Tva,null=True,on_delete=models.DO_NOTHING,verbose_name='TVA')
     transport=models.BooleanField(db_column='transport', default=False, verbose_name='Transport')
     rabais=models.DecimalField(max_digits=38,decimal_places=3,validators=[MinValueValidator(0)],default=0,verbose_name='Rabais')
     rg = models.DecimalField(max_digits=38, decimal_places=3,
@@ -378,8 +398,8 @@ class DQE(models.Model):
     est_bloquer = models.BooleanField(default=False, editable=False)
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
-
-    objects=GeneralManager()
+    objects = GeneralManager()
+    
 
     def save(self, *args, **kwargs):
 
@@ -472,7 +492,7 @@ class Planing(models.Model):
     est_bloquer = models.BooleanField(default=False, editable=False)
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
-
+    objects = GeneralManager()
     
 
     def save(self, *args, **kwargs):
@@ -570,8 +590,7 @@ class BonLivraison(models.Model):
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
-    objects=GeneralManager()
-    
+    objects = GeneralManager()
 
     def save(self, *args,num_bl=2, **kwargs):
         config = Config.objects.first()
@@ -649,8 +668,7 @@ class Factures(models.Model):
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
-    objects=GeneralManager()
-
+    objects = GeneralManager()
     def save(self, *args, **kwargs):
         if not self.user_id:
             current_user = get_current_user()
@@ -769,7 +787,7 @@ class Encaissement(models.Model):
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
-    
+    objects = GeneralManager()
 
     def save(self, *args, **kwargs):
         if not self.user_id:

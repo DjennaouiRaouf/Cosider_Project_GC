@@ -15,6 +15,10 @@ class ImagesAdmin(admin.ModelAdmin):
     list_display = [field.name for field in Images._meta.fields  if field.name not in ['']]
 
     
+@admin.register(Tva)
+class TvaAdmin(admin.ModelAdmin):
+    list_per_page = lp
+    list_display = [field.name for field in Tva._meta.fields  if field.name not in ['']]
 
 
 @admin.register(Avances)
