@@ -425,14 +425,21 @@ class Avances(models.Model):
 
     montant_avance = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
                                          verbose_name='Montant de l\'avance')
-    montant_restant= models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
-                                         verbose_name='Montant restant de l\'avance', editable=False)
 
     est_bloquer = models.BooleanField(default=False, editable=False)
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
-    
+    @property
+    def montant_cumule(self):
+        previous_cumule = Avances.objects.filter(contrat=self.contrat,date_modification__lt=self.date_modification)
+        sum = self.montant_avance
+        if (previous_cumule):
+            for pc in previous_cumule:
+                sum += pc.montant_avance
+            return sum
+        else:
+            return self.montant_avance
 
     def save(self, *args, **kwargs):
         if not self.user_id:
@@ -652,12 +659,13 @@ class Factures(models.Model):
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
+
         if not self.user_id:
             current_user = get_current_user()
             if current_user and hasattr(current_user, 'username'):
                 self.user_id = current_user.username
         self.est_bloquer = True
-
+        DetailFacture.objects.filter(facture=self).delete()
         super().save(*args, **kwargs)
 
     @property

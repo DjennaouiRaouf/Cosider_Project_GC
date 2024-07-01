@@ -59,6 +59,7 @@ def pre_save_planing(sender, instance, **kwargs):
 
 @receiver(pre_save, sender=Factures)
 def pre_save_facture(sender, instance, **kwargs):
+
     if not instance.pk:
         config=Config.objects.first()
         count=Factures.objects.all_with_deleted().count()+1
@@ -69,18 +70,39 @@ def pre_save_facture(sender, instance, **kwargs):
         else:
             debut = instance.du
             fin = instance.au
-            try:
-                details = BonLivraison.objects.filter(contrat=instance.contrat, date__date__lte=fin, date__date__gte=debut)
-                sum=0
-                for d in details:
-                    DetailFacture.objects.create(facture=instance, detail=d)
-                    sum+=d.montant
-            except BonLivraison.DoesNotExist:
-                raise ValidationError('Facturation impossible les bons de livraison ne sont pas disponible ')
-        instance.montant=sum
+
+            if (not BonLivraison.objects.filter(contrat=instance.contrat, date__date__lte=fin, date__date__gte=debut)):
+                raise ValidationError('Facturation impossible les attachements ne sont pas disponible ')
+            m = 0
+            bons = BonLivraison.objects.filter(contrat=instance.contrat, date__date__lte=fin, date__date__gte=debut)
+            for bon in bons:
+                m += bon.montant
+
+
+        instance.montant=m
         instance.montant_rb= round((instance.montant*instance.contrat.rabais/100),4)
         m = instance.montant - instance.montant_rb
         instance.montant_rg=round((m*instance.contrat.rg/100),4)
         instance.montant_facture_ht=round(instance.montant - instance.montant_rb - instance.montant_rg, 4)
         instance.montant_facture_ttc=round(instance.montant_facture_ht + (instance.montant_facture_ht * instance.contrat.tva / 100), 2)
 
+
+
+@receiver(post_save, sender=Factures)
+def post_save_facture(sender, instance, created, **kwargs):
+    if created:
+        debut = instance.du
+        fin = instance.au
+        try:
+            details =  BonLivraison.objects.filter(contrat=instance.contrat, date__date__lte=fin, date__date__gte=debut)
+            if(not details):
+                raise ValueError('Pas de Bon de livraison')
+            else:
+                for d in details:
+                    DetailFacture(
+                        facture=instance,
+                        detail=d
+                    ).save()
+
+        except BonLivraison.DoesNotExist:
+            raise ValueError('Pas de Bon de livraison')

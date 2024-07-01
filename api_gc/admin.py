@@ -20,8 +20,10 @@ class ImagesAdmin(admin.ModelAdmin):
 @admin.register(Avances)
 class AvancesAdmin(admin.ModelAdmin):
     list_per_page = lp
-    list_display = [field.name for field in Avances._meta.fields  if field.name not in ['']]
-    
+    list_display = [field.name for field in Avances._meta.fields  if field.name not in ['']]+['montant_cumule']
+
+    def montant_cumule(self,obj):
+        return obj.montant_cumule
 
 
 @admin.register(Unite)
