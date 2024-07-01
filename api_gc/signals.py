@@ -52,15 +52,6 @@ def pre_save_planing(sender, instance, **kwargs):
 
 
 
-@receiver(pre_save, sender=BonLivraison)
-def pre_save_bonlivraison(sender, instance, **kwargs):
-    if not instance.pk:
-        config=AppConfig.objects.first()
-        num=BonLivraison.objects.all_with_deleted().filter(date__date__year=datetime.now().year).count()
-        instance.id=str(num+1)+"/"+str(datetime.now().year)+"/"+str(config.unite)
-
-        instance.qte = instance.ptc - instance.camion.tare
-        instance.montant = round(instance.qte * instance.dqe.prixProduit.prix_unitaire, 4)
 
 
 
@@ -69,7 +60,7 @@ def pre_save_bonlivraison(sender, instance, **kwargs):
 @receiver(pre_save, sender=Factures)
 def pre_save_facture(sender, instance, **kwargs):
     if not instance.pk:
-        config=AppConfig.objects.first()
+        config=Config.objects.first()
         instance.id=str(Factures.objects.filter(date__year=datetime.now().year).count()+1)+'/'+str(datetime.now().year)+"/"+str(config.unite)
 
         if (instance.du > instance.au):

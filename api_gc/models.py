@@ -17,7 +17,7 @@ class GeneralManager(models.Manager):
             if( unite == 'DG'): # DG
                 return super().get_queryset().filter(~Q(est_bloquer=True))
             else:
-                return super().get_queryset().filter(~Q(est_bloquer=True) & Q(pk__startswith=unite))
+                return super().get_queryset().filter(~Q(est_bloquer=True) & Q(pk__contains=unite))
 
     def deleted(self):
 
@@ -29,7 +29,14 @@ class GeneralManager(models.Manager):
             if( unite == 'DG'): # DG
                 return super().get_queryset().filter(Q(est_bloquer=True))
             else:
-                return super().get_queryset().filter(Q(est_bloquer=True)& Q(pk__startswith=unite))
+                return super().get_queryset().filter(Q(est_bloquer=True)& Q(pk__contains=unite))
+
+    def all_with_deleted(self):
+        unite = Config.objects.first().unite.id
+        if (unite == 'DG'):  # DG
+            return super().get_queryset().all()
+        else:
+            return super().get_queryset().filter(Q(pk__contains=unite))
 
 
 
@@ -372,7 +379,7 @@ class DQE(models.Model):
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
-    
+    objects=GeneralManager()
 
     def save(self, *args, **kwargs):
 
@@ -530,11 +537,12 @@ class Camion(models.Model):
         verbose_name_plural = 'Camions'
         db_table = 'Camions'
 
-# mode hors connexion 1 2 3 4 5
+# mode hors connexion
 class BonLivraison(models.Model):
-
     id = models.CharField(max_length=500, primary_key=True, null=False, verbose_name='N° BL',
                           editable=False)
+
+
     conducteur=models.CharField(max_length=500, null=False, verbose_name='Conducteur')
     camion = models.ForeignKey(Camion, null=False, on_delete=models.DO_NOTHING, verbose_name='Camion')
     numero_permis_c=models.CharField(max_length=500,null=True,verbose_name='N° P.Conduire')
@@ -555,9 +563,17 @@ class BonLivraison(models.Model):
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
+    objects=GeneralManager()
     
 
-    def save(self, *args, **kwargs):
+    def save(self, *args,num_bl=2, **kwargs):
+        config = Config.objects.first()
+
+        self.id = str(config.unite) + '_' + str(num_bl)
+
+        self.qte = self.ptc - self.camion.tare
+        self.montant = round(self.qte * self.dqe.prixProduit.prix_unitaire, 4)
+
         if not self.user_id:
             current_user = get_current_user()
             if current_user and hasattr(current_user, 'username'):

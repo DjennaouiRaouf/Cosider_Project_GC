@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-
+from api_gc.forms import *
 from api_gc.models import *
 
 
@@ -163,10 +163,14 @@ class CamionAdmin(admin.ModelAdmin):
 
 @admin.register(BonLivraison)
 class BonLivraisonAdmin(admin.ModelAdmin):
+    form = NumBLForm
     save_as = True
     list_per_page = lp
     list_display = [field.name for field in BonLivraison._meta.fields if field.name not in ['']]+['montant_cumule','qte_cumule']
 
+    def save_model(self, request, obj, form, change):
+        num_bl=form.cleaned_data['num_bl']
+        obj.save(num_bl=num_bl)
 
     
 
