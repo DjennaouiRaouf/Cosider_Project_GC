@@ -16,6 +16,5 @@ class NumBLForm(forms.ModelForm):
         instance = getattr(self, 'instance', None)
         if instance and instance.pk:
             self.fields['num_bl'].initial = instance.pk.split('_')[-1]
-
-
+            self.fields['num_bl'].disabled = True
 
