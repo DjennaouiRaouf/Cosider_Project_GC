@@ -61,7 +61,8 @@ def pre_save_planing(sender, instance, **kwargs):
 def pre_save_facture(sender, instance, **kwargs):
     if not instance.pk:
         config=Config.objects.first()
-        instance.id=str(Factures.objects.filter(date__year=datetime.now().year).count()+1)+'/'+str(datetime.now().year)+"/"+str(config.unite)
+        count=Factures.objects.all_with_deleted().count()+1
+        instance.id=str(config.unite)+'_'+count
 
         if (instance.du > instance.au):
             raise ValidationError('Date de debut doit etre inferieur à la date de fin')

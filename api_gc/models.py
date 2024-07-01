@@ -308,7 +308,7 @@ class Contrat(models.Model):
     libelle=models.CharField(db_column='libelle', max_length=500, blank=True, null=False, verbose_name='libelle')
     tva=models.DecimalField(max_digits=38,decimal_places=3,validators=[MinValueValidator(0),MaxValueValidator(100)],default=0,verbose_name='TVA')
     transport=models.BooleanField(db_column='transport', default=False, verbose_name='Transport')
-    rabais=models.DecimalField(max_digits=38,decimal_places=3,validators=[MinValueValidator(0),MaxValueValidator(100)],default=0,verbose_name='Rabais')
+    rabais=models.DecimalField(max_digits=38,decimal_places=3,validators=[MinValueValidator(0)],default=0,verbose_name='Rabais')
     rg = models.DecimalField(max_digits=38, decimal_places=3,
                                  validators=[MinValueValidator(0), MaxValueValidator(100)], default=0,
                                  verbose_name='Retenue de garantie')
@@ -642,7 +642,7 @@ class Factures(models.Model):
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
-    
+    objects=GeneralManager()
 
     def save(self, *args, **kwargs):
         if not self.user_id:
@@ -657,6 +657,7 @@ class Factures(models.Model):
             if current_user and hasattr(current_user, 'username'):
                 self.user_id = current_user.username
         self.est_bloquer = True
+
         super().save(*args, **kwargs)
 
     @property
