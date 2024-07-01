@@ -10,8 +10,11 @@ class NumBLForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(NumBLForm, self).__init__(*args, **kwargs)
 
-
-        self.fields['num_bl'].initial = int(BonLivraison.objects.all_with_deleted().latest('date_modification').id.split('_')[-1])+1
+        try:
+            nbl=int(BonLivraison.objects.all_with_deleted().latest('date_modification').id.split('_')[-1]) + 1
+        except BonLivraison.DoesNotExist:
+            nbl=1
+        self.fields['num_bl'].initial = nbl
 
         instance = getattr(self, 'instance', None)
         if instance and instance.pk:
