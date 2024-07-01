@@ -96,6 +96,7 @@ class ContratAdmin(admin.ModelAdmin):
     save_as = True
     list_per_page = lp
     list_display = [field.name for field in DQE._meta.fields if field.name not in ['']]+['prix_unitaire','montant_qte',
+                                                                                         'montant_at'
                                                                                                                       ]
 
 
@@ -104,6 +105,8 @@ class ContratAdmin(admin.ModelAdmin):
         return obj.montant_qte
     def prix_unitaire(self,obj):
         return obj.prixProduit.prix_unitaire
+    def montant_at(self,obj): # montant + transport
+        return obj.montant_qte_t
 
 @admin.register(UniteMesure)
 class UniteMesureAdmin(admin.ModelAdmin):

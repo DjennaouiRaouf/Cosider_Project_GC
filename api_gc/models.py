@@ -9,7 +9,7 @@ from django.db.models import Q, F, IntegerField, Sum
 class GeneralManager(models.Manager):
 
     def get_queryset(self):
-        if(self.model in  [Contrat,Clients]):
+        if(self.model in  [Contrat,Clients,Camion,UniteMesure,DetailFacture,ModePaiement]):
             return super().get_queryset().filter(~Q(est_bloquer=True))
         else:
             unite = Config.objects.first().unite.id
@@ -21,7 +21,7 @@ class GeneralManager(models.Manager):
 
     def deleted(self):
 
-        if (self.model in [Contrat,Clients]):
+        if (self.model in [Contrat,Clients,Camion,UniteMesure,DetailFacture,ModePaiement]):
             return super().get_queryset().filter(Q(est_bloquer=True))
         else:
             unite = Config.objects.first().unite.id
@@ -110,6 +110,7 @@ class Images(models.Model):
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
     
+
 
     def save(self, *args, **kwargs):
         if not self.user_id:
@@ -257,7 +258,7 @@ class PrixProduit(models.Model):
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
-
+    objects=GeneralManager()
 
     @property
     def index_prix(self):
@@ -287,7 +288,7 @@ class PrixProduit(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return str(self.id.split('_')[0])+' '+str(self.produit)+' '+str(self.prix_unitaire)
+        return self.id
     class Meta:
         unique_together = (('produit', 'prix_unitaire'))
         app_label = 'api_gc'
@@ -375,7 +376,7 @@ class DQE(models.Model):
 
     def save(self, *args, **kwargs):
 
-        self.id=str(self.prixProduit)
+        self.id=str(self.contrat)+'_'+str(self.prixProduit)
 
         if(self.contrat.transport != True):
             self.prix_transport = 0
@@ -397,6 +398,11 @@ class DQE(models.Model):
     @property
     def montant_qte(self):
         return round(self.qte*self.prixProduit.prix_unitaire,4)
+
+    @property
+    def montant_qte_t(self): # prop prix_prod * qte + transport
+        return round(self.montant_qte+self.prix_transport, 4)
+
     class Meta:
         app_label = 'api_gc'
         verbose_name = 'DQE'
