@@ -545,16 +545,12 @@ class Planing(models.Model):
 
 
 class Camion(models.Model):
-
     matricule=models.CharField(max_length=500, primary_key=True, verbose_name='Matricule')
     tare=models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Tare')
     unite = models.ForeignKey(UniteMesure, on_delete=models.DO_NOTHING,null=False,verbose_name='Unite de Mesure')
-
     est_bloquer = models.BooleanField(default=False, editable=False)
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
-
-    
 
     def save(self, *args, **kwargs):
         if not self.user_id:
@@ -612,7 +608,7 @@ class BonLivraison(models.Model):
 
         self.qte = self.ptc - self.camion.tare
         self.montant = round((self.qte * self.dqe.prixProduit.prix_unitaire)-self.dqe.rabais, 4)
-
+        # verifier si on ajoute le cout du transport  lors de la creation du bon de livraison
         if not self.user_id:
             current_user = get_current_user()
             if current_user and hasattr(current_user, 'username'):
