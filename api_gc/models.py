@@ -44,7 +44,7 @@ class Tva(models.Model):
     est_bloquer = models.BooleanField(default=False, editable=False)
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
-    objects=GeneralManager()
+    
     def save(self, *args, **kwargs):
         self.id='tva_'+str(self.valeur)
         if not self.user_id:
@@ -79,7 +79,7 @@ class Unite(models.Model):
     est_bloquer = models.BooleanField(default=False,editable=False)
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
-    objects = GeneralManager()
+    
     def save(self, *args, **kwargs):
         if not self.user_id:
             current_user = get_current_user()
@@ -292,7 +292,7 @@ class PrixProduit(models.Model):
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
-    objects = GeneralManager()
+    
 
     @property
     def index_prix(self):
@@ -335,7 +335,7 @@ class Contrat(models.Model):
     libelle=models.CharField(db_column='libelle', max_length=500, blank=True, null=False, verbose_name='libelle')
     tva=models.ForeignKey(Tva,null=True,on_delete=models.DO_NOTHING,verbose_name='TVA')
     transport=models.BooleanField(db_column='transport', default=False, verbose_name='Transport')
-    rabais=models.DecimalField(max_digits=38,decimal_places=3,validators=[MinValueValidator(0)],default=0,verbose_name='Rabais')
+    rabais=models.DecimalField(max_digits=38,decimal_places=3,validators=[MinValueValidator(0)],default=0,verbose_name='Rabais Sur Tout')
     rg = models.DecimalField(max_digits=38, decimal_places=3,
                                  validators=[MinValueValidator(0)], default=0,
                                  verbose_name='Retenue de garantie')
@@ -400,12 +400,15 @@ class DQE(models.Model):
     contrat=models.ForeignKey(Contrat, on_delete=models.DO_NOTHING,null=True,verbose_name='Contrat')
     prixProduit=models.ForeignKey(PrixProduit, on_delete=models.DO_NOTHING,null=False,verbose_name='Produit')
     qte=models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Quantité')
+    rabais = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
+                                 verbose_name='Rabais Par Produit')
+
     prix_transport = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
                               verbose_name='Tarif de Transport')
     est_bloquer = models.BooleanField(default=False, editable=False)
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
-    objects = GeneralManager()
+    
     
 
     def save(self, *args, **kwargs):
@@ -414,7 +417,10 @@ class DQE(models.Model):
 
         if(self.contrat.transport != True):
             self.prix_transport = 0
-
+        
+        if(self.contrat.rabais):
+            self.rabais =self.contrat.rabais
+        
         if not self.user_id:
             current_user = get_current_user()
             if current_user and hasattr(current_user, 'username'):
@@ -499,7 +505,7 @@ class Planing(models.Model):
     est_bloquer = models.BooleanField(default=False, editable=False)
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
-    objects = GeneralManager()
+    
     
 
     def save(self, *args, **kwargs):
@@ -597,7 +603,7 @@ class BonLivraison(models.Model):
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
-    objects = GeneralManager()
+    
 
     def save(self, *args,num_bl=2, **kwargs):
         config = Config.objects.first()
@@ -605,7 +611,7 @@ class BonLivraison(models.Model):
         self.id = str(config.unite) + '_' + str(num_bl)
 
         self.qte = self.ptc - self.camion.tare
-        self.montant = round(self.qte * self.dqe.prixProduit.prix_unitaire, 4)
+        self.montant = round((self.qte * self.dqe.prixProduit.prix_unitaire)-self.dqe.rabais, 4)
 
         if not self.user_id:
             current_user = get_current_user()
@@ -675,7 +681,7 @@ class Factures(models.Model):
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
-    objects = GeneralManager()
+    
     def save(self, *args, **kwargs):
         if not self.user_id:
             current_user = get_current_user()
@@ -794,7 +800,7 @@ class Encaissement(models.Model):
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
-    objects = GeneralManager()
+    
 
     def save(self, *args, **kwargs):
         if not self.user_id:

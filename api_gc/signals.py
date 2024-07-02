@@ -80,7 +80,7 @@ def pre_save_facture(sender, instance, **kwargs):
 
 
         instance.montant=m
-        instance.montant_rb= round((instance.montant*instance.contrat.rabais/100),4)
+        instance.montant_rb= round((instance.montant-instance.contrat.rabais),4)
         m = instance.montant - instance.montant_rb
         instance.montant_rg=round((m*instance.contrat.rg/100),4)
         instance.montant_facture_ht=round(instance.montant - instance.montant_rb - instance.montant_rg, 4)
