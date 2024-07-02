@@ -4,8 +4,6 @@ from django_currentuser.middleware import get_current_user
 from django.db.models import Q, F, IntegerField, Sum
 # Create your models here.
 
-
-
 class GeneralManager(models.Manager):
 
     def get_queryset(self):
