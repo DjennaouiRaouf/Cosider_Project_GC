@@ -40,8 +40,7 @@ class GeneralManager(models.Manager):
 
 
 class Tva(models.Model):
-    id=models.CharField(max_length=10,primary_key=True,editable=False)
-    valeur=models.DecimalField(max_digits=38,decimal_places=3,validators=[MinValueValidator(0),MaxValueValidator(100)],default=0,verbose_name='TVA')
+    valeur=models.DecimalField(primary_key=True,max_digits=38,decimal_places=3,validators=[MinValueValidator(0),MaxValueValidator(100)],default=0,verbose_name='TVA')
     est_bloquer = models.BooleanField(default=False, editable=False)
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
@@ -61,6 +60,14 @@ class Tva(models.Model):
                 self.user_id = current_user.username
         self.est_bloquer = True
         super().save(*args, **kwargs)
+
+    def __str__(self):
+        return str(self.valeur)+'%'
+    class Meta:
+        app_label = 'api_gc'
+        verbose_name = 'TVA'
+        verbose_name_plural = 'TVA'
+        db_table = 'TVA'
 
 
 class Unite(models.Model):
@@ -324,13 +331,13 @@ class PrixProduit(models.Model):
         db_table='Prix_Produit'
 
 class Contrat(models.Model):
-    id=models.CharField(db_column='code_contrat', max_length=500, primary_key=True,verbose_name = 'Code du contrat')
+    id=models.CharField(db_column='code_contrat', max_length=500, primary_key=True,verbose_name = 'N° du contrat')
     libelle=models.CharField(db_column='libelle', max_length=500, blank=True, null=False, verbose_name='libelle')
     tva=models.ForeignKey(Tva,null=True,on_delete=models.DO_NOTHING,verbose_name='TVA')
     transport=models.BooleanField(db_column='transport', default=False, verbose_name='Transport')
     rabais=models.DecimalField(max_digits=38,decimal_places=3,validators=[MinValueValidator(0)],default=0,verbose_name='Rabais')
     rg = models.DecimalField(max_digits=38, decimal_places=3,
-                                 validators=[MinValueValidator(0), MaxValueValidator(100)], default=0,
+                                 validators=[MinValueValidator(0)], default=0,
                                  verbose_name='Retenue de garantie')
 
     client=models.ForeignKey(Clients, on_delete=models.DO_NOTHING,null=False,verbose_name='Client')
@@ -380,7 +387,7 @@ class Contrat(models.Model):
             return 0
     @property
     def montant_ttc(self):
-        return round(self.montant_ht+(self.montant_ht*self.tva/100),4)
+        return round(self.montant_ht+(self.montant_ht*self.tva.valeur/100),4)
     class Meta:
         app_label = 'api_gc'
         verbose_name = 'Contrats'
