@@ -456,6 +456,7 @@ class DQE(models.Model):
         self.est_bloquer = True
         super().save(*args, **kwargs)
 
+
     @property
     def montant_qte(self):
         return round(self.qte*self.prixProduit.prix_unitaire,4)
