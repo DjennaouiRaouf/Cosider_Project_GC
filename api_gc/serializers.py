@@ -109,17 +109,27 @@ class DQESerializer(serializers.ModelSerializer):
     prix_unitaire=serializers.SerializerMethodField()
     unite=serializers.SerializerMethodField()
     produit = serializers.SerializerMethodField()
+    contrat=serializers.SerializerMethodField()
+    avenant=serializers.SerializerMethodField()
+
     def get_montant_qte(self, obj):
         return obj.montant_qte
 
     def get_unite(self, obj):
-        return obj.prixProduit.unite.libelle
+        return obj.id.split('/')[0]
 
     def get_produit(self, obj):
         return obj.prixProduit.produit.libelle
 
     def get_prix_unitaire(self, obj):
         return obj.prixProduit.prix_unitaire
+
+    def get_contrat(self, obj):
+        return obj.contrat.numero
+
+    def get_avenant(self,obj):
+        return obj.contrat.avenant
+
 
 
     def get_fields(self, *args, **kwargs):

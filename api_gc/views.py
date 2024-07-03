@@ -127,25 +127,9 @@ class ListDQE(generics.ListAPIView):
     queryset = DQE.objects.all()
     serializer_class =DQESerializer
     filter_backends = [DjangoFilterBackend]
+    filter_class = DQEFilter
 
 
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        qt = 0
-        mt = 0
-        response_data = super().list(request, *args, **kwargs).data
-        for q in queryset:
-            qt = qt + q.qte
-            mt = mt + q.montant_qte
-
-        return Response({'dqe': response_data,
-                         'extra': {
-
-                             'qt': qt,
-                             'mt': mt,
-
-
-                         }}, status=status.HTTP_200_OK)
 class ListClient(generics.ListAPIView):
     #permission_classes = [IsAuthenticated]
     queryset = Clients.objects.all()
