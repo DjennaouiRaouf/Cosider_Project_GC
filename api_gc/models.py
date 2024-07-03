@@ -1,3 +1,5 @@
+import uuid
+
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django_currentuser.middleware import get_current_user
@@ -282,7 +284,7 @@ class Produits(models.Model):
 
 class PrixProduit(models.Model):
 
-    id = models.CharField(max_length=500, primary_key=True, verbose_name='ID', db_column='id',editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     u=models.ForeignKey(Unite, on_delete=models.DO_NOTHING,null=False,verbose_name='unite' )
     produit = models.ForeignKey(Produits, on_delete=models.DO_NOTHING,null=False,verbose_name='Produit')
     prix_unitaire = models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Prix unitaire')
@@ -294,15 +296,16 @@ class PrixProduit(models.Model):
 
     @property
     def index_prix(self):
-        return self.id.split('_')[-1]
+        return self.id.split('/')[2]
 
     def save(self, *args, **kwargs):
-        unite = Config.objects.first().unite
+        unite = Config.objects.first().unite.id
         count=PrixProduit.objects.filter(id__startswith=str(unite) + '_' + str(self.produit)).count()
         if(unite.id != 'DG'):
             self.u=unite
 
-        self.id = str(self.u.id) + '_' + str(self.produit)+'_'+str(count+1)
+        self.id =self.id = config.unite.id + '/'+str(self.produit)+'/'+str(count+1)+'/'+ self.id
+
 
 
         if not self.user_id:
@@ -321,8 +324,9 @@ class PrixProduit(models.Model):
 
     def __str__(self):
         return self.id
+
     class Meta:
-        unique_together = (('produit', 'prix_unitaire'))
+        unique_together = (('produit','u', 'prix_unitaire'))
         app_label = 'api_gc'
         verbose_name = 'Prix des Produits'
         verbose_name_plural = 'Prix des Produits'
@@ -394,7 +398,9 @@ class Contrat(models.Model):
 
 
 class DQE(models.Model):
-    id=models.CharField(max_length=500,primary_key=True,verbose_name='id',editable=False)
+
+    id=models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
     contrat=models.ForeignKey(Contrat, on_delete=models.DO_NOTHING,null=True,verbose_name='Contrat')
     prixProduit=models.ForeignKey(PrixProduit, on_delete=models.DO_NOTHING,null=False,verbose_name='Produit')
     qte=models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Quantité')
@@ -410,15 +416,15 @@ class DQE(models.Model):
     
 
     def save(self, *args, **kwargs):
-
-        self.id=str(self.contrat)+'_'+str(self.prixProduit)
+        config = Config.objects.first()
+        self.id=config.unite.id+'/'+self.id
 
         if(self.contrat.transport != True):
             self.prix_transport = 0
         
         if(self.contrat.rabais):
             self.rabais =self.contrat.rabais
-        
+
         if not self.user_id:
             current_user = get_current_user()
             if current_user and hasattr(current_user, 'username'):
@@ -494,12 +500,10 @@ class Avances(models.Model):
         unique_together=(('contrat', 'montant_avance'),)
         db_table='Avances'
 class Planing(models.Model):
-
     contrat = models.ForeignKey(Contrat, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
     dqe=models.ForeignKey(DQE, on_delete=models.DO_NOTHING, null=False, verbose_name='dqe')
     date=models.DateField(null=False, verbose_name='Date')
     qte_livre=models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Quantité à livré')
-
     est_bloquer = models.BooleanField(default=False, editable=False)
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
@@ -575,8 +579,6 @@ class Camion(models.Model):
 class BonLivraison(models.Model):
     id = models.CharField(max_length=500, primary_key=True, null=False, verbose_name='N° BL',
                           editable=False)
-
-
     conducteur=models.CharField(max_length=500, null=False, verbose_name='Conducteur')
     camion = models.ForeignKey(Camion, null=False, on_delete=models.DO_NOTHING, verbose_name='Camion')
     numero_permis_c=models.CharField(max_length=500,null=True,verbose_name='N° P.Conduire')
