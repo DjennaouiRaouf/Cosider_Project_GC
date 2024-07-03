@@ -5,7 +5,7 @@ from django.db import models
 from django_currentuser.middleware import get_current_user
 from django.db.models import Q, F, IntegerField, Sum
 # Create your models here.
-
+"""
 class GeneralManager(models.Manager):
 
     def get_queryset(self):
@@ -38,6 +38,7 @@ class GeneralManager(models.Manager):
         else:
             return super().get_queryset().filter(Q(pk__contains=unite))
 
+"""
 
 class Tva(models.Model):
     valeur=models.DecimalField(primary_key=True,max_digits=38,decimal_places=3,validators=[MinValueValidator(0),MaxValueValidator(100)],default=0,verbose_name='TVA')
@@ -284,7 +285,7 @@ class Produits(models.Model):
 
 class PrixProduit(models.Model):
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.CharField(max_length=900,primary_key=True, default=uuid.uuid4, editable=False)
     u=models.ForeignKey(Unite, on_delete=models.DO_NOTHING,null=False,verbose_name='unite' )
     produit = models.ForeignKey(Produits, on_delete=models.DO_NOTHING,null=False,verbose_name='Produit')
     prix_unitaire = models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Prix unitaire')
@@ -299,12 +300,12 @@ class PrixProduit(models.Model):
         return self.id.split('/')[2]
 
     def save(self, *args, **kwargs):
-        unite = Config.objects.first().unite.id
-        count=PrixProduit.objects.filter(id__startswith=str(unite) + '_' + str(self.produit)).count()
+        unite = Config.objects.first().unite
+        count=PrixProduit.objects.filter(id__startswith=str(unite.id) + '/' + str(self.produit)).count()
         if(unite.id != 'DG'):
             self.u=unite
 
-        self.id =self.id = config.unite.id + '/'+str(self.produit)+'/'+str(count+1)+'/'+ self.id
+        self.id =unite.id + '/'+str(self.produit)+'/'+str(count+1)+'/'+ str(self.id)
 
 
 
@@ -333,7 +334,9 @@ class PrixProduit(models.Model):
         db_table='Prix_Produit'
 
 class Contrat(models.Model):
-    id=models.CharField(db_column='code_contrat', max_length=500, primary_key=True,verbose_name = 'N° du contrat')
+    id = models.CharField(max_length=900,primary_key=True, default=uuid.uuid4, editable=False)
+    numero=models.CharField(db_column='code_contrat', max_length=500,verbose_name = 'N° du contrat')
+    avenant=models.PositiveIntegerField(default=0, verbose_name = 'Avenant N°')
     libelle=models.CharField(db_column='libelle', max_length=500, blank=True, null=False, verbose_name='libelle')
     tva=models.ForeignKey(Tva,null=True,on_delete=models.DO_NOTHING,verbose_name='TVA')
     transport=models.BooleanField(db_column='transport', default=False, verbose_name='Transport')
@@ -367,7 +370,10 @@ class Contrat(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.id
+        if(self.avenant > 0):
+            return self.numero+'/'+str(self.avenant)
+        else:
+            return self.numero
 
     @property
     def validite(self):
@@ -379,14 +385,25 @@ class Contrat(models.Model):
 
     @property
     def montant_ht(self):
-        try:
-            dqes=DQE.objects.filter(contrat=self.id)
-            sum=0
-            for dqe in dqes:
-                sum=sum+dqe.montant_qte
-            return sum
-        except DQE.DoesNotExist:
-            return 0
+        if(self.avenant==0):
+            try:
+                dqes=DQE.objects.filter(contrat=self.id)
+                sum=0
+                for dqe in dqes:
+                    sum=sum+dqe.montant_qte
+                return sum
+            except DQE.DoesNotExist:
+                return 0
+        else:
+            try:
+                dqes=DQE.objects.filter(contrat__avenant__lte=self.avenant)
+                sum=0
+                for dqe in dqes:
+                    sum=sum+dqe.montant_qte
+                return sum
+            except DQE.DoesNotExist:
+                return 0
+
     @property
     def montant_ttc(self):
         return round(self.montant_ht+(self.montant_ht*self.tva.valeur/100),4)
@@ -399,7 +416,7 @@ class Contrat(models.Model):
 
 class DQE(models.Model):
 
-    id=models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id=models.CharField(max_length=900,primary_key=True, default=uuid.uuid4, editable=False)
 
     contrat=models.ForeignKey(Contrat, on_delete=models.DO_NOTHING,null=True,verbose_name='Contrat')
     prixProduit=models.ForeignKey(PrixProduit, on_delete=models.DO_NOTHING,null=False,verbose_name='Produit')
@@ -417,7 +434,7 @@ class DQE(models.Model):
 
     def save(self, *args, **kwargs):
         config = Config.objects.first()
-        self.id=config.unite.id+'/'+self.id
+        self.id=config.unite.id+'/'+str(self.id)
 
         if(self.contrat.transport != True):
             self.prix_transport = 0
