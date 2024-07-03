@@ -1,5 +1,5 @@
 import uuid
-
+from dateutil.relativedelta import relativedelta
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django_currentuser.middleware import get_current_user
@@ -455,7 +455,6 @@ class DQE(models.Model):
                 self.user_id = current_user.username
         self.est_bloquer = True
         super().save(*args, **kwargs)
-
 
     @property
     def montant_qte(self):

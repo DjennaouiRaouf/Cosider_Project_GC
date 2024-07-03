@@ -79,11 +79,14 @@ class WhoamiView(APIView):
 
 
 
-class ListContract(generics.ListAPIView):
+class ListContract(generics.ListAPIView): # grouper par num contrat
     #permission_classes = [IsAuthenticated]
     queryset = Contrat.objects.all()
     serializer_class =ContratSerializer
     filter_backends = [DjangoFilterBackend]
+    filterset_class = ContratFilter
+
+
 
 
 
@@ -196,6 +199,9 @@ class AddContrat(generics.CreateAPIView):
     #permission_classes = [IsAuthenticated]
     queryset = Contrat.objects.all()
     serializer_class = ContratSerializer
+
+
+
 
 
 

@@ -63,16 +63,18 @@ class ContratFieldsList(APIView):
         fields = serializer.get_fields()
         field_info = []
         for field_name, field_instance in fields.items():
-            obj = {
-                    'field': field_name,
-                    'headerName': field_instance.label or field_name,
+            if(field_name not in ['id']):
+                obj = {
+                        'field': field_name,
+                        'headerName': field_instance.label or field_name,
+                }
+                if(field_name in ['montant_ht','montant_ttc','rg','tva','rabais']):
+                    obj['cellRenderer'] = 'InfoRenderer'
 
+                if (field_name in ['numero']):
+                    obj['rowGroup'] = True
 
-            }
-            if(field_name in ['montant_ht','montant_ttc','rg','tva','rabais']):
-                obj['cellRenderer'] = 'InfoRenderer'
-
-            field_info.append(obj)
+                field_info.append(obj)
         return Response({'fields': field_info},
                         status=status.HTTP_200_OK)
 
