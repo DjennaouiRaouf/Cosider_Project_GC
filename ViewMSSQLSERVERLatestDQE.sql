@@ -14,7 +14,12 @@ SELECT code_contrat,code_produits, SUM(qte) AS qte_cumule
 
 
 
-SELECT max(id),code_contrat,max(avenant)as avenant,code_produits,SUM(qte) AS qte_cumule,max(prixProduit_id)
-FROM tmp
-GROUP BY  code_contrat,code_produits;
+select * from
+(SELECT code_contrat,code_produits, SUM(qte) AS qte_cumule
+ FROM tmp
 
+    GROUP BY  code_contrat, code_produits) as a
+join
+(select * from tmp)as b on b.code_produits=a.code_produits and a.code_contrat=b.code_contrat
+
+where avenant=2
