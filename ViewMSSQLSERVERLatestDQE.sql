@@ -3,6 +3,12 @@ create view  tmp as (
     where c.id = d.contrat_id and pp.id = d.prixProduit_id and p.code_produits=pp.produit_id
 )
 
+SELECT code_contrat, max(avenant)as avenant, code_produits, SUM(qte) AS qte_cumule, max(prixProduit_id) as prixProduit
+ FROM tmp
+
+    GROUP BY  code_contrat, code_produits
+
+
 
 
 
