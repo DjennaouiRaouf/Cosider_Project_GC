@@ -144,6 +144,39 @@ class DQESerializer(serializers.ModelSerializer):
 
 
 
+class DQECumuleSerializer(serializers.ModelSerializer):
+    montant_qte=serializers.SerializerMethodField()
+    prix_unitaire=serializers.SerializerMethodField()
+    unite=serializers.SerializerMethodField()
+    produit = serializers.SerializerMethodField()
+    contrat=serializers.SerializerMethodField()
+    def get_montant_qte(self, obj):
+        return obj.montant_qte
+
+    def get_unite(self, obj):
+        return obj.id.split('/')[0]
+
+    def get_produit(self, obj):
+        return obj.prixProduit.produit.libelle
+
+    def get_prix_unitaire(self, obj):
+        return obj.prixProduit.prix_unitaire
+
+    def get_contrat(self, obj):
+        return obj.contrat.numero
+
+
+
+
+    def get_fields(self, *args, **kwargs):
+        fields = super().get_fields(*args, **kwargs)
+
+        return fields
+    class Meta:
+        model = DQE
+        fields = '__all__'
+
+
 
 
 

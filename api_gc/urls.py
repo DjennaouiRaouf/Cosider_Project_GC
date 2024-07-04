@@ -13,6 +13,7 @@ urlpatterns = [
     path('getclient/',ListClient.as_view()),
     path('addclient/',AddClient.as_view()),
     path('getdqe/',ListDQE.as_view()),
+    path('getcumuledqe/',ListDQECumule.as_view()),
     path('contractkeys/',contratKeys.as_view()),
     path('getpprod/',ListPrixProduit.as_view()),
     path('adddqe/',AddDQE.as_view()),

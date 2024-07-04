@@ -120,14 +120,27 @@ class AddBL(generics.CreateAPIView):
     queryset= BonLivraison.objects.all()
     serializer_class = BonLivraisonSerializer
 
-
-
 class ListDQE(generics.ListAPIView):
     #permission_classes = [IsAuthenticated]
     queryset = DQE.objects.all()
     serializer_class =DQESerializer
     filter_backends = [DjangoFilterBackend]
     filter_class = DQEFilter
+
+
+
+class ListDQECumule(generics.ListAPIView):
+    #permission_classes = [IsAuthenticated]
+    queryset = DQE.objects.all().order_by('contrat__numero')
+    serializer_class =DQECumuleSerializer
+    filter_backends = [DjangoFilterBackend]
+    filter_class = DQECumuleFilter
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        response_data = super().list(request, *args, **kwargs).data
+        return Response(response_data, status=status.HTTP_200_OK)
 
 
 class ListClient(generics.ListAPIView):

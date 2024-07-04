@@ -5,7 +5,7 @@ from django.db import models
 from django_currentuser.middleware import get_current_user
 from django.db.models import Q, F, IntegerField, Sum
 # Create your models here.
-"""
+
 class GeneralManager(models.Manager):
 
     def get_queryset(self):
@@ -38,7 +38,6 @@ class GeneralManager(models.Manager):
         else:
             return super().get_queryset().filter(Q(pk__contains=unite))
 
-"""
 
 class Tva(models.Model):
     valeur=models.DecimalField(primary_key=True,max_digits=38,decimal_places=3,validators=[MinValueValidator(0),MaxValueValidator(100)],default=0,verbose_name='TVA')
@@ -47,7 +46,7 @@ class Tva(models.Model):
     date_modification = models.DateTimeField(editable=False, auto_now=True)
     
     def save(self, *args, **kwargs):
-        self.id='tva_'+str(self.valeur)
+        self.id=str(self.valeur)
         if not self.user_id:
             current_user = get_current_user()
             if current_user and hasattr(current_user, 'username'):
@@ -285,7 +284,7 @@ class Produits(models.Model):
 
 class PrixProduit(models.Model):
 
-    id = models.CharField(max_length=900,primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.CharField(max_length=900,primary_key=True,  editable=False)
     u=models.ForeignKey(Unite, on_delete=models.DO_NOTHING,null=False,verbose_name='unite' )
     produit = models.ForeignKey(Produits, on_delete=models.DO_NOTHING,null=False,verbose_name='Produit')
     prix_unitaire = models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Prix unitaire')
@@ -303,9 +302,9 @@ class PrixProduit(models.Model):
         unite = Config.objects.first().unite
         count=PrixProduit.objects.filter(id__startswith=str(unite.id) + '/' + str(self.produit)).count()
         if(unite.id != 'DG'):
-            self.u=unite
+            self.u=unite.id
 
-        self.id =unite.id + '/'+str(self.produit)+'/'+str(count+1)+'/'+ str(self.id)
+        self.id =unite.id + '/'+str(self.produit)+'/'+str(count+1)
 
 
 
@@ -325,7 +324,6 @@ class PrixProduit(models.Model):
 
     def __str__(self):
         return self.id
-
     class Meta:
         unique_together = (('produit','u', 'prix_unitaire'))
         app_label = 'api_gc'
@@ -334,7 +332,7 @@ class PrixProduit(models.Model):
         db_table='Prix_Produit'
 
 class Contrat(models.Model):
-    id = models.CharField(max_length=900,primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.CharField(max_length=900,primary_key=True,editable=False)
     numero=models.CharField(db_column='code_contrat', max_length=500,verbose_name = 'N° du contrat')
     avenant=models.PositiveIntegerField(default=0, verbose_name = 'Avenant N°')
     libelle=models.CharField(db_column='libelle', max_length=500, blank=True, null=False, verbose_name='libelle')
@@ -355,6 +353,7 @@ class Contrat(models.Model):
     
 
     def save(self, *args, **kwargs):
+        self.id=self.numero+'('+str(self.avenant)+')'
         if not self.user_id:
             current_user = get_current_user()
             if current_user and hasattr(current_user, 'username'):
@@ -416,26 +415,26 @@ class Contrat(models.Model):
 
 class DQE(models.Model):
 
-    id=models.CharField(max_length=900,primary_key=True, default=uuid.uuid4, editable=False)
-
+    id=models.CharField(max_length=900,primary_key=True,  editable=False)
+    avenant = models.PositiveIntegerField(default=0, verbose_name='Avenant N°',editable=False)
     contrat=models.ForeignKey(Contrat, on_delete=models.DO_NOTHING,null=True,verbose_name='Contrat')
     prixProduit=models.ForeignKey(PrixProduit, on_delete=models.DO_NOTHING,null=False,verbose_name='Produit')
-    qte=models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Quantité')
+    qte=models.DecimalField(max_digits=38, decimal_places=3,default=0, verbose_name = 'Quantité')
     rabais = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
                                  verbose_name='Rabais Par Produit')
-
     prix_transport = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
                               verbose_name='Tarif de Transport')
     est_bloquer = models.BooleanField(default=False, editable=False)
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
     
-    
+    objects = GeneralManager()
 
     def save(self, *args, **kwargs):
         config = Config.objects.first()
-        self.id=config.unite.id+'/'+str(self.id)
-
+        count= DQE.objects.all_with_deleted().all().count()
+        self.id=config.unite.id+f'({count})'
+        self.avenant= self.contrat.avenant
         if(self.contrat.transport != True):
             self.prix_transport = 0
         
@@ -463,6 +462,9 @@ class DQE(models.Model):
     @property
     def montant_qte_t(self): # prop prix_prod * qte + transport
         return round(self.montant_qte+self.prix_transport, 4)
+
+
+
 
     class Meta:
         app_label = 'api_gc'
@@ -850,11 +852,6 @@ class Encaissement(models.Model):
         verbose_name = 'Encaissements'
         verbose_name_plural = 'Encaissements'
         db_table = 'Encaissements'
-
-
-
-
-
 
 
 
