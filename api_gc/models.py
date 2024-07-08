@@ -349,7 +349,7 @@ class Contrat(models.Model):
     est_bloquer = models.BooleanField(default=False, editable=False)
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
-
+    objects = GeneralManager()
     
 
     def save(self, *args, **kwargs):
@@ -413,10 +413,119 @@ class Contrat(models.Model):
         db_table = 'Contrats'
 
 
+class Contrat_Latest(models.Model):
+    id = models.CharField(max_length=900, primary_key=True, editable=False)
+    numero = models.CharField(db_column='code_contrat', max_length=500, verbose_name='N° du contrat')
+    avenant = models.PositiveIntegerField(default=0, verbose_name='Avenant N°')
+    libelle = models.CharField(db_column='libelle', max_length=500, blank=True, null=False, verbose_name='libelle')
+    tva = models.ForeignKey(Tva,db_constraint=False, null=True, on_delete=models.DO_NOTHING, verbose_name='TVA')
+    transport = models.BooleanField(db_column='transport', default=False, verbose_name='Transport')
+    rabais = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
+                                 verbose_name='Rabais Sur Tout')
+    rg = models.DecimalField(max_digits=38, decimal_places=3,
+                             validators=[MinValueValidator(0)], default=0,
+                             verbose_name='Retenue de garantie')
+
+    client = models.ForeignKey(Clients,db_constraint=False, on_delete=models.DO_NOTHING, null=False, verbose_name='Client')
+    date_signature = models.DateField(db_column='date_signature', null=False, blank=False,
+                                      verbose_name='Date de Signature')
+    date_expiration = models.DateField(db_column='date_expiration', null=True, verbose_name='Date d\'expiration')
+    est_bloquer = models.BooleanField(default=False, editable=False)
+    user_id = models.CharField(max_length=500, editable=False)
+    date_modification = models.DateTimeField(editable=False, auto_now=True)
+
+    objects = GeneralManager()
+
+    def save(self, *args, **kwargs):
+        self.id = self.numero + '(' + str(self.avenant) + ')'
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        self.est_bloquer = True
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        if (self.avenant > 0):
+            return self.numero + '/' + str(self.avenant)
+        else:
+            return self.numero
+
+    @property
+    def validite(self):
+        delta = relativedelta(self.date_expiration, self.date_signature)
+        months = delta.months + (delta.years * 12)
+        return months
+
+    @property
+    def montant_ht(self):
+        if (self.avenant == 0):
+            try:
+                dqes = DQECumule.objects.filter(contrat=self.id)
+                sum = 0
+                for dqe in dqes:
+                    sum = sum + dqe.montant_qte
+                return sum
+            except DQE.DoesNotExist:
+                return 0
+        else:
+            try:
+                dqes = DQECumule.objects.filter(contrat__avenant__lte=self.avenant)
+                sum = 0
+                for dqe in dqes:
+                    sum = sum + dqe.montant_qte
+                return sum
+            except DQE.DoesNotExist:
+                return 0
+
+    @property
+    def montant_ttc(self):
+        return round(self.montant_ht + (self.montant_ht * self.tva.valeur / 100), 4)
+
+    class Meta:
+        app_label = 'api_gc'
+        verbose_name = 'Contrats'
+        verbose_name_plural = 'Contrats'
+        db_table = 'Contrats_View'
+
+
+
+
+class DQECumule(models.Model):
+
+    id = models.CharField(max_length=900, null=False,primary_key=True)
+    produit_id = models.ForeignKey(Produits,on_delete=models.DO_NOTHING,db_constraint=False,null=False)
+    code_contrat = models.CharField(max_length=500)
+    qte = models.DecimalField(db_column='Qte', max_digits=38, decimal_places=3, blank=True,
+                                  null=True)  # Field name made lowercase.
+    avenant = models.IntegerField(blank=True, null=True)
+    contrat_id = models.CharField(max_length=900, blank=True, null=True)
+    prixproduit_id = models.ForeignKey(PrixProduit,db_column='prixProduit_id',on_delete=models.DO_NOTHING,db_constraint=False,null=False)
+    rabais = models.DecimalField(max_digits=38, decimal_places=3, blank=True, null=True)
+    prix_transport = models.DecimalField(max_digits=38, decimal_places=3, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'DQE_View_Cumule'
+
+
+
+
+
+
+
+
 class DQE(models.Model):
 
     id=models.CharField(max_length=900,primary_key=True,  editable=False)
-    contrat=models.ForeignKey(Contrat, on_delete=models.DO_NOTHING,null=True,verbose_name='Contrat')
+    contrat=models.ForeignKey(Contrat_Latest,db_constraint=False,on_delete=models.DO_NOTHING,null=True,verbose_name='Contrat')
 
     qte = models.DecimalField(max_digits=38, decimal_places=3,default=0)
     prixProduit=models.ForeignKey(PrixProduit, on_delete=models.DO_NOTHING,null=False,verbose_name='Produit')
@@ -428,7 +537,7 @@ class DQE(models.Model):
     est_bloquer = models.BooleanField(default=False, editable=False)
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
-    
+
     objects = GeneralManager()
 
     def save(self, *args, **kwargs):
@@ -477,7 +586,7 @@ class DQE(models.Model):
 
 class Avances(models.Model):
 
-    contrat = models.ForeignKey(Contrat, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
+    contrat = models.ForeignKey(Contrat_Latest,db_constraint=False ,on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
     num_avance=models.PositiveIntegerField(default=0, null=False, verbose_name='Num avance',editable=False)
 
     montant_avance = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
@@ -520,10 +629,11 @@ class Avances(models.Model):
         unique_together=(('contrat', 'montant_avance'),)
         db_table='Avances'
 class Planing(models.Model):
-    contrat = models.ForeignKey(Contrat, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
-    dqe=models.ForeignKey(DQE, on_delete=models.DO_NOTHING, null=False, verbose_name='dqe')
+    contrat = models.ForeignKey(Contrat_Latest,db_constraint=False, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
+    dqe=models.ForeignKey('DQECumule',db_constraint=False, on_delete=models.DO_NOTHING, null=False, verbose_name='dqe')
     date=models.DateField(null=False, verbose_name='Date')
     qte_livre=models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Quantité à livré')
+
     est_bloquer = models.BooleanField(default=False, editable=False)
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
@@ -602,7 +712,7 @@ class BonLivraison(models.Model):
     conducteur=models.CharField(max_length=500, null=False, verbose_name='Conducteur')
     camion = models.ForeignKey(Camion, null=False, on_delete=models.DO_NOTHING, verbose_name='Camion')
     numero_permis_c=models.CharField(max_length=500,null=True,verbose_name='N° P.Conduire')
-    contrat = models.ForeignKey(Contrat, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
+    contrat = models.ForeignKey(Contrat_Latest,db_constraint=False, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
     date=models.DateTimeField(auto_now=True)
     dqe = models.ForeignKey('DQECumule', on_delete=models.DO_NOTHING,db_constraint=False, null=False, verbose_name='dqe')
     ptc = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
@@ -682,7 +792,7 @@ class BonLivraison(models.Model):
 class Factures(models.Model):
 
     id=models.CharField(max_length=500,primary_key=True,null=False, verbose_name='Numero de facture',editable=False)
-    contrat=models.ForeignKey(Contrat, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
+    contrat=models.ForeignKey(Contrat_Latest,db_constraint=False, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
     date= models.DateField(auto_now=True, verbose_name='Date')
     du = models.DateField(null=False, verbose_name='Du')
     au = models.DateField(null=False, verbose_name='Au')
@@ -769,6 +879,7 @@ class DetailFacture(models.Model):
         verbose_name = 'Details'
         verbose_name_plural = 'Details'
         db_table = 'Details'
+
 class ModePaiement(models.Model):
     id=models.CharField(max_length=30, primary_key=True)
     libelle = models.CharField(max_length=500, null=False, unique=True)
@@ -853,29 +964,5 @@ class Encaissement(models.Model):
         verbose_name = 'Encaissements'
         verbose_name_plural = 'Encaissements'
         db_table = 'Encaissements'
-
-
-
-
-class DQECumule(models.Model):
-
-    id = models.CharField(max_length=900, null=False,primary_key=True)
-    produit_id = models.CharField(max_length=500)
-    code_contrat = models.CharField(max_length=500)
-    qte = models.DecimalField(db_column='Qte', max_digits=38, decimal_places=3, blank=True,
-                                  null=True)  # Field name made lowercase.
-    avenant = models.IntegerField(blank=True, null=True)
-    contrat_id = models.CharField(max_length=900, blank=True, null=True)
-    prixproduit_id = models.CharField(db_column='prixProduit_id', max_length=900, blank=True,
-                                          null=True)
-    rabais = models.DecimalField(max_digits=38, decimal_places=3, blank=True, null=True)
-    prix_transport = models.DecimalField(max_digits=38, decimal_places=3, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'DQE_View_Cumule'
-
-
-
 
 

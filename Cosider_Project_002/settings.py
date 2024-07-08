@@ -104,7 +104,7 @@ DATABASES = {
 DATABASES = {
     'default': {
         "ENGINE": "mssql",
-        "NAME": "GEST_COM",
+        "NAME": "GEST_COM_2024",
         "USER": "",
         "PASSWORD": "",
         "HOST": "localhost\MSSQLSERVER1",
