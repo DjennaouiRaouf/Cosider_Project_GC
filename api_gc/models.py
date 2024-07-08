@@ -40,13 +40,12 @@ class GeneralManager(models.Manager):
 
 
 class Tva(models.Model):
-    valeur=models.DecimalField(primary_key=True,max_digits=38,decimal_places=3,validators=[MinValueValidator(0),MaxValueValidator(100)],default=0,verbose_name='TVA')
+    id=models.DecimalField(primary_key=True,max_digits=38,decimal_places=3,validators=[MinValueValidator(0),MaxValueValidator(100)],default=0,verbose_name='TVA')
     est_bloquer = models.BooleanField(default=False, editable=False)
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
     
     def save(self, *args, **kwargs):
-        self.id=str(self.valeur)
         if not self.user_id:
             current_user = get_current_user()
             if current_user and hasattr(current_user, 'username'):

@@ -1,9 +1,8 @@
 from django.contrib import admin
-
+from import_export.admin import ImportExportMixin
 from api_gc.forms import *
 from api_gc.models import *
-
-
+from api_gc.resources import *
 
 # Register your models here.
 lp=20
@@ -17,13 +16,14 @@ class ImagesAdmin(admin.ModelAdmin):
 
 
 @admin.register(Tva)
-class TvaAdmin(admin.ModelAdmin):
+class TvaAdmin(ImportExportMixin,admin.ModelAdmin):
     list_per_page = lp
+
     list_display = [field.name for field in Tva._meta.fields  if field.name not in ['']]
 
 
 @admin.register(Avances)
-class AvancesAdmin(admin.ModelAdmin):
+class AvancesAdmin(ImportExportMixin, admin.ModelAdmin):
     list_per_page = lp
     list_display = [field.name for field in Avances._meta.fields  if field.name not in ['']]+['montant_cumule']
 
@@ -32,7 +32,7 @@ class AvancesAdmin(admin.ModelAdmin):
 
 
 @admin.register(Unite)
-class UniteAdmin(admin.ModelAdmin):
+class UniteAdmin(ImportExportMixin, admin.ModelAdmin):
     list_per_page = lp
     list_display = [field.name for field in Unite._meta.fields  if field.name not in ['']]
 
@@ -42,7 +42,7 @@ class UniteAdmin(admin.ModelAdmin):
 
 
 @admin.register(Contrat)
-class ContratAdmin(admin.ModelAdmin):
+class ContratAdmin(ImportExportMixin, admin.ModelAdmin):
     list_per_page = lp
     list_display = [field.name for field in Contrat._meta.fields if field.name not in ['']]+['montant_ht','montant_ttc',]
 
@@ -54,7 +54,7 @@ class ContratAdmin(admin.ModelAdmin):
         return obj.montant_ht
 
 @admin.register(Config)
-class ParametresAdmin(admin.ModelAdmin):
+class ParametresAdmin(ImportExportMixin, admin.ModelAdmin):
     list_per_page = lp
     list_display = [field.name for field in Config._meta.fields if field.name not in ['']]
 
@@ -63,8 +63,8 @@ class ParametresAdmin(admin.ModelAdmin):
         return False
 
 
-@admin.register(ModePaiement)
-class ModePaiementAdmin(admin.ModelAdmin):
+@admin.register( ModePaiement)
+class ModePaiementAdmin(ImportExportMixin,admin.ModelAdmin):
     list_per_page = lp
     list_display = [field.name for field in ModePaiement._meta.fields if field.name not in ['']]
 
@@ -73,7 +73,7 @@ class ModePaiementAdmin(admin.ModelAdmin):
 
 
 @admin.register(Clients)
-class ClientsAdmin(admin.ModelAdmin):
+class ClientsAdmin(ImportExportMixin, admin.ModelAdmin):
     list_per_page = lp
     list_display = [field.name for field in Clients._meta.fields if field.name not in ['']]
 
@@ -81,7 +81,7 @@ class ClientsAdmin(admin.ModelAdmin):
 
 
 @admin.register(Encaissement)
-class EncaissementAdmin(admin.ModelAdmin):
+class EncaissementAdmin(ImportExportMixin, admin.ModelAdmin):
     list_per_page = lp
     list_display = [field.name for field in Encaissement._meta.fields if field.name not in ['']]+['montant_creance',
                                                                                                                         ]
@@ -99,7 +99,7 @@ class EncaissementAdmin(admin.ModelAdmin):
 
 
 @admin.register(DQE)
-class ContratAdmin(admin.ModelAdmin):
+class ContratAdmin(ImportExportMixin, admin.ModelAdmin):
     save_as = True
     list_per_page = lp
     list_display = [field.name for field in DQE._meta.fields if field.name not in ['']]+['prix_unitaire','montant_qte',
@@ -116,7 +116,7 @@ class ContratAdmin(admin.ModelAdmin):
         return obj.montant_qte_t
 
 @admin.register(UniteMesure)
-class UniteMesureAdmin(admin.ModelAdmin):
+class UniteMesureAdmin(ImportExportMixin, admin.ModelAdmin):
     list_per_page = lp
     list_display = [field.name for field in UniteMesure._meta.fields if field.name not in ['']]
 
@@ -125,7 +125,7 @@ class UniteMesureAdmin(admin.ModelAdmin):
 
 
 @admin.register(Produits)
-class UniteMesureAdmin(admin.ModelAdmin):
+class UniteMesureAdmin(ImportExportMixin, admin.ModelAdmin):
     save_as = True
     list_per_page = lp
     list_display = [field.name for field in Produits._meta.fields if field.name not in ['']]
@@ -134,7 +134,7 @@ class UniteMesureAdmin(admin.ModelAdmin):
     
 
 @admin.register(PrixProduit)
-class UniteMesureAdmin(admin.ModelAdmin):
+class UniteMesureAdmin(ImportExportMixin, admin.ModelAdmin):
     save_as = True
     list_per_page = lp
     list_display = [field.name for field in PrixProduit._meta.fields if field.name not in ['']]+['index_prix']
@@ -147,7 +147,7 @@ class UniteMesureAdmin(admin.ModelAdmin):
 
 
 @admin.register(Planing)
-class UniteMesureAdmin(admin.ModelAdmin):
+class UniteMesureAdmin(ImportExportMixin, admin.ModelAdmin):
     save_as = True
     list_per_page = lp
     list_display = [field.name for field in Planing._meta.fields if field.name not in ['']]+['cumule',]
@@ -160,7 +160,7 @@ class UniteMesureAdmin(admin.ModelAdmin):
 
 
 @admin.register(Camion)
-class CamionAdmin(admin.ModelAdmin):
+class CamionAdmin(ImportExportMixin, admin.ModelAdmin):
     save_as = True
     list_per_page = lp
     list_display = [field.name for field in Camion._meta.fields if field.name not in ['']]
@@ -169,7 +169,7 @@ class CamionAdmin(admin.ModelAdmin):
     
 
 @admin.register(BonLivraison)
-class BonLivraisonAdmin(admin.ModelAdmin):
+class BonLivraisonAdmin(ImportExportMixin, admin.ModelAdmin):
     form = NumBLForm
     save_as = True
     list_per_page = lp
@@ -188,7 +188,7 @@ class BonLivraisonAdmin(admin.ModelAdmin):
     def montant_cumule(self,obj):
         return obj.montant_cumule
 @admin.register(Factures)
-class FacturesAdmin(admin.ModelAdmin):
+class FacturesAdmin(ImportExportMixin, admin.ModelAdmin):
     save_as = True
     list_per_page = lp
     list_display = [field.name for field in Factures._meta.fields if field.name not in ['']]+['montant_cumule',]
@@ -199,7 +199,7 @@ class FacturesAdmin(admin.ModelAdmin):
         return obj.montant_cumule
 
 @admin.register(DetailFacture)
-class DetailFactureAdmin(admin.ModelAdmin):
+class DetailFactureAdmin(ImportExportMixin, admin.ModelAdmin):
     save_as = True
     list_per_page = lp
     list_display = [field.name for field in DetailFacture._meta.fields if field.name not in ['']]
