@@ -38,8 +38,8 @@ class DQEFilter(django_filters.FilterSet):
 
 class DQECumuleFilter(django_filters.FilterSet):
     class Meta:
-        model = DQE
-        fields = ['contrat__numero']
+        model = DQECumule
+        fields = '__all__'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

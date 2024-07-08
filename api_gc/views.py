@@ -131,14 +131,13 @@ class ListDQE(generics.ListAPIView):
 
 class ListDQECumule(generics.ListAPIView):
     #permission_classes = [IsAuthenticated]
-    queryset = DQE.objects.all().order_by('contrat__numero')
+    queryset = DQECumule.objects.all()
     serializer_class =DQECumuleSerializer
     filter_backends = [DjangoFilterBackend]
     filter_class = DQECumuleFilter
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-
         response_data = super().list(request, *args, **kwargs).data
         return Response(response_data, status=status.HTTP_200_OK)
 

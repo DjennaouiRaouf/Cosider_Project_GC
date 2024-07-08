@@ -417,6 +417,8 @@ class DQE(models.Model):
 
     id=models.CharField(max_length=900,primary_key=True,  editable=False)
     contrat=models.ForeignKey(Contrat, on_delete=models.DO_NOTHING,null=True,verbose_name='Contrat')
+
+    qte = models.DecimalField(max_digits=38, decimal_places=3,default=0)
     prixProduit=models.ForeignKey(PrixProduit, on_delete=models.DO_NOTHING,null=False,verbose_name='Produit')
 
     rabais = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
@@ -602,7 +604,7 @@ class BonLivraison(models.Model):
     numero_permis_c=models.CharField(max_length=500,null=True,verbose_name='N° P.Conduire')
     contrat = models.ForeignKey(Contrat, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
     date=models.DateTimeField(auto_now=True)
-    dqe = models.ForeignKey(DQE, on_delete=models.DO_NOTHING, null=False, verbose_name='dqe')
+    dqe = models.ForeignKey('DQECumule', on_delete=models.DO_NOTHING,db_constraint=False, null=False, verbose_name='dqe')
     ptc = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
                                    verbose_name='PTC')
 
@@ -854,6 +856,24 @@ class Encaissement(models.Model):
 
 
 
+
+class DQECumule(models.Model):
+
+    id = models.CharField(max_length=900, null=False,primary_key=True)
+    produit_id = models.CharField(max_length=500)
+    code_contrat = models.CharField(max_length=500)
+    qte = models.DecimalField(db_column='Qte', max_digits=38, decimal_places=3, blank=True,
+                                  null=True)  # Field name made lowercase.
+    avenant = models.IntegerField(blank=True, null=True)
+    contrat_id = models.CharField(max_length=900, blank=True, null=True)
+    prixproduit_id = models.CharField(db_column='prixProduit_id', max_length=900, blank=True,
+                                          null=True)
+    rabais = models.DecimalField(max_digits=38, decimal_places=3, blank=True, null=True)
+    prix_transport = models.DecimalField(max_digits=38, decimal_places=3, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'DQE_View_Cumule'
 
 
 
