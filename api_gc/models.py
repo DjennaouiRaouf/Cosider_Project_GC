@@ -466,24 +466,14 @@ class Contrat_Latest(models.Model):
 
     @property
     def montant_ht(self):
-        if (self.avenant == 0):
-            try:
-                dqes = DQECumule.objects.filter(contrat=self.id)
-                sum = 0
-                for dqe in dqes:
-                    sum = sum + dqe.montant_qte
-                return sum
-            except DQE.DoesNotExist:
-                return 0
-        else:
-            try:
-                dqes = DQECumule.objects.filter(contrat__avenant__lte=self.avenant)
-                sum = 0
-                for dqe in dqes:
-                    sum = sum + dqe.montant_qte
-                return sum
-            except DQE.DoesNotExist:
-                return 0
+        try:
+            dqes = DQECumule.objects.filter(code_contrat=self.numero)
+            sum = 0
+            for dqe in dqes:
+                sum = sum + dqe.montant_qte
+            return sum
+        except DQE.DoesNotExist:
+            return 0
 
     @property
     def montant_ttc(self):
@@ -501,15 +491,18 @@ class Contrat_Latest(models.Model):
 class DQECumule(models.Model):
 
     id = models.CharField(max_length=900, null=False,primary_key=True)
-    produit_id = models.ForeignKey(Produits,on_delete=models.DO_NOTHING,db_constraint=False,null=False)
+    produit_id = models.ForeignKey(Produits,db_column='produit_id',on_delete=models.DO_NOTHING,db_constraint=False,null=False)
     code_contrat = models.CharField(max_length=500)
     qte = models.DecimalField(db_column='Qte', max_digits=38, decimal_places=3, blank=True,
-                                  null=True)  # Field name made lowercase.
+                                  null=True)  
     avenant = models.IntegerField(blank=True, null=True)
     contrat_id = models.CharField(max_length=900, blank=True, null=True)
     prixproduit_id = models.ForeignKey(PrixProduit,db_column='prixProduit_id',on_delete=models.DO_NOTHING,db_constraint=False,null=False)
     rabais = models.DecimalField(max_digits=38, decimal_places=3, blank=True, null=True)
     prix_transport = models.DecimalField(max_digits=38, decimal_places=3, blank=True, null=True)
+    est_bloquer = models.BooleanField(default=False, editable=False)
+    user_id = models.CharField(max_length=500, editable=False)
+    date_modification = models.DateTimeField(editable=False, auto_now=True)
 
     class Meta:
         managed = False
