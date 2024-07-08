@@ -416,10 +416,9 @@ class Contrat(models.Model):
 class DQE(models.Model):
 
     id=models.CharField(max_length=900,primary_key=True,  editable=False)
-    avenant = models.PositiveIntegerField(default=0, verbose_name='Avenant N°',editable=False)
     contrat=models.ForeignKey(Contrat, on_delete=models.DO_NOTHING,null=True,verbose_name='Contrat')
     prixProduit=models.ForeignKey(PrixProduit, on_delete=models.DO_NOTHING,null=False,verbose_name='Produit')
-    qte=models.DecimalField(max_digits=38, decimal_places=3,default=0, verbose_name = 'Quantité')
+
     rabais = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
                                  verbose_name='Rabais Par Produit')
     prix_transport = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
@@ -434,7 +433,6 @@ class DQE(models.Model):
         config = Config.objects.first()
         count= DQE.objects.all_with_deleted().all().count()
         self.id=config.unite.id+f'({count})'
-        self.avenant= self.contrat.avenant
         if(self.contrat.transport != True):
             self.prix_transport = 0
         
@@ -467,6 +465,7 @@ class DQE(models.Model):
 
 
     class Meta:
+        unique_together=(('contrat','prixProduit'))
         app_label = 'api_gc'
         verbose_name = 'DQE'
         verbose_name_plural = 'DQE'
