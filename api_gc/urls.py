@@ -15,6 +15,7 @@ urlpatterns = [
     path('getdqe/',ListDQE.as_view()),
     path('getcumuledqe/',ListDQECumule.as_view()),
     path('contractkeys/',contratKeys.as_view()),
+    path("avenant/",AvenantKeys.as_view()),
     path('getpprod/',ListPrixProduit.as_view()),
     path('adddqe/',AddDQE.as_view()),
     path('getimg/',ListImages.as_view()),

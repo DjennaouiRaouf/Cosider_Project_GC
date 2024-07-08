@@ -171,10 +171,7 @@ class Images(models.Model):
 class Clients(models.Model):
 
     id = models.CharField(db_column='Code_Client', primary_key=True, max_length=500, verbose_name='Code du Client')
-    type_client = models.PositiveSmallIntegerField(db_column='Type_Client', blank=True, null=True,
-                                                   verbose_name='Type de Client')
-    est_client_cosider = models.BooleanField(db_column='Est_Client_Cosider', blank=True, null=False
-                                             , verbose_name='Est Client Cosider')
+
     libelle = models.CharField(db_column='Libelle_Client', max_length=300, null=False,
                                verbose_name='Libelle')
 
@@ -183,11 +180,10 @@ class Clients(models.Model):
 
     nif = models.CharField(db_column='NIF', unique=True, max_length=50, blank=True, null=True, verbose_name='NIF')
     raison_social = models.CharField(db_column='Raison_Social', max_length=50, blank=True, null=True,
-                                     verbose_name='Raison Social')
+                                     verbose_name='Raison Sociale')
     num_registre_commerce = models.CharField(db_column='Num_Registre_Commerce', max_length=20, blank=True, null=True,
                                              verbose_name='Numero du registre de commerce')
 
-    sous_client = models.ForeignKey('Clients', on_delete=models.DO_NOTHING, db_column='sous_client',null=True, blank=True,verbose_name='Est client de')
 
     est_bloquer = models.BooleanField(default=False, editable=False)
     user_id = models.CharField(max_length=500, editable=False)

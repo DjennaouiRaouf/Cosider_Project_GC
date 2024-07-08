@@ -63,16 +63,18 @@ class ContratFieldsList(APIView):
         fields = serializer.get_fields()
         field_info = []
         for field_name, field_instance in fields.items():
-            if(field_name not in ['id']):
+            if(field_name not in ['']):
                 obj = {
                         'field': field_name,
                         'headerName': field_instance.label or field_name,
                 }
+
+                if(field_name in ['id']):
+                    obj['hide']=True
+
                 if(field_name in ['montant_ht','montant_ttc','rg','tva','rabais']):
                     obj['cellRenderer'] = 'InfoRenderer'
 
-                if (field_name in ['numero']):
-                    obj['rowGroup'] = True
 
                 field_info.append(obj)
         return Response({'fields': field_info},
@@ -87,7 +89,7 @@ class ContratFilterForm(APIView):
         field_info = []
 
         for field_name, field_instance  in ContratFilter.base_filters.items():
-            if(field_name  not in ['deleted','deleted_by_cascade']):
+            if(field_name  not in ['id']):
 
                 obj = {
                     'name': field_name,
@@ -120,7 +122,7 @@ class ContratFieldsAddUpdate(APIView):
         state = {}
 
         for field_name, field_instance in fields.items():
-            if(field_name not in ['utilisateur','montant_ht','montant_ttc','validite']):
+            if(field_name not in ['id','montant_ht','montant_ttc','validite']):
                 obj = {
                     'name': field_name,
                     'type': str(field_instance.__class__.__name__),
@@ -130,13 +132,22 @@ class ContratFieldsAddUpdate(APIView):
                 if (str(field_instance.__class__.__name__) == "PrimaryKeyRelatedField"):
                     anySerilizer = create_dynamic_serializer(field_instance.queryset.model)
                     serialized_data = anySerilizer(field_instance.queryset, many=True).data
-                    filtered_data = []
-                    for item in serialized_data:
-                        filtered_item = {
-                            'value': item['id'],
-                            'label': item['libelle']
-                        }
-                        filtered_data.append(filtered_item)
+                    if(field_name in ['client']):
+                        filtered_data = []
+                        for item in serialized_data:
+                            filtered_item = {
+                                'value': item['id'],
+                                'label': item['libelle']
+                            }
+                            filtered_data.append(filtered_item)
+                    if field_name in ['tva']:
+                        filtered_data = []
+                        for item in serialized_data:
+                            filtered_item = {
+                                'value': item['valeur'],
+                                'label': str(item['valeur'])+'%'
+                            }
+                            filtered_data.append(filtered_item)
 
                     obj['queryset'] = filtered_data
 

@@ -44,7 +44,8 @@ class ContratSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Contrat
-        fields ='__all__'
+        fields =['id','numero','avenant','libelle','tva','transport','rabais','rg','client','date_signature',
+                 'date_expiration','validite','montant_ht','montant_ttc']
 
 
 
