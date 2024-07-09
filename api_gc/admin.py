@@ -81,6 +81,15 @@ class ClientsAdmin(ImportExportMixin, admin.ModelAdmin):
     list_display = [field.name for field in Clients._meta.fields if field.name not in ['']]
 
     
+@admin.register(TypeClient)
+class ClientsAdmin(ImportExportMixin, admin.ModelAdmin):
+    list_per_page = lp
+    list_display = [field.name for field in TypeClient._meta.fields if field.name not in ['']]
+
+@admin.register(Activite)
+class ClientsAdmin(ImportExportMixin, admin.ModelAdmin):
+    list_per_page = lp
+    list_display = [field.name for field in Activite._meta.fields if field.name not in ['']]
 
 
 @admin.register(Encaissement)

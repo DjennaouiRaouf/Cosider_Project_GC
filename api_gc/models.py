@@ -170,6 +170,70 @@ class Images(models.Model):
         db_table = 'Images'
 
 
+class TypeClient(models.Model):
+    id=models.CharField(max_length=300,primary_key=True)
+    libelle= models.CharField(max_length=500,null=False)
+    est_bloquer = models.BooleanField(default=False, editable=False)
+    user_id = models.CharField(max_length=500, editable=False)
+    date_modification = models.DateTimeField(editable=False, auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        self.est_bloquer = True
+        super().save(*args, **kwargs)
+
+
+    def __str__(self):
+        return self.libelle
+
+    class Meta:
+        app_label = 'api_gc'
+        verbose_name = 'TypeClient'
+        verbose_name_plural = 'TypeClient'
+        db_table = 'Type_Client'
+
+
+class Activite(models.Model):
+    id=models.CharField(max_length=300,primary_key=True)
+    libelle= models.CharField(max_length=500,null=False)
+    est_bloquer = models.BooleanField(default=False, editable=False)
+    user_id = models.CharField(max_length=500, editable=False)
+    date_modification = models.DateTimeField(editable=False, auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        self.est_bloquer = True
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.libelle
+    class Meta:
+        app_label = 'api_gc'
+        verbose_name = 'Activite'
+        verbose_name_plural = 'Activite'
+        db_table = 'Activite'
+
+
 class Clients(models.Model):
 
     id = models.CharField(db_column='Code_Client', primary_key=True, max_length=500, verbose_name='Code du Client')
@@ -179,6 +243,8 @@ class Clients(models.Model):
 
     adresse = models.CharField(db_column='adresse', max_length=500, null=False,
                                verbose_name='Adresse')
+    ville= models.CharField(db_column='ville', max_length=500, null=False,default='',
+                               verbose_name='Ville')
 
     nif = models.CharField(db_column='NIF', unique=True, max_length=50, blank=True, null=True, verbose_name='NIF')
     raison_social = models.CharField(db_column='Raison_Social', max_length=50, blank=True, null=True,
@@ -186,6 +252,8 @@ class Clients(models.Model):
     num_registre_commerce = models.CharField(db_column='Num_Registre_Commerce', max_length=20, blank=True, null=True,
                                              verbose_name='Numero du registre de commerce')
 
+    type= models.ForeignKey(TypeClient,on_delete=models.DO_NOTHING,null=True, verbose_name='Type')
+    act=models.ForeignKey(Activite,on_delete=models.DO_NOTHING,null=True, verbose_name='Activite')
 
     est_bloquer = models.BooleanField(default=False, editable=False)
     user_id = models.CharField(max_length=500, editable=False)
