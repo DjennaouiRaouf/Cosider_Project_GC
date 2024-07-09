@@ -68,8 +68,11 @@ class ModePaiementAdmin(ImportExportMixin,admin.ModelAdmin):
     list_per_page = lp
     list_display = [field.name for field in ModePaiement._meta.fields if field.name not in ['']]
 
-    
 
+@admin.register(TypePrix)
+class TypePrixAdmin(ImportExportMixin, admin.ModelAdmin):
+    list_per_page = lp
+    list_display = [field.name for field in TypePrix._meta.fields if field.name not in ['']]
 
 
 @admin.register(Clients)

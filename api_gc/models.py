@@ -5,7 +5,7 @@ from django.db import models
 from django_currentuser.middleware import get_current_user
 from django.db.models import Q, F, IntegerField, Sum
 # Create your models here.
-
+'''
 class GeneralManager(models.Manager):
 
     def get_queryset(self):
@@ -14,7 +14,7 @@ class GeneralManager(models.Manager):
         else:
             unite = Config.objects.first().unite.id
 
-            if( unite == 'DG'): # DG
+            if( unite == 'F00'): # F00
                 return super().get_queryset().filter(~Q(est_bloquer=True))
             else:
                 return super().get_queryset().filter(~Q(est_bloquer=True) & Q(pk__contains=unite))
@@ -26,19 +26,19 @@ class GeneralManager(models.Manager):
         else:
             unite = Config.objects.first().unite.id
 
-            if( unite == 'DG'): # DG
+            if( unite == 'F00'): # F00
                 return super().get_queryset().filter(Q(est_bloquer=True))
             else:
                 return super().get_queryset().filter(Q(est_bloquer=True)& Q(pk__contains=unite))
 
     def all_with_deleted(self):
         unite = Config.objects.first().unite.id
-        if (unite == 'DG'):  # DG
+        if (unite == 'F00'):  # F00
             return super().get_queryset().all()
         else:
             return super().get_queryset().filter(Q(pk__contains=unite))
 
-
+'''
 class Tva(models.Model):
     id=models.DecimalField(primary_key=True,max_digits=38,decimal_places=3,validators=[MinValueValidator(0),MaxValueValidator(100)],default=0,verbose_name='TVA')
     est_bloquer = models.BooleanField(default=False, editable=False)
@@ -73,6 +73,9 @@ class Unite(models.Model):
     
     id=models.CharField(max_length=500,primary_key=True,verbose_name='Code Unité',db_column='code_unite')
     libelle=models.CharField(max_length=500,null=False,verbose_name="Libelle")
+    ai=models.CharField(max_length=500,null=True)
+    adresse=models.CharField(max_length=500,null=True)
+    contact=models.CharField(max_length=500, null=True)
     date_ouverture= models.DateField(null=False,verbose_name="Date d'ouverture")
     date_cloture = models.DateField(null=True,blank=True, verbose_name="Date de cloture")
     est_bloquer = models.BooleanField(default=False,editable=False)
@@ -244,10 +247,9 @@ class UniteMesure(models.Model):
         db_table = 'Unite_De_Mesure'
 
 class Produits(models.Model):
-    id=models.CharField(db_column='code_produits', max_length=500, primary_key=True)
-    libelle = models.CharField(db_column='nom_produit', max_length=500, blank=True, null=False, verbose_name='Nom Produit')
+    id=models.CharField(db_column='ref', max_length=500, primary_key=True)
+    libelle = models.CharField(db_column='libelle', max_length=500, blank=True, null=False, verbose_name='Nom Produit')
     unite_m = models.ForeignKey(UniteMesure, on_delete=models.DO_NOTHING,null=False,verbose_name='Unite de Mesure')
-    famille=models.CharField(db_column='famille', max_length=500,  null=True, verbose_name='Famille')
     est_bloquer = models.BooleanField(default=False, editable=False)
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
@@ -277,12 +279,43 @@ class Produits(models.Model):
         verbose_name_plural = 'Produits'
         db_table='Produit'
 
+class TypePrix(models.Model):
+    id=models.CharField(primary_key=True,max_length=10)
+    libelle=models.CharField(max_length=500)
+    est_bloquer = models.BooleanField(default=False, editable=False)
+    user_id = models.CharField(max_length=500, editable=False)
+    date_modification = models.DateTimeField(editable=False, auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if not self.user_id:
+            current_user = get_current_user()
+            if current_user and hasattr(current_user, 'username'):
+                self.user_id = current_user.username
+        self.est_bloquer = True
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.id
+    class Meta:
+        app_label = 'api_gc'
+        verbose_name = 'TypePrix'
+        verbose_name_plural = 'TypePrix'
+        db_table='Type_Prix'
+
 class PrixProduit(models.Model):
 
     id = models.CharField(max_length=900,primary_key=True,  editable=False)
     u=models.ForeignKey(Unite, on_delete=models.DO_NOTHING,null=False,verbose_name='unite' )
     produit = models.ForeignKey(Produits, on_delete=models.DO_NOTHING,null=False,verbose_name='Produit')
     prix_unitaire = models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Prix unitaire')
+    type_prix = models.ForeignKey(TypePrix, on_delete=models.DO_NOTHING, null=False, verbose_name='TypePrix')
     est_bloquer = models.BooleanField(default=False, editable=False)
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
@@ -291,15 +324,16 @@ class PrixProduit(models.Model):
 
     @property
     def index_prix(self):
-        return self.id.split('/')[2]
+        return self.id.split('|')[2]
 
     def save(self, *args, **kwargs):
         unite = Config.objects.first().unite
-        count=PrixProduit.objects.filter(id__startswith=str(unite.id) + '/' + str(self.produit)).count()
-        if(unite.id != 'DG'):
-            self.u=unite.id
+        count=PrixProduit.objects.filter(id__startswith=str(unite.id) + '|' + str(self.produit)).count()+1
 
-        self.id =unite.id + '/'+str(self.produit)+'/'+str(count+1)
+        if(unite.id != 'F00'):
+            self.u=unite
+        self.id =f'{unite.id}|{self.produit}|{count}'
+
 
 
 
@@ -320,7 +354,7 @@ class PrixProduit(models.Model):
     def __str__(self):
         return self.id
     class Meta:
-        unique_together = (('produit','u', 'prix_unitaire'))
+        unique_together = (('produit','u', 'prix_unitaire','type_prix','id'))
         app_label = 'api_gc'
         verbose_name = 'Prix des Produits'
         verbose_name_plural = 'Prix des Produits'
@@ -344,7 +378,7 @@ class Contrat(models.Model):
     est_bloquer = models.BooleanField(default=False, editable=False)
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
-    objects = GeneralManager()
+
     
 
     def save(self, *args, **kwargs):
@@ -429,7 +463,7 @@ class Contrat_Latest(models.Model):
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
-    objects = GeneralManager()
+    
 
     def save(self, *args, **kwargs):
         self.id = self.numero + '(' + str(self.avenant) + ')'
@@ -475,6 +509,7 @@ class Contrat_Latest(models.Model):
         return round(self.montant_ht + (self.montant_ht * self.tva.valeur / 100), 4)
 
     class Meta:
+        managed=False
         app_label = 'api_gc'
         verbose_name = 'Contrats'
         verbose_name_plural = 'Contrats'
@@ -526,7 +561,7 @@ class DQE(models.Model):
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
-    objects = GeneralManager()
+    
 
     def save(self, *args, **kwargs):
         config = Config.objects.first()
