@@ -195,6 +195,7 @@ class TypeClient(models.Model):
     def __str__(self):
         return self.libelle
 
+
     class Meta:
         app_label = 'api_gc'
         verbose_name = 'TypeClient'
