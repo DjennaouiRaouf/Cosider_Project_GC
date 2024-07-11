@@ -74,7 +74,16 @@ class ContratFieldsList(APIView):
 
                 if(field_name in ['montant_ht','montant_ttc','rg','tva','rabais']):
                     obj['cellRenderer'] = 'InfoRenderer'
+                
+                if(field_name in ['montant_ht','montant_ttc']):
+                    obj['aggFunc']="sum"
+                
+                if(field_name in ['avenant']):
+                    obj['cellRenderer'] = 'InfoRenderer'
 
+                if(field_name in ['numero']):
+                    obj['rowGroup'] = True
+                    obj['hide']=True
 
                 field_info.append(obj)
         return Response({'fields': field_info},
@@ -111,6 +120,9 @@ class ContratFilterForm(APIView):
                     obj['queryset'] = filtered_data
 
                 field_info.append(obj)
+            
+            
+
 
         return Response({'fields': field_info},status=status.HTTP_200_OK)
 class ContratFieldsAddUpdate(APIView):
@@ -120,7 +132,12 @@ class ContratFieldsAddUpdate(APIView):
         field_info = []
         field_state = []
         state = {}
+        contrat=None
+        id=self.request.query_params.get('id',None)
+        if(id):
+            contrat=Contrat.objects.get(id=id)
 
+        
         for field_name, field_instance in fields.items():
             if(field_name not in ['id','montant_ht','montant_ttc','validite']):
                 obj = {
@@ -129,6 +146,10 @@ class ContratFieldsAddUpdate(APIView):
                     'required': field_instance.required,
                     'label': field_instance.label or field_name,
                 }
+                if(field_name in ['avenant']):
+                    obj['disabled']=True
+                else:
+                    obj['disabled']=False
                 if (str(field_instance.__class__.__name__) == "PrimaryKeyRelatedField"):
                     anySerilizer = create_dynamic_serializer(field_instance.queryset.model)
                     serialized_data = anySerilizer(field_instance.queryset, many=True).data
@@ -144,8 +165,8 @@ class ContratFieldsAddUpdate(APIView):
                         filtered_data = []
                         for item in serialized_data:
                             filtered_item = {
-                                'value': item['valeur'],
-                                'label': str(item['valeur'])+'%'
+                                'value': item['id'],
+                                'label': str(item['id'])+'%'
                             }
                             filtered_data.append(filtered_item)
 
@@ -153,7 +174,7 @@ class ContratFieldsAddUpdate(APIView):
 
                 field_info.append(obj)
 
-                default_value = ''
+                default_value = None
                 if (str(field_instance.__class__.__name__) == "PrimaryKeyRelatedField"):
                     default_value=[]
                 if str(field_instance.__class__.__name__) == 'BooleanField':
@@ -167,6 +188,21 @@ class ContratFieldsAddUpdate(APIView):
                 })
                 for d in field_state:
                     state.update(d)
+                
+                if(contrat):
+                    sd=ContratSerializer(contrat).data
+                    for k,v in state.items():
+                        state[k]=sd[k]
+
+                    cli=Clients.objects.get(id=sd['client'])
+                    state.__setitem__('client',[{'value':cli.id,'label':cli.libelle}])  
+
+                    
+                    tva=Tva.objects.get(id=sd['tva'])
+                    state.__setitem__('tva',[{'value':tva.id,'label':f'{tva.id}%'}])
+
+                    state.__setitem__('avenant',sd['avenant']+1)
+                    
 
         return Response({'fields': field_info,'state':state},
                         status=status.HTTP_200_OK)
@@ -252,9 +288,9 @@ class ClientFilterForm(APIView):
 
 
         field_info = []
-        for field_name, field_instance  in ClientsFilter().base_filters.items():
+        for field_name, field_instance  in ClientFilter().base_filters.items():
 
-            if(field_name  not in ['deleted','deleted_by_cascade']):
+            if(field_name  not in ['']):
 
                 obj = {
                     'name': field_name,
@@ -314,13 +350,16 @@ class DQEFieldsList(APIView):
         fields = serializer.get_fields()
         field_info = []
         for field_name, field_instance in fields.items():
-            if(field_name not in ['prixProduit',]):
+            if(field_name not in ['']):
                 obj = {
                         'field': field_name,
                         'headerName': field_instance.label or field_name,
 
 
                 }
+                if(field_name in ['id','avenant','num_contrat','contrat','prixProduit']):
+                    obj['hide']=True
+
                 if(field_name in ['montant_qte','prix_unitaire']):
                     obj['cellRenderer'] = 'InfoRenderer'
 
@@ -357,7 +396,7 @@ class DQEFilterForm(APIView):
         field_info = []
 
         for field_name, field_instance  in DQEFilter.base_filters.items():
-            if(field_name  not in ['deleted','deleted_by_cascade','id','contrat','prixProduit','qte']):
+            if(field_name  not in ['id','contrat__numero','contrat__avenant']):
 
                 obj = {
                     'name': field_name,
@@ -381,83 +420,60 @@ class DQEFilterForm(APIView):
                 field_info.append(obj)
 
         return Response({'fields': field_info},status=status.HTTP_200_OK)
+    
 class DQEFieldsAddUpdate(APIView):
     def get(self, request):
-        serializer = DQESerializer()
-        fields = serializer.get_fields()
+        fields = DQE._meta.get_fields()
         field_info = []
         field_state = []
         state = {}
-        id = request.query_params.get('id', None)
-        for field_name, field_instance in fields.items():
-            if(field_name not in ['utilisateur','montant_qte','produit','unite','prix_unitaire','contrat','id']):
-                obj = {
-                    'name': field_name,
-                    'type': str(field_instance.__class__.__name__),
-                    'required': field_instance.required,
-                    'label': field_instance.label or field_name,
-                }
-                if (str(field_instance.__class__.__name__) == "PrimaryKeyRelatedField" and field_name in [
-                    'prixProduit']):
-                    try:
-                        dqe = DQE.objects.get(id=id)
-                        prod= dqe.prixProduit.produit
-                        serialized_data = PrixProduitSerializer(field_instance.queryset.filter(produit=prod), many=True).data
+        id = request.query_params.get('id', None) or None
+        for field in fields:
+            if(field.editable):
+                if(field.name not in ['contrat']):
 
-                    except DQE.DoesNotExist:
-                        serialized_data = PrixProduitSerializer(field_instance.queryset.filter(), many=True).data
+                    obj={
+                        'name':field.name,
+                        'type':field.get_internal_type(),
+                        'label':field.verbose_name,    
+                    }
+                    related=field.related_model or None
                     filtered_data = []
-                    for item in serialized_data:
-                        filtered_item = {
-                            'value': item['id'],
-                            'label': item['unite']+" "+item['libelle_prod']+" "+item['prix_unitaire']
-
-                        }
-                        filtered_data.append(filtered_item)
-
-                    obj['queryset'] = filtered_data
-
-                field_info.append(obj)
-                try:
-                    dqe=DQE.objects.get(id=id)
-                    if not (str(field_instance.__class__.__name__) == "PrimaryKeyRelatedField"):
-                        field_value = getattr(dqe, field_name)
-                        field_state.append({
-                            field_name: field_value,
-                        })
+                    if(related):
+                        queryset=field.related_model.objects.all()
+                        anySerilizer = create_dynamic_serializer(field.related_model)
+                        serialized_data = anySerilizer(queryset, many=True).data
+                        if(field.related_model in [PrixProduit]):
+                            for item in serialized_data:
+                                lib_prod=Produits.objects.get(id=item['produit']).libelle
+                                code_prod=item['produit']
+                                pu=item['prix_unitaire']
+                                tp=item['type_prix']
+                                
+                                filtered_item = {
+                                'value': item['id'],
+                                'label': f'{code_prod} {pu}  ({tp})',
+                                'lib_prod':f'{lib_prod}'
+                                }
+                                
+                                filtered_data.append(filtered_item)
+                        
+                        obj['queryset']=filtered_data
+                    field_info.append(obj)
+                    if(id==None):
+                        if(field.related_model):
+                            state.__setitem__(field.name,[])
+                        else:    
+                            state.__setitem__(field.name,field.get_default())
                     else:
-                        if field_name in ['prixProduit']:
-
-                            serialized_data = PrixProduitSerializer(dqe.prixProduit, many=False).data
-
-                            field_state.append({
-                                field_name: [{
-                                    'value': serialized_data['id'],
-                                    'label': serialized_data['unite'] + " " + serialized_data['libelle_prod'] + " " + serialized_data['prix_unitaire']
-
-                                }]
-                            })
-
-                    for d in field_state:
-                        state.update(d)
-
-                except DQE.DoesNotExist:
-                    default_value = ''
-                    if (str(field_instance.__class__.__name__) == "PrimaryKeyRelatedField"):
-                        default_value = []
-                    if str(field_instance.__class__.__name__) == 'BooleanField':
-                        default_value = False
-                    if str(field_instance.__class__.__name__) in ['PositiveSmallIntegerField', 'DecimalField',
-                                                                  'PositiveIntegerField',
-                                                                  'IntegerField', ]:
-                        default_value = 0
-                    field_state.append({
-                        field_name: default_value,
-                    })
-                    for d in field_state:
-                        state.update(d)
-
-
+                        dqe=DQE.objects.get(id=id)
+                        default_state = getattr(dqe, field.name)
+                
+                        if(field.related_model):
+                            selected = [item for item in filtered_data if item['value'] == str(default_state)] 
+                            state.__setitem__(field.name,selected)
+                        else:
+                            state.__setitem__(field.name,default_state)
         return Response({'fields': field_info,'state':state},
                         status=status.HTTP_200_OK)
 

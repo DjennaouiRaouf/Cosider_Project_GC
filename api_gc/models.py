@@ -5,7 +5,6 @@ from django.db import models
 from django_currentuser.middleware import get_current_user
 from django.db.models import Q, F, IntegerField, Sum
 # Create your models here.
-'''
 class GeneralManager(models.Manager):
 
     def get_queryset(self):
@@ -38,7 +37,7 @@ class GeneralManager(models.Manager):
         else:
             return super().get_queryset().filter(Q(pk__contains=unite))
 
-'''
+
 class Tva(models.Model):
     id=models.DecimalField(primary_key=True,max_digits=38,decimal_places=3,validators=[MinValueValidator(0),MaxValueValidator(100)],default=0,verbose_name='TVA')
     est_bloquer = models.BooleanField(default=False, editable=False)
@@ -61,7 +60,7 @@ class Tva(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return str(self.valeur)+'%'
+        return str(self.id)+'%'
     class Meta:
         app_label = 'api_gc'
         verbose_name = 'TVA'
@@ -388,8 +387,10 @@ class PrixProduit(models.Model):
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
+    @property
+    def unite(self):
+        return self.id.split('|')[0]
     
-
     @property
     def index_prix(self):
         return self.id.split('|')[2]
@@ -502,7 +503,7 @@ class Contrat(models.Model):
 
     @property
     def montant_ttc(self):
-        return round(self.montant_ht+(self.montant_ht*self.tva.valeur/100),4)
+        return round(self.montant_ht+(self.montant_ht*self.tva.id/100),4)
     class Meta:
         app_label = 'api_gc'
         verbose_name = 'Contrats'
@@ -574,7 +575,7 @@ class Contrat_Latest(models.Model):
 
     @property
     def montant_ttc(self):
-        return round(self.montant_ht + (self.montant_ht * self.tva.valeur / 100), 4)
+        return round(self.montant_ht + (self.montant_ht * self.tva.id / 100), 4)
 
     class Meta:
         managed=False
@@ -617,9 +618,8 @@ class DQE(models.Model):
 
     id=models.CharField(max_length=900,primary_key=True,  editable=False)
     contrat=models.ForeignKey(Contrat_Latest,db_constraint=False,on_delete=models.DO_NOTHING,null=True,verbose_name='Contrat')
-
-    qte = models.DecimalField(max_digits=38, decimal_places=3,default=0)
     prixProduit=models.ForeignKey(PrixProduit, on_delete=models.DO_NOTHING,null=False,verbose_name='Produit')
+    qte = models.DecimalField(max_digits=38, decimal_places=3,default=0,verbose_name='Quantité')
 
     rabais = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,
                                  verbose_name='Rabais Par Produit')
@@ -629,12 +629,14 @@ class DQE(models.Model):
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
-    
+    objects = GeneralManager()
 
     def save(self, *args, **kwargs):
         config = Config.objects.first()
         count= DQE.objects.all_with_deleted().all().count()
-        self.id=config.unite.id+f'({count})'
+        if not self.pk:
+            self.id=config.unite.id+f'({count})'
+        
         if(self.contrat.transport != True):
             self.prix_transport = 0
         

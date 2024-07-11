@@ -8,7 +8,7 @@ urlpatterns = [
     path('signupformds/',SignupFieldsDS.as_view()),
 
     path('contratlistform/',ContratFieldsList.as_view()),
-    path('contrataddform/',ContratFieldsAddUpdate.as_view()),
+    path('contrataddupdateform/',ContratFieldsAddUpdate.as_view()),
     path('contratfilterform/',ContratFilterForm.as_view()),
 
 
@@ -20,7 +20,7 @@ urlpatterns = [
 
     path('pprodlistform/',PrixProdFieldsList.as_view()),
     path('dqelistform/',DQEFieldsList.as_view()),
-    path('dqeaddform/',DQEFieldsAddUpdate.as_view()),
+    path('dqeaddupdateform/',DQEFieldsAddUpdate.as_view()),
     path('dqefilterform/',DQEFilterForm.as_view()),
 
     path('factureaddform/',FactureFieldsAddUpdate.as_view()),

@@ -125,8 +125,30 @@ class ListDQE(generics.ListAPIView):
     queryset = DQE.objects.all()
     serializer_class =DQESerializer
     filter_backends = [DjangoFilterBackend]
-    filter_class = DQEFilter
-
+    filterset_class = DQEFilter
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        mt_ttc = 0
+        mt_ht  = 0
+        
+        for q in queryset:
+            mt_ht+=q.montant_qte
+            mt_ttc+=q.montant_qte + (q.montant_qte* (q.contrat.tva.id/100))
+        
+        c=self.request.query_params.get('contrat__numero',None)
+        a=self.request.query_params.get('contrat__avenant',None)
+        contrat=Contrat.objects.get(numero=c,avenant=a)
+        response_data = super().list(request, *args, **kwargs).data
+        return Response({
+            'dqe':response_data,
+            'extra':{
+                'ht': mt_ht,
+                'ttc':mt_ttc,
+                'tva': contrat.tva.id
+            }
+            
+        }, status=status.HTTP_200_OK)
 
 
 class ListDQECumule(generics.ListAPIView):
@@ -147,6 +169,7 @@ class ListClient(generics.ListAPIView):
     queryset = Clients.objects.all()
     serializer_class =ClientSerilizer
     filter_backends = [DjangoFilterBackend]
+    filterset_class= ClientFilter
 
 
 
@@ -162,7 +185,7 @@ class AddClient(generics.CreateAPIView):
     #permission_classes = [IsAuthenticated]
     queryset = Clients.objects.all()
     serializer_class = ClientSerilizer
-
+    
 
 class AddDQE(generics.CreateAPIView):
     #permission_classes = [IsAuthenticated]
@@ -221,8 +244,9 @@ class contratKeys(APIView):
     #permission_classes = [IsAuthenticated]
     def get(self,request):
         try:
-            keys=Contrat.objects.all().values_list('numero', flat=True)
-            return Response(keys,status=status.HTTP_200_OK)
+            keys=Contrat.objects.all().values_list('numero', flat=True).distinct()
+            result=[str(k) for k in keys]
+            return Response(result,status=status.HTTP_200_OK)
         except Contrat.DoesNotExist:
             return Response({'message':'Pas de contrat'},status=status.HTTP_404_NOT_FOUND)
 
@@ -233,14 +257,11 @@ class AvenantKeys(APIView):
     def get(self,request):
         num=self.request.query_params.get('num',None)
         try:
-            keys=Contrat.objects.filter(numero=num).values_list('avenant', flat=True)
-            return Response(keys,status=status.HTTP_200_OK)
+            keys=Contrat.objects.filter(numero=num).values_list('avenant', flat=True).distinct()
+            result=[str(k) for k in keys]
+            return Response(result,status=status.HTTP_200_OK)
         except Contrat.DoesNotExist:
             return Response({'message':'Pas d\' avenant'},status=status.HTTP_404_NOT_FOUND)
-
-
-
-
 
 
 
