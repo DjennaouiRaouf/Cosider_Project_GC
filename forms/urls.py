@@ -20,9 +20,12 @@ urlpatterns = [
 
     path('pprodlistform/',PrixProdFieldsList.as_view()),
     path('dqelistform/',DQEFieldsList.as_view()),
+    path('dqecumulelistform/',DQECumuleFieldsList.as_view()),
     path('dqeaddupdateform/',DQEFieldsAddUpdate.as_view()),
     path('dqefilterform/',DQEFilterForm.as_view()),
-
+    path('dqecumulefilterform/',DQECumuleFilterForm.as_view()),
+    path('planingaddupdateform/',PlaningieldsAddUpdate.as_view()),
+    path('planinglistform/',PlaningFieldsList.as_view()),
     path('factureaddform/',FactureFieldsAddUpdate.as_view()),
 
     path('bllistform/',BLFieldsList.as_view()),

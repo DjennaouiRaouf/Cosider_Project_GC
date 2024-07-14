@@ -369,6 +369,31 @@ class DQEFieldsList(APIView):
 
 
 
+class DQECumuleFieldsList(APIView):
+    def get(self, request):
+        serializer = DQECumuleSerializer()
+        fields = serializer.get_fields()
+        field_info = []
+        for field_name, field_instance in fields.items():
+            if(field_name not in ['']):
+                obj = {
+                        'field': field_name,
+                        'headerName': field_instance.label or field_name,
+
+
+                }
+                if(field_name in ['id','code_contrat','contrat_id','prixproduit_id']):
+                    obj['hide']=True
+
+                if(field_name in ['montant_qte','prix_transpor','prix_u']):
+                    obj['cellRenderer'] = 'InfoRenderer'
+
+                field_info.append(obj)
+        return Response({'fields': field_info},
+                        status=status.HTTP_200_OK)
+
+
+
 class FactureFieldsList(APIView):
     def get(self, request):
         serializer = FactureSerializer()
@@ -420,7 +445,41 @@ class DQEFilterForm(APIView):
                 field_info.append(obj)
 
         return Response({'fields': field_info},status=status.HTTP_200_OK)
-    
+
+
+
+
+class DQECumuleFilterForm(APIView):
+    def get(self,request):
+        field_info = []
+
+        for field_name, field_instance  in DQECumuleFilter.base_filters.items():
+            if(field_name  not in ['code_contrat']):
+
+                obj = {
+                    'name': field_name,
+                    'type': str(field_instance.__class__.__name__),
+                    'label': field_instance.label or field_name,
+
+                }
+                if str(field_instance.__class__.__name__) == 'ModelChoiceFilter':
+                    anySerilizer = create_dynamic_serializer(field_instance.queryset.model)
+                    serialized_data = anySerilizer(field_instance.queryset, many=True).data
+                    filtered_data = []
+                    for item in serialized_data:
+                        filtered_item = {
+                            'value': item['id'],
+                            'label': item['libelle'],
+                        }
+                        filtered_data.append(filtered_item)
+
+                    obj['queryset'] = filtered_data
+
+                field_info.append(obj)
+
+        return Response({'fields': field_info},status=status.HTTP_200_OK)
+
+
 class DQEFieldsAddUpdate(APIView):
     def get(self, request):
         fields = DQE._meta.get_fields()
@@ -480,6 +539,11 @@ class DQEFieldsAddUpdate(APIView):
 
 
 
+
+
+
+
+
 class FactureFieldsAddUpdate(APIView):
     def get(self, request):
 
@@ -517,6 +581,81 @@ class FactureFieldsAddUpdate(APIView):
                     state.update(d)
 
         return Response({'fields': field_info,'state':state},
+                        status=status.HTTP_200_OK)
+
+
+#----------------------------------------------------- Planing
+class PlaningieldsAddUpdate(APIView):
+    def get(self, request):
+        fields = Planing._meta.get_fields()
+        field_info = []
+        field_state = []
+        state = {}
+        contrat=self.request.query_params.get('contrat', None)
+        avenant=self.request.query_params.get('avenant', None)
+        for field in fields:
+            if(field.editable):
+                if(field.name not in ['contrat','id']):
+                    obj={
+                        'name':field.name,
+                        'type':field.get_internal_type(),
+                        'label':field.verbose_name,    
+                    }
+                    related=field.related_model or None
+                    filtered_data = []
+                    if(related):
+                        if(field.related_model in [DQECumule]):
+                            queryset=field.related_model.objects.filter(contrat_id=f'{contrat}({avenant})')
+                            anySerilizer = create_dynamic_serializer(field.related_model)
+                            serialized_data = anySerilizer(queryset, many=True).data
+                            
+                            for item in serialized_data:
+                                code_prod=item['produit_id']
+                                lib_prod= Produits.objects.get(id=code_prod).libelle
+                                filtered_item = {
+                                'value': item['id'],
+                                'label': code_prod,
+                                'libelle': lib_prod,
+                                
+                                }
+                                
+                                filtered_data.append(filtered_item)
+                            obj['queryset']=filtered_data
+                    field_info.append(obj)
+        return Response({'fields': field_info,'state':state},
+                        status=status.HTTP_200_OK)
+
+
+
+
+
+class PlaningFieldsList(APIView):
+    def get(self, request):
+        serializer = PlaningSerializer()
+        fields = serializer.get_fields()
+        field_info = []
+        for field_name, field_instance in fields.items():
+            if(field_name not in ['']):
+                obj = {
+                        'field': field_name,
+                        'headerName': field_instance.label or field_name,
+
+
+                }
+                if(field_name in ['id','contrat','dqe','date']):
+                    obj['hide']=True
+                
+                if(field_name in ['mmaa']):
+                    obj['rowGroup'] = True
+                    obj['hide']=True
+
+
+                if(field_name in ['qte_livre','qte_realise','ecart']):
+                    obj['cellRenderer'] = 'InfoRenderer'
+                    obj['aggFunc']="sum"
+
+                field_info.append(obj)
+        return Response({'fields': field_info},
                         status=status.HTTP_200_OK)
 
 

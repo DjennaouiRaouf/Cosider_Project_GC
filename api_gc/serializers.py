@@ -159,14 +159,30 @@ class DQESerializer(serializers.ModelSerializer):
 
 
 class DQECumuleSerializer(serializers.ModelSerializer):
+    libelle=serializers.SerializerMethodField(label='Libellé')
+    prix_u=serializers.SerializerMethodField(label='Prix Unit')
 
+    montant_qte=serializers.SerializerMethodField(label='Montant QTE')
+
+    def get_libelle(self,obj):
+        return obj.prixproduit_id.produit.libelle
+
+    
+    def get_prix_u(self,obj):
+        return obj.prixproduit_id.prix_unitaire
+
+    def get_montant_qte(self,obj):
+        return obj.montant_qte
+    
     def get_fields(self, *args, **kwargs):
         fields = super().get_fields(*args, **kwargs)
 
         return fields
     class Meta:
         model = DQECumule
-        fields = '__all__'
+        fields = ['id','produit_id','libelle','prix_u','code_contrat','qte','avenant','contrat_id','prixproduit_id'
+                  ,'rabais','prix_transport','montant_qte']
+
 
 
 
@@ -200,13 +216,45 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 
+class PlaningSerializer(serializers.ModelSerializer):
+    
+    lib_prod=serializers.SerializerMethodField(label='Libelle')
+    code_prod=serializers.SerializerMethodField(label='Code Produit')
+    unite_m=serializers.SerializerMethodField(label='Unité M')
+    qte_realise=serializers.SerializerMethodField(label='Qte Réalisée')
+    ecart= serializers.SerializerMethodField(label='Ecart')
+    mmaa=serializers.SerializerMethodField(label='MMAA')
+    def get_lib_prod(self,obj):
+        return obj.dqe.produit_id.libelle
+    def get_code_prod(self,obj):
+        return obj.dqe.produit_id.id
+    def get_unite_m(self,obj):
+        return obj.dqe.produit_id.unite_m.id
+    
+    def get_qte_realise(self,obj):
+        return obj.qte_realise
+    
+    def get_ecart(self,obj):
+        return obj.qte_livre-obj.qte_realise
+    def get_mmaa(self,obj):
+        return f'{obj.date.year}-{obj.date.month}'
+    
+
+    
+    def get_fields(self, *args, **kwargs):
+        fields = super().get_fields(*args, **kwargs)
+        return fields
+    class Meta:
+        model = Planing
+        fields = ['contrat','mmaa','dqe','code_prod','lib_prod','date','qte_livre','qte_realise','ecart','unite_m']
+    
+
 
 class BonLivraisonSerializer(serializers.ModelSerializer):
     montant_cumule = serializers.SerializerMethodField(label="Montant Cumule")
     libelle = serializers.SerializerMethodField(label='Libelle')
     prix_unitaire = serializers.SerializerMethodField(label='Prix Unitaire')
     qte_cumule = serializers.SerializerMethodField(label="Quantité Cumulée")
-
     def get_montant_cumule(self, obj):
         return obj.montant_cumule
 
@@ -218,6 +266,8 @@ class BonLivraisonSerializer(serializers.ModelSerializer):
 
     def get_qte_cumule(self, obj):
         return obj.qte_cumule
+    
+    
     def get_fields(self, *args, **kwargs):
         fields = super().get_fields(*args, **kwargs)
         fields.pop('est_bloquer', None)

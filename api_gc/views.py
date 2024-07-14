@@ -88,7 +88,12 @@ class ListContract(generics.ListAPIView): # grouper par num contrat
 
 
 
-
+class ListPlaning(generics.ListAPIView):
+    #permission_classes=[IsAuthenticated]
+    queryset = Planing.objects.all()
+    serializer_class = PlaningSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = PlaningFilter
 
 class ListBL(generics.ListAPIView):
     # permission_classes = [IsAuthenticated]
@@ -156,12 +161,29 @@ class ListDQECumule(generics.ListAPIView):
     queryset = DQECumule.objects.all()
     serializer_class =DQECumuleSerializer
     filter_backends = [DjangoFilterBackend]
-    filter_class = DQECumuleFilter
+    filterset_class = DQECumuleFilter
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
+        mt_ttc = 0
+        mt_ht  = 0
+        c=self.request.query_params.get('code_contrat',None)
+        contrat=Contrat_Latest.objects.get(numero=c)
+        
+        for q in queryset:
+            mt_ht+=q.montant_qte
+            mt_ttc+=q.montant_qte + (q.montant_qte* (contrat.tva.id/100))
+        
         response_data = super().list(request, *args, **kwargs).data
-        return Response(response_data, status=status.HTTP_200_OK)
+        return Response({
+            'dqe':response_data,
+            'extra':{
+                'ht': mt_ht,
+                'ttc':mt_ttc,
+                'tva': contrat.tva.id
+            }
+            
+        }, status=status.HTTP_200_OK)
 
 
 class ListClient(generics.ListAPIView):

@@ -64,9 +64,30 @@ class DQEFilter(django_filters.FilterSet):
 
 
 class DQECumuleFilter(django_filters.FilterSet):
+    libelle=django_filters.CharFilter(field_name='prixproduit_id__produit__libelle',lookup_expr='icontains')
+    code_prod=django_filters.ModelChoiceFilter(field_name='prixproduit_id__produit__id',queryset=Produits.objects.all())
+    
     class Meta:
         model = DQECumule
-        fields = '__all__'
+        fields = ['code_contrat','libelle','code_prod']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field_instance in self.base_filters.items():
+            try:
+                model_field = self.Meta.model._meta.get_field(field_name)
+                field_instance.label = model_field.verbose_name
+            except:
+                pass
+
+
+
+
+class PlaningFilter(django_filters.FilterSet):
+    
+    class Meta:
+        model = Planing
+        fields = ['contrat__numero','contrat__avenant']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

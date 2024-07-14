@@ -10,6 +10,7 @@ urlpatterns = [
 
     path('getcontract/',ListContract.as_view()),
     path('addcontract/',AddContrat.as_view()),
+    path('getplaning/',ListPlaning.as_view()),
     path('getclient/',ListClient.as_view()),
     path('addclient/',AddClient.as_view()),
     path('getdqe/',ListDQE.as_view()),

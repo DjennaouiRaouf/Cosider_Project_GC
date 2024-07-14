@@ -26,6 +26,16 @@ where d.prixProduit_id = pp.id and c.id=d.contrat_id
 );
 
 
+create view DQE_View as(
+select d.*,pp.produit_id,c.code_contrat,
+       (select max( c1.avenant)as avenant from Contrats c1 where c.code_contrat=c1.code_contrat group by  c1.code_contrat) avenant
+
+       from DQE d,Prix_Produit pp,Contrats c
+where d.prixProduit_id = pp.id and c.id=d.contrat_id
+);
+
+
+
 
 CREATE VIEW DQE_View_Cumule AS
 SELECT

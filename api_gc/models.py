@@ -608,7 +608,9 @@ class DQECumule(models.Model):
         managed = False
         db_table = 'DQE_View_Cumule'
 
-
+    @property
+    def montant_qte(self):
+        return round(self.qte*self.prixproduit_id.prix_unitaire,4)
 
 
 
@@ -732,7 +734,16 @@ class Planing(models.Model):
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
     
-    
+    @property
+    def qte_realise(self):
+        qr = BonLivraison.objects.filter(dqe=self.dqe, contrat=self.contrat, date__month=self.date.month , date__year=self.date.year
+                                         ).aggregate(models.Sum('qte'))[
+            "qte__sum"] or 0
+        return qr
+            
+
+
+        return(f'{mm}-{aa}')    
 
     def save(self, *args, **kwargs):
         if not self.user_id:
@@ -823,7 +834,7 @@ class BonLivraison(models.Model):
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
-    
+    objects = GeneralManager()
 
     def save(self, *args,num_bl=2, **kwargs):
         config = Config.objects.first()
@@ -831,7 +842,7 @@ class BonLivraison(models.Model):
         self.id = str(config.unite) + '_' + str(num_bl)
 
         self.qte = self.ptc - self.camion.tare
-        self.montant = round((self.qte * self.dqe.prixProduit.prix_unitaire)-self.dqe.rabais, 4)
+        self.montant = round((self.qte * self.dqe.prixproduit_id.prix_unitaire)-self.dqe.rabais, 4)
         # verifier si on ajoute le cout du transport  lors de la creation du bon de livraison
         if not self.user_id:
             current_user = get_current_user()
