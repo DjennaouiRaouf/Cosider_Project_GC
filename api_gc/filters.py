@@ -87,7 +87,7 @@ class PlaningFilter(django_filters.FilterSet):
     
     class Meta:
         model = Planing
-        fields = ['contrat__numero','contrat__avenant']
+        fields = ['contrat']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

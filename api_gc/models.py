@@ -606,7 +606,7 @@ class DQECumule(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'DQE_View_Cumule'
+        db_table = 'DQE_View_Cumule_2'
 
     @property
     def montant_qte(self):
@@ -736,10 +736,14 @@ class Planing(models.Model):
     
     @property
     def qte_realise(self):
-        qr = BonLivraison.objects.filter(dqe=self.dqe, contrat=self.contrat, date__month=self.date.month , date__year=self.date.year
+        try:
+            qr = BonLivraison.objects.filter(dqe=self.dqe, contrat=self.contrat, date__month=self.date.month , date__year=self.date.year
                                          ).aggregate(models.Sum('qte'))[
-            "qte__sum"] or 0
-        return qr
+                "qte__sum"] or 0
+            
+            return qr
+        except:
+            return 0
             
 
 

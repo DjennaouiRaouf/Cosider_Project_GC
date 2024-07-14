@@ -1,41 +1,11 @@
-create view DQE_View as(select d.*,pp.produit_id,c.code_contrat,c.avenant from DQE d,Prix_Produit pp,Contrats c
-where d.prixProduit_id = pp.id and c.id=d.contrat_id
-);
 
-select dv1.produit_id,dv1.code_contrat,sum(dv1.qte) as Qte,
-(select max(dv2.avenant) avenant  from DQE_View dv2 where code_contrat=dv2.code_contrat and dv1.produit_id=dv2.produit_id group by  dv2.code_contrat) avenant ,
-(select dv3.contrat_id  from DQE_View dv3 where dv1.code_contrat=dv3.code_contrat and dv1.produit_id=dv3.produit_id and dv3.avenant=(select max(dv2.avenant) avenant  from DQE_View dv2 where code_contrat=dv2.code_contrat and dv1.produit_id=dv2.produit_id group by  dv2.code_contrat)) contrat_id,
-(select dv4.id from DQE_View dv4 where dv1.code_contrat=dv4.code_contrat and dv1.produit_id=dv4.produit_id and dv4.avenant=(select max(dv2.avenant) avenant  from DQE_View dv2 where code_contrat=dv2.code_contrat and dv1.produit_id=dv2.produit_id group by  dv2.code_contrat)) id,
-(select dv5.prixProduit_id from DQE_View dv5 where dv1.code_contrat=dv5.code_contrat and dv1.produit_id=dv5.produit_id and dv5.avenant=(select max(dv2.avenant) avenant  from DQE_View dv2 where code_contrat=dv2.code_contrat and dv1.produit_id=dv2.produit_id group by  dv2.code_contrat)) prixProduit_id,
-(select dv6.rabais from DQE_View dv6 where dv1.code_contrat=dv6.code_contrat and dv1.produit_id=dv6.produit_id and dv6.avenant=(select max(dv2.avenant) avenant  from DQE_View dv2 where code_contrat=dv2.code_contrat and dv1.produit_id=dv2.produit_id group by  dv2.code_contrat)) rabais,
-(select dv7.prix_transport from DQE_View dv7 where dv1.code_contrat=dv7.code_contrat and dv1.produit_id=dv7.produit_id and dv7.avenant=(select max(dv2.avenant) avenant  from DQE_View dv2 where code_contrat=dv2.code_contrat and dv1.produit_id=dv2.produit_id group by  dv2.code_contrat)) prix_transport,
-(select dv8.est_bloquer from DQE_View dv8 where dv1.code_contrat=dv8.code_contrat and dv1.produit_id=dv8.produit_id and dv8.avenant=(select max(dv2.avenant) avenant  from DQE_View dv2 where code_contrat=dv2.code_contrat and dv1.produit_id=dv2.produit_id group by  dv2.code_contrat)) est_bloquer,
-(select dv9.user_id from DQE_View dv9 where dv1.code_contrat=dv9.code_contrat and dv1.produit_id=dv9.produit_id and dv9.avenant=(select max(dv2.avenant) avenant  from DQE_View dv2 where code_contrat=dv2.code_contrat and dv1.produit_id=dv2.produit_id group by  dv2.code_contrat)) user_id,
-(select dv10.date_modification from DQE_View dv10 where dv1.code_contrat=dv10.code_contrat and dv1.produit_id=dv10.produit_id and dv10.avenant=(select max(dv2.avenant) avenant  from DQE_View dv2 where code_contrat=dv2.code_contrat and dv1.produit_id=dv2.produit_id group by  dv2.code_contrat)) date_modification
-
-
-
-from DQE_View dv1 where dv1.est_bloquer = 0 group by dv1.produit_id,dv1.code_contrat
-
-
-/*********************************************************************************************/
-
-
+/*******************************************************************************************************************************/
 create view DQE_View as(select d.*,pp.produit_id,c.code_contrat,c.avenant from DQE d,Prix_Produit pp,Contrats c
 where d.prixProduit_id = pp.id and c.id=d.contrat_id
 );
 
 
-create view DQE_View as(
-select d.*,pp.produit_id,c.code_contrat,
-       (select max( c1.avenant)as avenant from Contrats c1 where c.code_contrat=c1.code_contrat group by  c1.code_contrat) avenant
-
-       from DQE d,Prix_Produit pp,Contrats c
-where d.prixProduit_id = pp.id and c.id=d.contrat_id
-);
-
-
-
+/*******************************************************************************************************************************/
 
 CREATE VIEW DQE_View_Cumule AS
 SELECT
@@ -105,6 +75,36 @@ GROUP BY
 
 
 
+/*******************************************************************************************************************************/
+
+create view  DQE_View_Cumule_2 as (
+select
+    dvc.produit_id,
+    dvc.code_contrat,
+    dvc.Qte,
+    c.avenant,
+    dvc.contrat_id,
+    dvc.id,
+    dvc.prixProduit_id,
+    dvc.rabais,
+    dvc.prix_transport,
+    dvc.est_bloquer,
+    dvc.user_id,
+    dvc.date_modification
+        from DQE_View_Cumule dvc
+join
+(
+    select code_contrat, max(avenant) as avenant from Contrats   group by code_contrat
+) c
+on dvc.code_contrat= c.code_contrat
+);
+
+
+
+
+
+/*******************************************************************************************************************************/
+
 
 
 create view Contrats_View as(
@@ -119,3 +119,5 @@ JOIN (
 
 );
 
+
+/*******************************************************************************************************************************/

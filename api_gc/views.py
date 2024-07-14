@@ -286,6 +286,18 @@ class AvenantKeys(APIView):
             return Response({'message':'Pas d\' avenant'},status=status.HTTP_404_NOT_FOUND)
 
 
+class LastAvenantKeys(APIView):
+    #permission_classes = [IsAuthenticated]
+    def get(self,request):
+        num=self.request.query_params.get('num',None)
+        try:
+            key=Contrat.objects.filter(numero=num).latest('avenant').avenant
+            
+            return Response(key,status=status.HTTP_200_OK)
+        except Contrat.DoesNotExist:
+            return Response({'message':'Pas d\' avenant'},status=status.HTTP_404_NOT_FOUND)
+
+
 
 
 class AddFacture(generics.CreateAPIView):
