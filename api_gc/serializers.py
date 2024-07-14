@@ -225,15 +225,28 @@ class PlaningSerializer(serializers.ModelSerializer):
     ecart= serializers.SerializerMethodField(label='Ecart')
     mmaa=serializers.SerializerMethodField(label='MMAA')
     def get_lib_prod(self,obj):
-        return obj.dqe.produit_id.libelle
+        try:
+            return obj.dqe.produit_id.libelle
+        except:
+            return None
     def get_code_prod(self,obj):
-        return obj.dqe.produit_id.id
+        try:
+            return obj.dqe.produit_id.id
+        except:
+            return None
+        
     def get_unite_m(self,obj):
-        return obj.dqe.produit_id.unite_m.id
-    
+        try:
+            return obj.dqe.produit_id.unite_m.id
+        except:
+            return None
+        
     def get_qte_realise(self,obj):
-        return obj.qte_realise
-    
+        try:
+            return obj.qte_realise
+        except:
+            return None
+        
     def get_ecart(self,obj):
         return obj.qte_livre-obj.qte_realise
     def get_mmaa(self,obj):

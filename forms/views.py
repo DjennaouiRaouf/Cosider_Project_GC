@@ -591,8 +591,14 @@ class PlaningieldsAddUpdate(APIView):
         field_info = []
         field_state = []
         state = {}
-        contrat=self.request.query_params.get('contrat', None)
-        avenant=self.request.query_params.get('avenant', None)
+        c=self.request.query_params.get('contrat', None)
+        if(c):
+            try:
+                contrat=Contrat_Latest.objects.get(id=c)
+            except:
+                contrat=None
+        else:
+            contrat=None
         for field in fields:
             if(field.editable):
                 if(field.name not in ['contrat','id']):
@@ -605,7 +611,7 @@ class PlaningieldsAddUpdate(APIView):
                     filtered_data = []
                     if(related):
                         if(field.related_model in [DQECumule]):
-                            queryset=field.related_model.objects.filter(contrat_id=f'{contrat}({avenant})')
+                            queryset=field.related_model.objects.filter(contrat_id=contrat)
                             anySerilizer = create_dynamic_serializer(field.related_model)
                             serialized_data = anySerilizer(queryset, many=True).data
                             
@@ -614,8 +620,8 @@ class PlaningieldsAddUpdate(APIView):
                                 lib_prod= Produits.objects.get(id=code_prod).libelle
                                 filtered_item = {
                                 'value': item['id'],
-                                'label': code_prod,
-                                'libelle': lib_prod,
+                                'label': f'{code_prod}  {lib_prod}',
+                                
                                 
                                 }
                                 

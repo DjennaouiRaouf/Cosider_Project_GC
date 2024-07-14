@@ -596,7 +596,7 @@ class DQECumule(models.Model):
     qte = models.DecimalField(db_column='Qte', max_digits=38, decimal_places=3, blank=True,
                                   null=True)  
     avenant = models.IntegerField(blank=True, null=True)
-    contrat_id = models.CharField(max_length=900, blank=True, null=True)
+    contrat_id = models.ForeignKey(Contrat_Latest,db_constraint=False,on_delete=models.DO_NOTHING,db_column='contrat_id')
     prixproduit_id = models.ForeignKey(PrixProduit,db_column='prixProduit_id',on_delete=models.DO_NOTHING,db_constraint=False,null=False)
     rabais = models.DecimalField(max_digits=38, decimal_places=3, blank=True, null=True)
     prix_transport = models.DecimalField(max_digits=38, decimal_places=3, blank=True, null=True)

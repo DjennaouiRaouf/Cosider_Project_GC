@@ -78,12 +78,13 @@ GROUP BY
 /*******************************************************************************************************************************/
 
 create view  DQE_View_Cumule_2 as (
+
 select
     dvc.produit_id,
     dvc.code_contrat,
     dvc.Qte,
     c.avenant,
-    dvc.contrat_id,
+    CONCAT(dvc.code_contrat, '(', c.avenant,')') as contrat_id,
     dvc.id,
     dvc.prixProduit_id,
     dvc.rabais,
@@ -97,6 +98,11 @@ join
     select code_contrat, max(avenant) as avenant from Contrats   group by code_contrat
 ) c
 on dvc.code_contrat= c.code_contrat
+
+
+
+
+
 );
 
 
