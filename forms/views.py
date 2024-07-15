@@ -621,8 +621,6 @@ class PlaningieldsAddUpdate(APIView):
                                 filtered_item = {
                                 'value': item['id'],
                                 'label': f'{code_prod}  {lib_prod}',
-                                
-                                
                                 }
                                 
                                 filtered_data.append(filtered_item)

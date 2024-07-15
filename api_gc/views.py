@@ -125,6 +125,12 @@ class AddBL(generics.CreateAPIView):
     queryset= BonLivraison.objects.all()
     serializer_class = BonLivraisonSerializer
 
+
+class AddPlaning(generics.CreateAPIView):
+    # permission_classes = [IsAuthenticated]
+    queryset= Planing.objects.all()
+    serializer_class = PlaningSerializer
+
 class ListDQE(generics.ListAPIView):
     #permission_classes = [IsAuthenticated]
     queryset = DQE.objects.all()

@@ -453,6 +453,8 @@ class Contrat(models.Model):
 
     def save(self, *args, **kwargs):
         self.id=self.numero+'('+str(self.avenant)+')'
+        if(self.avenant>0):
+            Planing.objects.filter(contrat=self.numero+'('+str(self.avenant)+')').delete()
         if not self.user_id:
             current_user = get_current_user()
             if current_user and hasattr(current_user, 'username'):
@@ -595,8 +597,6 @@ class DQECumule(models.Model):
     code_contrat = models.CharField(max_length=500)
     qte = models.DecimalField(db_column='Qte', max_digits=38, decimal_places=3, blank=True,
                                   null=True)  
-    avenant = models.IntegerField(blank=True, null=True)
-    contrat_id = models.ForeignKey(Contrat_Latest,db_constraint=False,on_delete=models.DO_NOTHING,db_column='contrat_id')
     prixproduit_id = models.ForeignKey(PrixProduit,db_column='prixProduit_id',on_delete=models.DO_NOTHING,db_constraint=False,null=False)
     rabais = models.DecimalField(max_digits=38, decimal_places=3, blank=True, null=True)
     prix_transport = models.DecimalField(max_digits=38, decimal_places=3, blank=True, null=True)
@@ -606,7 +606,7 @@ class DQECumule(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'DQE_View_Cumule_2'
+        db_table = 'DQE_View_Cumule'
 
     @property
     def montant_qte(self):
@@ -620,7 +620,7 @@ class DQECumule(models.Model):
 class DQE(models.Model):
 
     id=models.CharField(max_length=900,primary_key=True,  editable=False)
-    contrat=models.ForeignKey(Contrat_Latest,db_constraint=False,on_delete=models.DO_NOTHING,null=True,verbose_name='Contrat')
+    contrat=models.ForeignKey(Contrat,on_delete=models.DO_NOTHING,null=True,verbose_name='Contrat')
     prixProduit=models.ForeignKey(PrixProduit, on_delete=models.DO_NOTHING,null=False,verbose_name='Produit')
     qte = models.DecimalField(max_digits=38, decimal_places=3,default=0,verbose_name='Quantité')
 
@@ -724,10 +724,11 @@ class Avances(models.Model):
         verbose_name_plural = 'Avances'
         unique_together=(('contrat', 'montant_avance'),)
         db_table='Avances'
+        
 class Planing(models.Model):
-    contrat = models.ForeignKey(Contrat_Latest,db_constraint=False, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
-    dqe=models.ForeignKey('DQECumule',db_constraint=False, on_delete=models.DO_NOTHING, null=False, verbose_name='dqe')
-    date=models.DateField(null=False, verbose_name='Date')
+    contrat = models.ForeignKey(Contrat,on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
+    dqe=models.ForeignKey('DQECumule',db_constraint=False, on_delete=models.DO_NOTHING, null=True, verbose_name='dqe')
+    date=models.DateField(null=True, verbose_name='Date')
     qte_livre=models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Quantité à livré')
 
     est_bloquer = models.BooleanField(default=False, editable=False)
@@ -814,14 +815,14 @@ class Camion(models.Model):
         verbose_name_plural = 'Camions'
         db_table = 'Camions'
 
-# mode hors connexion
+
 class BonLivraison(models.Model):
     id = models.CharField(max_length=500, primary_key=True, null=False, verbose_name='N° BL',
                           editable=False)
     conducteur=models.CharField(max_length=500, null=False, verbose_name='Conducteur')
     camion = models.ForeignKey(Camion, null=False, on_delete=models.DO_NOTHING, verbose_name='Camion')
     numero_permis_c=models.CharField(max_length=500,null=True,verbose_name='N° P.Conduire')
-    contrat = models.ForeignKey(Contrat_Latest,db_constraint=False, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
+    contrat = models.CharField(max_length=500,verbose_name = 'N° du contrat')
     date=models.DateTimeField(auto_now=True)
     dqe = models.ForeignKey('DQECumule', on_delete=models.DO_NOTHING,db_constraint=False, null=False, verbose_name='dqe')
     ptc = models.DecimalField(max_digits=38, decimal_places=3, validators=[MinValueValidator(0)], default=0,

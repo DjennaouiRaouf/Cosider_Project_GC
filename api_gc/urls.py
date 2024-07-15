@@ -20,6 +20,7 @@ urlpatterns = [
     path("last_avenant/",LastAvenantKeys.as_view()),
     path('getpprod/',ListPrixProduit.as_view()),
     path('adddqe/',AddDQE.as_view()),
+    path('addplaning/',AddPlaning.as_view()),
     path('getimg/',ListImages.as_view()),
 
 
