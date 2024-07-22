@@ -69,7 +69,7 @@ class DQECumuleFilter(django_filters.FilterSet):
     
     class Meta:
         model = DQECumule
-        fields = ['code_contrat','libelle','code_prod']
+        fields = ['code_contrat','libelle','code_prod','contrat_id']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

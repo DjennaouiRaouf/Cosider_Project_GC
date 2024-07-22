@@ -29,7 +29,7 @@ urlpatterns = [
     path('factureaddform/',FactureFieldsAddUpdate.as_view()),
 
     path('bllistform/',BLFieldsList.as_view()),
-    path('bladdform/',BLFieldsAddUpdate.as_view()),
+    path('bladdupdateform/',BLFieldsAddUpdate.as_view()),
     path('blfilterform/',BLFilterForm.as_view()),
 
     path('facturelistform/',FactureFieldsList.as_view()),

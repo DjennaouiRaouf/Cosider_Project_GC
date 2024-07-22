@@ -23,13 +23,15 @@ urlpatterns = [
     path('addplaning/',AddPlaning.as_view()),
     path('getimg/',ListImages.as_view()),
 
-
+    path('importplaning/',ImportPlaning.as_view()),
+    path('dqecumuleplaning/',ListDQECumulePlaning.as_view()),
     path('delbl/',DeleteBL.as_view()),
     path('getunite/',GetUnites.as_view()),
     path('getprod/',GetProds.as_view()),
     path('getbl/',ListBL.as_view()),
     path('addbl/', AddBL.as_view()),
-
+    
+    path('pbl/',PrintBL.as_view()),
 
 
     path('addcamion/',AddCamion.as_view()),

@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
@@ -478,9 +479,19 @@ class Contrat(models.Model):
     @property
     def validite(self):
         delta = relativedelta(self.date_expiration, self.date_signature)
-        months = delta.months + (delta.years * 12)
-        return months
+        delta_dict=dict()
+        for k,v in delta.__dict__.items():
+            if(v):
+                delta_dict.__setitem__(k,v)
 
+        joined_string = ' & '.join(f"{value} {key}" for key, value in delta_dict.items())
+        joined_string=joined_string.replace('days','Jours')
+        joined_string=joined_string.replace('months','Mois')
+        joined_string=joined_string.replace('years','Ans')
+        
+        return joined_string
+
+        
 
 
     @property
@@ -593,6 +604,8 @@ class Contrat_Latest(models.Model):
 class DQECumule(models.Model):
 
     id = models.CharField(max_length=900, null=False,primary_key=True)
+    contrat_id= models.ForeignKey(Contrat_Latest,db_column='contrat_id',on_delete=models.DO_NOTHING,db_constraint=False,null=False)
+    avenant=models.IntegerField(db_column='avenant')
     produit_id = models.ForeignKey(Produits,db_column='produit_id',on_delete=models.DO_NOTHING,db_constraint=False,null=False)
     code_contrat = models.CharField(max_length=500)
     qte = models.DecimalField(db_column='Qte', max_digits=38, decimal_places=3, blank=True,
@@ -726,7 +739,7 @@ class Avances(models.Model):
         db_table='Avances'
         
 class Planing(models.Model):
-    contrat = models.ForeignKey(Contrat,on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
+    contrat=models.ForeignKey(Contrat_Latest,db_constraint=False, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
     dqe=models.ForeignKey('DQECumule',db_constraint=False, on_delete=models.DO_NOTHING, null=True, verbose_name='dqe')
     date=models.DateField(null=True, verbose_name='Date')
     qte_livre=models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Quantité à livré')
@@ -816,9 +829,17 @@ class Camion(models.Model):
         db_table = 'Camions'
 
 
+def get_num_bl():
+    try:
+        nbl=int(BonLivraison.objects.all_with_deleted().latest('date_modification').num_bl) + 1
+    except BonLivraison.DoesNotExist:
+        nbl=1
+    return nbl
+
 class BonLivraison(models.Model):
-    id = models.CharField(max_length=500, primary_key=True, null=False, verbose_name='N° BL',
+    id = models.CharField(max_length=500, primary_key=True, null=False, verbose_name='id',
                           editable=False)
+    num_bl=models.IntegerField(null=False,default=get_num_bl,verbose_name='N° BL')
     conducteur=models.CharField(max_length=500, null=False, verbose_name='Conducteur')
     camion = models.ForeignKey(Camion, null=False, on_delete=models.DO_NOTHING, verbose_name='Camion')
     numero_permis_c=models.CharField(max_length=500,null=True,verbose_name='N° P.Conduire')
@@ -841,13 +862,40 @@ class BonLivraison(models.Model):
 
     objects = GeneralManager()
 
-    def save(self, *args,num_bl=2, **kwargs):
+    @property
+    def client(self):
+        cl=Contrat_Latest.objects.get(numero=self.contrat)
+        return cl.client.id
+    @property
+    def rs_client(self):
+        cl=Contrat_Latest.objects.get(numero=self.contrat)
+        return cl.client.raison_social
+    
+    @property
+    def net_a_payer(self):
+        c=Contrat_Latest.objects.get(numero=self.contrat)
+        tva=c.tva.id
+        rg=c.rg
+        op1=self.montant-self.dqe.rabais
+        op2=op1-(op1*rg/100)
+        op3=op2+(op2*tva/100)
+        print(op3)
+        return round(op3,3)
+    @property
+    def unite(self):
+        uid=self.id.split('_')[0]
+        u=Unite.objects.get(id=uid)
+        if(u):
+            return f"{uid} {u.libelle}" 
+        else:
+            return None
+    def save(self, *args, **kwargs):
         config = Config.objects.first()
 
-        self.id = str(config.unite) + '_' + str(num_bl)
+        self.id = str(config.unite) + '_' + str(self.num_bl)
 
         self.qte = self.ptc - self.camion.tare
-        self.montant = round((self.qte * self.dqe.prixproduit_id.prix_unitaire)-self.dqe.rabais, 4)
+        self.montant = round((self.qte * self.dqe.prixproduit_id.prix_unitaire), 4)
         # verifier si on ajoute le cout du transport  lors de la creation du bon de livraison
         if not self.user_id:
             current_user = get_current_user()
@@ -865,34 +913,40 @@ class BonLivraison(models.Model):
 
     @property
     def qte_cumule(self):
-        previous_cumule = BonLivraison.objects.filter(dqe=self.dqe, contrat=self.contrat, date__lt=self.date)
-        sum = self.qte
-        if (previous_cumule):
-            for pc in previous_cumule:
-                sum +=pc.qte
-            return sum
-        else:
-            return self.qte
-
+        try:
+            previous_cumule = BonLivraison.objects.filter(dqe=self.dqe, contrat=self.contrat, date__lt=self.date)
+            sum = self.qte
+            if (previous_cumule):
+                for pc in previous_cumule:
+                    sum +=pc.qte
+                return sum
+            else:
+                return self.qte
+        except Exception as e:
+            return 0
 
 
 
     @property
     def montant_cumule(self):
-        previous_cumule = BonLivraison.objects.filter(dqe=self.dqe, contrat=self.contrat, date__lt=self.date)
-        sum = self.montant
-        if (previous_cumule):
-            for pc in previous_cumule:
-                sum += pc.montant
-            return sum
-        else:
-            return self.montant
-
+        try:
+            previous_cumule = BonLivraison.objects.filter(dqe=self.dqe, contrat=self.contrat, date__lt=self.date)
+            sum = self.montant
+            if (previous_cumule):
+                for pc in previous_cumule:
+                    sum += pc.montant
+                return sum
+            else:
+                return self.montant
+        except Exception as e:
+            return 0
+        
     class Meta:
         app_label = 'api_gc'
         verbose_name = 'Bon de livraison'
         verbose_name_plural = 'Bon de livraison'
         db_table = 'Bon_De_Livraison'
+        unique_together = (('id', 'num_bl',))
 
 
 
@@ -917,8 +971,13 @@ class Factures(models.Model):
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
 
+    objects = GeneralManager()
     
     def save(self, *args, **kwargs):
+        config=Config.objects.first()
+        count=Factures.objects.all_with_deleted().count()+1
+        self.id=str(config.unite)+'_'+str(count)
+
         if not self.user_id:
             current_user = get_current_user()
             if current_user and hasattr(current_user, 'username'):
@@ -932,19 +991,13 @@ class Factures(models.Model):
             if current_user and hasattr(current_user, 'username'):
                 self.user_id = current_user.username
         self.est_bloquer = True
-        DetailFacture.objects.filter(facture=self).delete()
+        DetailFacture.objects.filter(facture=self.id).delete()
         super().save(*args, **kwargs)
 
     @property
     def montant_cumule(self):
-        try:
-            details = DetailFacture.objects.filter(facture=self.id,facture__date__lte=self.date)
-            montant_cumule = 0
-            for detail in details:
-                montant_cumule = montant_cumule + detail.detail.montant
-            return montant_cumule
-        except DetailFacture.DoesNotExist:
-            return 0
+        
+        return 0
 
 
     def __str__(self):

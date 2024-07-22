@@ -382,7 +382,7 @@ class DQECumuleFieldsList(APIView):
 
 
                 }
-                if(field_name in ['id','code_contrat','contrat_id','prixproduit_id']):
+                if(field_name in ['id','avenant','code_contrat','contrat_id','prixproduit_id']):
                     obj['hide']=True
 
                 if(field_name in ['montant_qte','prix_transpor','prix_u']):
@@ -719,7 +719,7 @@ class BLFieldsList(APIView):
         fields = serializer.get_fields()
         field_info = []
         for field_name, field_instance in fields.items():
-            if(field_name not in ['contrat',]):
+            if(field_name not in ['']):
                 obj = {
                         'field': field_name,
                         'headerName': field_instance.label or field_name,
@@ -727,7 +727,7 @@ class BLFieldsList(APIView):
 
                 }
 
-                if(field_name in ['dqe',]):
+                if(field_name in ['contrat','id','dqe']):
                     obj['hide'] =True
 
                 if(field_name in ['date','montant','montant_cumule']):
@@ -742,88 +742,78 @@ class BLFieldsList(APIView):
 
 class BLFieldsAddUpdate(APIView):
     def get(self, request):
-        serializer = BonLivraisonSerializer()
-        fields = serializer.get_fields()
+        fields = BonLivraison._meta.get_fields()
         field_info = []
         field_state = []
         state = {}
-
-        contrat=request.query_params.get('contrat', None)
-
-        for field_name, field_instance in fields.items():
-            if(field_name not in ['contrat','id','date','montant',
-                                  'libelle','prix_unitaire','qte_cumule','qte',
-                                  'montant_cumule']):
-                obj = {
-                    'name': field_name,
-                    'type': str(field_instance.__class__.__name__),
-                    'required': field_instance.required,
-                    'label': field_instance.label or field_name,
-                }
-                if (field_name in ['ptc']):
-                    params = Configurations.objects.all().first()
-                    obj['readOnly'] = params.saisie_automatique
-
-                if (str(field_instance.__class__.__name__) == "PrimaryKeyRelatedField" and field_name in [
-                    'dqe']):
-
-                    anySerilizer = create_dynamic_serializer(field_instance.queryset.model)
-                    serialized_data = DQESerializer(field_instance.queryset.filter(contrat=contrat), many=True).data
-
+        c=self.request.query_params.get('contrat', None)
+        if(c):
+            try:
+                contrat=Contrat_Latest.objects.get(numero=c)
+            except:
+                contrat=None
+        else:
+            contrat=None
+        for field in fields:
+          
+            if(field.editable):
+                
+                if(field.name not in ['contrat']):
+                    obj={
+                        'name':field.name,
+                        'type':field.get_internal_type(),
+                        'label':field.verbose_name,    
+                    }
+    
+                    related=field.related_model or None
                     filtered_data = []
-                    for item in serialized_data:
-                        filtered_item = {
-                            'value': item['id'],
-                            'label': item['produit'],
-
-                        }
-                        filtered_data.append(filtered_item)
-
-                    obj['queryset'] = filtered_data
-
-                if (str(field_instance.__class__.__name__) == "PrimaryKeyRelatedField" and field_name in [
-                    'camion']):
-
-                    anySerilizer = create_dynamic_serializer(field_instance.queryset.model)
-                    serialized_data = anySerilizer(field_instance.queryset, many=True).data
-
-                    filtered_data = []
-                    for item in serialized_data:
-                        filtered_item = {
-                            'value': item['matricule'],
-                            'label': item['matricule']
-
-                        }
-                        filtered_data.append(filtered_item)
-
-                    obj['queryset'] = filtered_data
-
-                field_info.append(obj)
-
-                default_value = ''
-                if (str(field_instance.__class__.__name__) == "PrimaryKeyRelatedField"):
-                    default_value=[]
-                if str(field_instance.__class__.__name__) == 'BooleanField':
-                    default_value = False
-                if str(field_instance.__class__.__name__) in ['PositiveSmallIntegerField', 'DecimalField',
-                                                              'PositiveIntegerField',
-                                                              'IntegerField', ]:
-                    if (field_name in ['ptc']):
-                        params = Configurations.objects.all().first()
-                        if (params.saisie_automatique):
-                            default_value = 150
-                        else:
-                            default_value = 0
+                    if(related):
+                        if(field.related_model in [DQECumule]):
+                            queryset=field.related_model.objects.filter(contrat_id=contrat)
+                            anySerilizer = create_dynamic_serializer(field.related_model)
+                            serialized_data = anySerilizer(queryset, many=True).data
+                            print
+                            for item in serialized_data:
+                                code_prod=item['produit_id']
+                                lib_prod= Produits.objects.get(id=code_prod).libelle
+                                filtered_item = {
+                                'value': item['id'],
+                                'label': f'{code_prod}  {lib_prod}',
+                                }
+                                
+                                filtered_data.append(filtered_item)
+                            obj['queryset']=filtered_data
+                        if(field.related_model in [Camion]):
+                            queryset=field.related_model.objects.all()
+                            anySerilizer = create_dynamic_serializer(field.related_model)
+                            serialized_data = anySerilizer(queryset, many=True).data
+                            
+                            for item in serialized_data:
+                                
+                                filtered_item = {
+                                'value': item['matricule'],
+                                'label': f"{item['matricule']} ({item['tare']}{item['unite']})"
+                                }
+                                
+                                filtered_data.append(filtered_item)
+                            obj['queryset']=filtered_data
+                    field_info.append(obj)
+                    
+                    if(field.related_model):
+                        state.__setitem__(field.name,[])
                     else:
-                        default_value = 0
-                field_state.append({
-                    field_name: default_value,
-                })
-                for d in field_state:
-                    state.update(d)
+                        state.__setitem__(field.name,field.get_default())
+                    
 
+    
+                    
         return Response({'fields': field_info,'state':state},
                         status=status.HTTP_200_OK)
+
+
+
+
+
 
 
 

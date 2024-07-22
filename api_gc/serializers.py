@@ -268,18 +268,27 @@ class BonLivraisonSerializer(serializers.ModelSerializer):
     libelle = serializers.SerializerMethodField(label='Libelle')
     prix_unitaire = serializers.SerializerMethodField(label='Prix Unitaire')
     qte_cumule = serializers.SerializerMethodField(label="Quantité Cumulée")
+    tare= serializers.SerializerMethodField(label="Tare")
+    
     def get_montant_cumule(self, obj):
         return obj.montant_cumule
 
     def get_libelle(self, obj):
-        return obj.dqe.prixProduit.produit.libelle
+        try:
+            return obj.dqe.prixproduit_id.produit.libelle
+        except Exception as e:
+            return None
 
     def get_prix_unitaire(self, obj):
-        return obj.dqe.prixProduit.prix_unitaire
-
+        try:
+            return obj.dqe.prixproduit_id.prix_unitaire
+        except Exception as e:
+            return None
     def get_qte_cumule(self, obj):
         return obj.qte_cumule
     
+    def get_tare(self,obj):
+        return obj.camion.tare
     
     def get_fields(self, *args, **kwargs):
         fields = super().get_fields(*args, **kwargs)
@@ -291,8 +300,8 @@ class BonLivraisonSerializer(serializers.ModelSerializer):
         return fields
     class Meta:
         model = BonLivraison
-        fields = '__all__'
-
+        fields = [ 'id','num_bl','libelle','conducteur','camion','numero_permis_c','contrat','dqe'
+                  ,'prix_unitaire','ptc','tare','qte','qte_cumule','montant','montant_cumule','date']
 
 
 
