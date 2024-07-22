@@ -1,6 +1,6 @@
 from django.contrib import admin
 from import_export.admin import ImportExportMixin
-from api_gc.forms import *
+
 from api_gc.models import *
 from api_gc.resources import *
 
@@ -182,16 +182,10 @@ class CamionAdmin(ImportExportMixin, admin.ModelAdmin):
 
 @admin.register(BonLivraison)
 class BonLivraisonAdmin(ImportExportMixin, admin.ModelAdmin):
-    form = NumBLForm
     save_as = True
     list_per_page = lp
     list_display = [field.name for field in BonLivraison._meta.fields if field.name not in ['']]+['montant_cumule','qte_cumule']
 
-    def save_model(self, request, obj, form, change):
-        num_bl=form.cleaned_data['num_bl']
-        obj.save(num_bl=num_bl)
-
-    
 
     def qte_cumule(self, obj):
         return obj.qte_cumule

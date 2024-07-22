@@ -7,10 +7,18 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
-
+import pandas
 from api_gc.filters import *
 from api_gc.models import *
 from api_gc.serializers import *
+from openpyxl import *
+import os
+import humanize
+from django.conf import settings
+from django.http import HttpResponse
+from openpyxl.styles import *
+
+from PyPDFForm import *
 
 # Create your views here.
 
@@ -87,13 +95,62 @@ class ListContract(generics.ListAPIView): # grouper par num contrat
     filterset_class = ContratFilter
 
 
-
 class ListPlaning(generics.ListAPIView):
     #permission_classes=[IsAuthenticated]
     queryset = Planing.objects.all()
     serializer_class = PlaningSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = PlaningFilter
+
+class ImportPlaning(APIView):
+    #permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        plaling_file = request.FILES['file']
+        contrat = request.data.get('contrat')
+          
+        df=pandas.read_excel(dqe_file, engine='openpyxl')
+        return Response(status=status.HTTP_200_OK)
+    
+
+class PrintBL(APIView):
+    def get(self,request):
+        bl_id=self.request.query_params.get('bl',None)
+        bl=BonLivraison.objects.get(id=bl_id)
+       
+        filled = FormWrapper(os.path.join(settings.MEDIA_ROOT, 'templates','Template_BL-Empty.pdf')).fill(
+        {
+            'unite':f"{bl.unite}",
+            'num_bl':f"{bl.num_bl}",
+            'date':f"{bl.date.strftime('Le %d/%m/%Y à %H:%M:%S')}",
+            'code_client':f"{bl.client}",
+            "rs_client":f"{bl.rs_client}",
+            "conducteur":f"{bl.conducteur}",
+            "camion":f"{bl.camion.matricule}",
+            "tare":f"{bl.camion.tare}",
+            "numero_permis_c":f"{bl.numero_permis_c}",
+            "ptc":f"{bl.ptc}",
+            "code_prod":f"{bl.dqe.produit_id}",
+            "unite_m":f"{bl.dqe.produit_id.unite_m.id}",
+            "qte":f"{bl.qte}",
+            "pu":f"{bl.dqe.prixproduit_id.prix_unitaire}",
+            "mht":f"{bl.montant}",
+            "nap":f"{bl.net_a_payer}",
+        },
+        
+        )
+     
+
+
+        # Return filled PDF as response
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = 'inline; filename="filled_form.pdf"'
+        response.write(filled.read())
+        return response
+        
+        return None
+        
+    
 
 class ListBL(generics.ListAPIView):
     # permission_classes = [IsAuthenticated]
@@ -161,6 +218,49 @@ class ListDQE(generics.ListAPIView):
             
         }, status=status.HTTP_200_OK)
 
+
+
+class ListDQECumulePlaning(APIView):
+    def get(self,request):
+        cid=self.request.query_params.get('contrat_id',None)
+        if(cid):
+            data=DQECumuleSerializer(DQECumule.objects.filter(contrat_id=cid),many=True).data
+            contrat=Contrat.objects.get(id=cid)
+        else:
+            data=None
+        
+        thin_border = Border(left=Side(style='thin'), 
+                     right=Side(style='thin'), 
+                     top=Side(style='thin'), 
+                     bottom=Side(style='thin'))
+
+        if(data and contrat):
+            template_path = os.path.join(settings.MEDIA_ROOT, 'planing.xlsx')
+            wb = load_workbook(template_path)
+            print(wb)
+            ws = wb.active  # Assuming single sheet for simplicity
+            ws['C2']=contrat.numero
+            ws['C3']=f'{contrat.avenant}'
+            ws['C4']=f"{humanize.intcomma(round(contrat.montant_ht,2)).replace(',',' ')} DA"
+            ws['C5']=f"{humanize.intcomma(round(contrat.montant_ttc,2)).replace(',',' ')} DA"
+            
+            # Write data to template
+            row_offset = 8  # Start writing data from row 3 (assuming headers are in row 1 and 2)
+            for row_index, item in enumerate(data, start=row_offset):
+                for col_index, key in enumerate(['produit_id', 'libelle'], start=2):
+                    cell = ws.cell(row=row_index, column=col_index)
+                    cell.value = item[key]
+                    cell.font = Font(bold=True)
+                    cell.alignment = Alignment(horizontal='center', vertical='center')
+                    cell.border = thin_border 
+            # Save modified workbook to response
+            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            response['Content-Disposition'] = 'attachment; filename=exported_data.xlsx'
+            wb.save(response)
+            
+            return response
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
 class ListDQECumule(generics.ListAPIView):
     #permission_classes = [IsAuthenticated]
@@ -277,6 +377,8 @@ class contratKeys(APIView):
             return Response(result,status=status.HTTP_200_OK)
         except Contrat.DoesNotExist:
             return Response({'message':'Pas de contrat'},status=status.HTTP_404_NOT_FOUND)
+
+
 
 
 
