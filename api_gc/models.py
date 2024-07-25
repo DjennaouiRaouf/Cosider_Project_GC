@@ -141,6 +141,7 @@ class Config(models.Model):
 
 
 
+
 class InfoEntr(models.Model):
     Raison_s=models.CharField(max_length=500,null=True,blank=True)
     Nature=models.CharField(max_length=500,null=True,blank=True)
