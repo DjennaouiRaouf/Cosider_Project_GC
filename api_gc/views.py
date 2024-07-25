@@ -17,9 +17,10 @@ import humanize
 from django.conf import settings
 from django.http import HttpResponse
 from openpyxl.styles import *
-
+from django.http import HttpResponse
 from PyPDFForm import *
-
+from reportlab.lib.pagesizes import *
+from reportlab.pdfgen import canvas
 # Create your views here.
 
 class CreateUserView(generics.CreateAPIView):
@@ -89,7 +90,7 @@ class WhoamiView(APIView):
 
 class ListContract(generics.ListAPIView): # grouper par num contrat
     #permission_classes = [IsAuthenticated]
-    queryset = Contrat.objects.all()
+    queryset = Contrat.objects.all().order_by('-date_modification')
     serializer_class =ContratSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = ContratFilter
@@ -97,7 +98,7 @@ class ListContract(generics.ListAPIView): # grouper par num contrat
 
 class ListPlaning(generics.ListAPIView):
     #permission_classes=[IsAuthenticated]
-    queryset = Planing.objects.all()
+    queryset = Planing.objects.all().order_by('-date_modification')
     serializer_class = PlaningSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = PlaningFilter
@@ -113,8 +114,59 @@ class ImportPlaning(APIView):
         return Response(status=status.HTTP_200_OK)
     
 
+class PrintInv(APIView):
+    def get(self,request):
+        id=self.request.query_params.get('id',None)
+        response={}
+        factures=Factures.objects.get(id=id)
+        details_qs=DetailFacture.objects.filter(facture=factures)
+        cosider= InfoEntr.objects.all().first()
+        details=[]
+        response={
+            'unite': f"({factures.id.split('_')[0]}) {Unite.objects.get(id=factures.id.split('_')[0]).libelle}",
+            'client': factures.contrat.client.raison_social,
+            'n_rc': factures.contrat.client.num_registre_commerce,
+            'n_if':factures.contrat.client.nif,
+            'ai':factures.contrat.client.article_imposition,
+            'num_f':factures.id.split('_')[1],
+            'date':factures.date.strftime('Le %d/%m/%Y'),
+            "contrat":factures.contrat.numero,
+            "rc":cosider.N_reg_c,
+            'ref':cosider.reference,
+            'rev':cosider.index,
+            "nif":cosider.M_fiscale,
+            "cap":f"{humanize.intcomma(round(cosider.Capital,2)).replace(',',' ')} DA",
+            "tva": f"{factures.contrat.tva.id} % ",
+            "rabais":f"{humanize.intcomma(round(factures.montant_rb,2)).replace(',',' ')} DA",
+            "rg": f"{factures.contrat.rg} % ",
+            'mht':f"{humanize.intcomma(round(factures.montant_facture_ht,2)).replace(',',' ')} DA",
+            'mttc':f"{humanize.intcomma(round(factures.montant_facture_ttc,2)).replace(',',' ')} DA",
+            'mrg':f"{humanize.intcomma(round(factures.montant_rg,2)).replace(',',' ')} DA",
+            'cai':None,
+        }
+
+        
+        for d in details_qs:
+            
+            obj={
+                'ref_prod':d.detail.dqe.produit_id.id,
+                'libelle':d.detail.dqe.produit_id.libelle,
+                'UM':d.detail.dqe.produit_id.unite_m.id,
+                'qte':d.detail.qte,
+                'pu_ht':d.detail.dqe.prixproduit_id.prix_unitaire,
+                't_ligne_ht':d.detail.montant
+            }
+            
+            details.append(obj)
+        
+            
+        response['details']=details
+        return Response(response,status=status.HTTP_200_OK)
+        
+
 class PrintBL(APIView):
     def get(self,request):
+    
         bl_id=self.request.query_params.get('bl',None)
         bl=BonLivraison.objects.get(id=bl_id)
        
@@ -154,7 +206,7 @@ class PrintBL(APIView):
 
 class ListBL(generics.ListAPIView):
     # permission_classes = [IsAuthenticated]
-    queryset = BonLivraison.objects.all()
+    queryset = BonLivraison.objects.all().order_by('-date_modification')
     serializer_class = BonLivraisonSerializer
     filter_backends = [DjangoFilterBackend]
 
@@ -190,7 +242,7 @@ class AddPlaning(generics.CreateAPIView):
 
 class ListDQE(generics.ListAPIView):
     #permission_classes = [IsAuthenticated]
-    queryset = DQE.objects.all()
+    queryset = DQE.objects.all().order_by('-date_modification')
     serializer_class =DQESerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = DQEFilter
@@ -235,9 +287,9 @@ class ListDQECumulePlaning(APIView):
                      bottom=Side(style='thin'))
 
         if(data and contrat):
-            template_path = os.path.join(settings.MEDIA_ROOT, 'planing.xlsx')
+            template_path = os.path.join(settings.MEDIA_ROOT,'templates', 'planing.xlsx')
             wb = load_workbook(template_path)
-            print(wb)
+            
             ws = wb.active  # Assuming single sheet for simplicity
             ws['C2']=contrat.numero
             ws['C3']=f'{contrat.avenant}'
@@ -257,14 +309,13 @@ class ListDQECumulePlaning(APIView):
             response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
             response['Content-Disposition'] = 'attachment; filename=exported_data.xlsx'
             wb.save(response)
-            
             return response
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
 class ListDQECumule(generics.ListAPIView):
     #permission_classes = [IsAuthenticated]
-    queryset = DQECumule.objects.all()
+    queryset = DQECumule.objects.all().order_by('-date_modification')
     serializer_class =DQECumuleSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = DQECumuleFilter
@@ -294,7 +345,7 @@ class ListDQECumule(generics.ListAPIView):
 
 class ListClient(generics.ListAPIView):
     #permission_classes = [IsAuthenticated]
-    queryset = Clients.objects.all()
+    queryset = Clients.objects.all().order_by('-date_modification')
     serializer_class =ClientSerilizer
     filter_backends = [DjangoFilterBackend]
     filterset_class= ClientFilter
@@ -488,7 +539,7 @@ class DeleteBL(generics.DestroyAPIView):
 
 class ListFacture(generics.ListAPIView):
     #permission_classes = [IsAuthenticated]
-    queryset = Factures.objects.all()
+    queryset = Factures.objects.all().order_by('-date_modification')
     serializer_class =FactureSerializer
     filter_backends = [DjangoFilterBackend]
 
@@ -518,7 +569,7 @@ class ListFacture(generics.ListAPIView):
 
 class ListDetail(generics.ListAPIView):
     #permission_classes = [IsAuthenticated]
-    queryset = DetailFacture.objects.all()
+    queryset = DetailFacture.objects.all().order_by('-date_modification')
     serializer_class =DetailFactureSerializer
     filter_backends = [DjangoFilterBackend]
 
@@ -527,7 +578,7 @@ class ListDetail(generics.ListAPIView):
 
 class ListAvance(generics.ListAPIView):
     #permission_classes = [IsAuthenticated]
-    queryset = Avances.objects.all()
+    queryset = Avances.objects.all().order_by('-date_modification')
     serializer_class =AvanceSerializer
     filter_backends = [DjangoFilterBackend]
 

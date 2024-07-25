@@ -7,6 +7,13 @@ from api_gc.resources import *
 # Register your models here.
 lp=20
 
+@admin.register(InfoEntr)
+class InfoEntrAdmin(admin.ModelAdmin):
+    list_per_page = lp
+    list_display = [field.name for field in InfoEntr._meta.fields  if field.name not in ['']]
+
+
+
 
 @admin.register(Images)
 class ImagesAdmin(admin.ModelAdmin):

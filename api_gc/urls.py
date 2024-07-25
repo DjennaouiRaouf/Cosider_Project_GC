@@ -32,7 +32,7 @@ urlpatterns = [
     path('addbl/', AddBL.as_view()),
     
     path('pbl/',PrintBL.as_view()),
-
+    path('print_f/',PrintInv.as_view()),
 
     path('addcamion/',AddCamion.as_view()),
     path('getcamion/',ListCamion.as_view()),

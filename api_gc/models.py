@@ -63,6 +63,7 @@ class Tva(models.Model):
     def __str__(self):
         return str(self.id)+'%'
     class Meta:
+        managed = False
         app_label = 'api_gc'
         verbose_name = 'TVA'
         verbose_name_plural = 'TVA'
@@ -101,6 +102,7 @@ class Unite(models.Model):
     def __str__(self):
         return self.id
     class Meta:
+        managed = False
         app_label = 'api_gc'
         verbose_name = 'Unités'
         verbose_name_plural = 'Unités'
@@ -131,15 +133,43 @@ class Config(models.Model):
         super().save(*args, **kwargs)
 
     class Meta:
+        managed = False
         app_label = 'api_gc'
         verbose_name = 'Config'
         verbose_name_plural = 'Config'
         db_table='Config'
 
 
+class InfoEntr(models.Model):
+    Raison_s=models.CharField(max_length=500,null=True,blank=True)
+    Nature=models.CharField(max_length=500,null=True,blank=True)
+    Capital=models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0,blank=True)
+    N_reg_c=models.CharField(max_length=500,null=True,blank=True)
+    N_art_f=models.CharField(max_length=500,null=True,blank=True)
+    M_fiscale=models.CharField(max_length=500,null=True,blank=True)
+    Tel=models.CharField(max_length=500,null=True,blank=True)
+    Fax=models.CharField(max_length=500,null=True,blank=True)
+    
+    agence=models.CharField(max_length=500,null=True,blank=True)
+    compte=models.CharField(max_length=500,null=True,blank=True)
+    
+    willaya=models.CharField(max_length=500,null=True,blank=True) 
+    ville=models.CharField(max_length=500,null=True,blank=True)
+    Adresse=models.CharField(max_length=500,null=True,blank=True)
+    
+    index=models.CharField(max_length=500,null=True,blank=True)
+    reference=models.CharField(max_length=500,null=True,blank=True)
+
+    
+    class Meta:
+        app_label = 'api_gc'
+        verbose_name = 'Info'
+        verbose_name_plural = 'Info'
+        db_table = 'Info'
 
 
 class Images(models.Model):
+    
     src= models.ImageField(upload_to="Images", null=False)
     est_bloquer = models.BooleanField(default=False, editable=False)
     user_id = models.CharField(max_length=500, editable=False)
@@ -164,6 +194,7 @@ class Images(models.Model):
         super().save(*args, **kwargs)
 
     class Meta:
+        managed = False
         app_label = 'api_gc'
         verbose_name = 'Images'
         verbose_name_plural = 'Images'
@@ -198,6 +229,7 @@ class TypeClient(models.Model):
 
 
     class Meta:
+        managed = False
         app_label = 'api_gc'
         verbose_name = 'TypeClient'
         verbose_name_plural = 'TypeClient'
@@ -229,6 +261,7 @@ class Activite(models.Model):
     def __str__(self):
         return self.libelle
     class Meta:
+        managed = False
         app_label = 'api_gc'
         verbose_name = 'Activite'
         verbose_name_plural = 'Activite'
@@ -253,6 +286,7 @@ class Clients(models.Model):
     num_registre_commerce = models.CharField(db_column='Num_Registre_Commerce', max_length=20, blank=True, null=True,
                                              verbose_name='Numero du registre de commerce')
 
+    article_imposition=models.CharField(max_length=500,default='',verbose_name="A.I")
     type= models.ForeignKey(TypeClient,on_delete=models.DO_NOTHING,null=True, verbose_name='Type')
     act=models.ForeignKey(Activite,on_delete=models.DO_NOTHING,null=True, verbose_name='Activite')
 
@@ -278,6 +312,7 @@ class Clients(models.Model):
         super().save(*args, **kwargs)
 
     class Meta:
+        managed = False
         app_label = 'api_gc'
         verbose_name = 'Clients'
         verbose_name_plural = 'Clients'
@@ -310,6 +345,7 @@ class UniteMesure(models.Model):
     def __str__(self):
         return self.libelle
     class Meta:
+        managed = False
         app_label = 'api_gc'
         verbose_name = 'Unités de mesure'
         verbose_name_plural = 'Unités de mesure'
@@ -343,6 +379,7 @@ class Produits(models.Model):
     def __str__(self):
         return self.id
     class Meta:
+        managed = False
         app_label = 'api_gc'
         verbose_name = 'Produits'
         verbose_name_plural = 'Produits'
@@ -373,6 +410,7 @@ class TypePrix(models.Model):
     def __str__(self):
         return self.id
     class Meta:
+        managed = False
         app_label = 'api_gc'
         verbose_name = 'TypePrix'
         verbose_name_plural = 'TypePrix'
@@ -425,6 +463,7 @@ class PrixProduit(models.Model):
     def __str__(self):
         return self.id
     class Meta:
+        managed = False
         unique_together = (('produit','u', 'prix_unitaire','type_prix','id'))
         app_label = 'api_gc'
         verbose_name = 'Prix des Produits'
@@ -519,6 +558,7 @@ class Contrat(models.Model):
     def montant_ttc(self):
         return round(self.montant_ht+(self.montant_ht*self.tva.id/100),4)
     class Meta:
+        managed = False
         app_label = 'api_gc'
         verbose_name = 'Contrats'
         verbose_name_plural = 'Contrats'
@@ -685,6 +725,7 @@ class DQE(models.Model):
 
 
     class Meta:
+        managed = False
         unique_together=(('contrat','prixProduit'))
         app_label = 'api_gc'
         verbose_name = 'DQE'
@@ -732,6 +773,7 @@ class Avances(models.Model):
         super().save(*args, **kwargs)
 
     class Meta:
+        managed = False
         app_label = 'api_gc'
         verbose_name = 'Avances'
         verbose_name_plural = 'Avances'
@@ -792,6 +834,7 @@ class Planing(models.Model):
                 return self.qte_livre
 
     class Meta:
+        managed = False
         unique_together = (('contrat', 'dqe', 'date'),)
         app_label = 'api_gc'
         verbose_name = 'Planing'
@@ -823,6 +866,7 @@ class Camion(models.Model):
         super().save(*args, **kwargs)
 
     class Meta:
+        managed = False
         app_label = 'api_gc'
         verbose_name = 'Camions'
         verbose_name_plural = 'Camions'
@@ -871,16 +915,27 @@ class BonLivraison(models.Model):
         cl=Contrat_Latest.objects.get(numero=self.contrat)
         return cl.client.raison_social
     
+    @property 
+    def montant_rb(self):
+        return self.dqe.rabais
+    
+    @property
+    def montant_rg(self):
+        c=Contrat_Latest.objects.get(numero=self.contrat)
+        trg=c.rg/100
+        return (self.montant-self.montant_rb)*trg
+
+    @property
+    def montant_ht(self):
+        return self.montant-self.montant_rb-self.montant_rg
+
     @property
     def net_a_payer(self):
         c=Contrat_Latest.objects.get(numero=self.contrat)
-        tva=c.tva.id
-        rg=c.rg
-        op1=self.montant-self.dqe.rabais
-        op2=op1-(op1*rg/100)
-        op3=op2+(op2*tva/100)
-        print(op3)
-        return round(op3,3)
+        t_tva=c.tva.id/100
+        return self.montant_ht+(self.montant_ht*t_tva)
+
+
     @property
     def unite(self):
         uid=self.id.split('_')[0]
@@ -929,6 +984,7 @@ class BonLivraison(models.Model):
 
     @property
     def montant_cumule(self):
+        
         try:
             previous_cumule = BonLivraison.objects.filter(dqe=self.dqe, contrat=self.contrat, date__lt=self.date)
             sum = self.montant
@@ -942,6 +998,7 @@ class BonLivraison(models.Model):
             return 0
         
     class Meta:
+        managed = False
         app_label = 'api_gc'
         verbose_name = 'Bon de livraison'
         verbose_name_plural = 'Bon de livraison'
@@ -976,13 +1033,49 @@ class Factures(models.Model):
     def save(self, *args, **kwargs):
         config=Config.objects.first()
         count=Factures.objects.all_with_deleted().count()+1
-        self.id=str(config.unite)+'_'+str(count)
+        if not self.pk:
+            self.id=str(config.unite)+'_'+str(count)
+        debut = self.du
+        fin = self.au
+        ttc = 0
+        ht=0
+        mrb=0
+        mrg=0
+        m=0        
+        try:
+            details =  BonLivraison.objects.filter(contrat=self.contrat.numero, date__date__lte=fin, date__date__gte=debut)
+            if(not details):
+                raise ValueError('Pas de Bon de livraison')
+            else:
+                for d in details:
+                    m+=d.montant
+                    ttc+=d.net_a_payer
+                    ht+=d.montant_ht 
+                    mrb+=d.montant_rb
+                    mrg+=d.montant_rg
+    
+                self.montant=m
+                self.montant_facture_ttc=ttc
+                self.montant_facture_ht=ht
+                self.montant_rb=mrb
+                self.montant_rg=mrg
+        except BonLivraison.DoesNotExist:
+                raise ValueError('Pas de Bon de livraison')
 
         if not self.user_id:
             current_user = get_current_user()
             if current_user and hasattr(current_user, 'username'):
                 self.user_id = current_user.username
         super().save(*args, **kwargs)
+        details =  BonLivraison.objects.filter(contrat=self.contrat.numero, date__date__lte=fin, date__date__gte=debut)
+        if(not details):
+            raise ValueError('Pas de Bon de livraison')
+        else:
+            for d in details:
+                DetailFacture(
+                            facture=self,
+                            detail=d
+                        ).save()
 
     def delete(self, *args, **kwargs):
 
@@ -1004,6 +1097,7 @@ class Factures(models.Model):
         return self.id
 
     class Meta:
+        managed = False
         app_label = 'api_gc'
         verbose_name = 'Factures'
         verbose_name_plural = 'Factures'
@@ -1037,6 +1131,7 @@ class DetailFacture(models.Model):
         super().save(*args, **kwargs)
 
     class Meta:
+        managed = False
         unique_together = (('facture', 'detail',))
         app_label = 'api_gc'
         verbose_name = 'Details'
@@ -1069,6 +1164,7 @@ class ModePaiement(models.Model):
     def __str__(self):
         return self.libelle
     class Meta:
+        managed = False
         app_label = 'api_gc'
 
         verbose_name = 'Mode de Paiement'
@@ -1122,6 +1218,7 @@ class Encaissement(models.Model):
         except Encaissement.DoesNotExist:
             return 0
     class Meta:
+        managed = False
         unique_together = (("facture", "date_encaissement"),)
         app_label = 'api_gc'
         verbose_name = 'Encaissements'
