@@ -4,7 +4,7 @@ from django.db import transaction
 from django.db.models import Q, F
 from django.db.models.signals import *
 from django.dispatch import *
-
+from django.utils import timezone
 from api_gc.models import *
 
 
@@ -37,7 +37,15 @@ def pre_save_avance(sender, instance, **kwargs):
 
 @receiver(pre_save,  sender=Encaissement)
 def pre_save_encaissement(sender, instance, **kwargs):
-    pass
+    if(instance.montant_encaisse > 0 ):
+        cumule=Encaissement.objects.filter(facture=instance.facture, date_encaissement__lt=str(timezone.now().date().strftime('%Y-%m-%d'))).aggregate(models.Sum('montant_encaisse'))[
+                "montant_encaisse__sum"] or 0    
+        
+        cumule+=instance.montant_encaisse 
+        if(instance.facture.montant_facture_ttc-cumule < 0):
+            raise ValidationError('Encaissement Terminer')
+    else:
+        raise ValidationError('Encaissement Impossible Pas de valeur Null')
 
 @receiver(pre_save, sender=DQE)
 def pre_save_dqe(sender, instance, **kwargs):

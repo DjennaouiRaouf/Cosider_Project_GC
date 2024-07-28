@@ -215,6 +215,25 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 
+class EncaissementSerializer(serializers.ModelSerializer):
+    montant_cumule=serializers.SerializerMethodField(label='Montant Cumulé')
+    montant_creance=serializers.SerializerMethodField(label='Montant Créance')
+
+    def get_montant_cumule(self,obj):
+        return obj.montant_cumule
+    def get_montant_creance(self,obj):
+        return obj.montant_creance
+    
+    
+    def get_fields(self, *args, **kwargs):
+        fields = super().get_fields(*args, **kwargs)
+        return fields
+    class Meta:
+        model = Encaissement
+        fields = ['id','facture','montant_encaisse','mode_paiement','date_encaissement','montant_cumule','montant_creance']
+    
+    
+
 
 class PlaningSerializer(serializers.ModelSerializer):
     

@@ -102,10 +102,13 @@ class ClientsAdmin(ImportExportMixin, admin.ModelAdmin):
 @admin.register(Encaissement)
 class EncaissementAdmin(ImportExportMixin, admin.ModelAdmin):
     list_per_page = lp
-    list_display = [field.name for field in Encaissement._meta.fields if field.name not in ['']]+['montant_creance',
+    list_display = [field.name for field in Encaissement._meta.fields if field.name not in ['']]+['montant_cumule','montant_creance'
                                                                                                                         ]
 
 
+    
+    def montant_cumule(self,obj):
+        return obj.montant_cumule
     
     def montant_creance(self,obj):
         return obj.montant_creance

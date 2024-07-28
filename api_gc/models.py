@@ -5,6 +5,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django_currentuser.middleware import get_current_user
 from django.db.models import Q, F, IntegerField, Sum
+from django.utils import timezone
 # Create your models here.
 class GeneralManager(models.Manager):
 
@@ -1075,7 +1076,9 @@ class Factures(models.Model):
             if current_user and hasattr(current_user, 'username'):
                 self.user_id = current_user.username
         self.est_bloquer = True
-        DetailFacture.objects.filter(facture=self.id).delete()
+        details=DetailFacture.objects.filter(facture__id=self.id)
+        for d in details:
+            d.delete()
         super().save(*args, **kwargs)
 
     @property
@@ -1165,8 +1168,7 @@ class ModePaiement(models.Model):
 class Encaissement(models.Model):
 
     facture = models.ForeignKey(Factures, on_delete=models.DO_NOTHING, null=False, verbose_name="Facture")
-    date_encaissement = models.DateField(null=False, verbose_name="Date d'encaissement")
-    avance= models.ForeignKey(Avances, on_delete=models.DO_NOTHING, null=True, verbose_name="Avance")
+    date_encaissement = models.DateField(null=False, verbose_name="Date d'encaissement",auto_now=True)
     mode_paiement = models.ForeignKey(ModePaiement, on_delete=models.DO_NOTHING, null=False,
                                       verbose_name="Mode de paiement")
     montant_encaisse = models.DecimalField(max_digits=38, decimal_places=3, blank=True, verbose_name="Montant encaissé",
@@ -1195,18 +1197,16 @@ class Encaissement(models.Model):
         super().save(*args, **kwargs)
 
     @property
+    def montant_cumule(self):
+        cumule = Encaissement.objects.filter(facture=self.facture, date_encaissement__lte=str(timezone.now().date().strftime('%Y-%m-%d'))).aggregate(models.Sum('montant_encaisse'))[
+            "montant_encaisse__sum"] or self.montant_encaisse
+        return cumule
+
+    @property
     def montant_creance(self):
         try:
-            enc = Encaissement.objects.filter(facture=self.facture, date_encaissement__lt=self.date_encaissement).aggregate(models.Sum('montant_encaisse'))[
-            "montant_encaisse__sum"]
-
-            if(enc==None):
-                enc=self.montant_encaisse
-            else:
-                enc+=self.montant_encaisse
-
-            return (self.facture.montant_facture_ttc-enc)
-        except Encaissement.DoesNotExist:
+            return self.facture.montant_facture_ttc-self.montant_cumule
+        except Exception as e:
             return 0
     class Meta:
         managed = False

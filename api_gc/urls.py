@@ -30,7 +30,8 @@ urlpatterns = [
     path('getprod/',GetProds.as_view()),
     path('getbl/',ListBL.as_view()),
     path('addbl/', AddBL.as_view()),
-    
+    path('addenc/',AddEnc.as_view()),
+    path('getenc/',GetEnc.as_view()),
     path('pbl/',PrintBL.as_view()),
     path('print_f/',PrintInv.as_view()),
 

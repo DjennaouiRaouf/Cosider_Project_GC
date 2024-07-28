@@ -250,6 +250,16 @@ class AddBL(generics.CreateAPIView):
     serializer_class = BonLivraisonSerializer
 
 
+class AddEnc(generics.CreateAPIView):
+    # permission_classes = [IsAuthenticated]
+    queryset= Encaissement.objects.all()
+    serializer_class = EncaissementSerializer
+
+class GetEnc(generics.ListAPIView):
+    # permission_classes = [IsAuthenticated]
+    queryset= Encaissement.objects.all()
+    serializer_class = EncaissementSerializer
+
 class AddPlaning(generics.CreateAPIView):
     # permission_classes = [IsAuthenticated]
     queryset= Planing.objects.all()
@@ -520,15 +530,17 @@ class DeleteInvoice(generics.DestroyAPIView):
     #permission_classes = [IsAuthenticated]
     queryset = Factures.objects.all()
     serializer_class = FactureSerializer
-
+     
     def delete(self, request, *args, **kwargs):
-        pk = request.data.get(Factures._meta.pk.name)
-        if pk:
+        pks = self.request.data.get('id', [])
+        
+        if pks:
             queryset = self.filter_queryset(self.get_queryset())
-            queryset = queryset.filter(pk__in=pk)
-            self.perform_destroy(queryset)
+            queryset = queryset.filter(pk__in=pks)
+            for q in queryset:
+                q.delete()
 
-        return Response({'Message': pk}, status=status.HTTP_200_OK)
+        return Response({'Message': pks}, status=status.HTTP_200_OK)
 
 
 

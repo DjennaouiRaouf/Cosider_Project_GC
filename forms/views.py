@@ -543,6 +543,46 @@ class DQEFieldsAddUpdate(APIView):
 
 
 
+class EncFieldsAddUpdate(APIView):
+    def get(self, request):
+        fields = Encaissement._meta.get_fields()
+        field_info = []
+        field_state = []
+        state = {}
+        facture = request.query_params.get('id_f', None) or None
+        for field in fields:
+            if(field.editable and field.name not in ['id','facture'] ):
+                obj={
+                    'name':field.name,
+                    'type':field.get_internal_type(),
+                    'label':field.verbose_name,    
+                }
+                if(field.related_model in [ModePaiement]):
+                    filtered_data=[]
+                    anySerilizer = create_dynamic_serializer(ModePaiement)
+                    serialized_data = anySerilizer(ModePaiement.objects.all(), many=True).data
+                    for item in serialized_data:                        
+                        filtered_item = {
+                            'value': item['id'],
+                            'label': item['libelle'],
+                            }        
+                        filtered_data.append(filtered_item)
+                        
+                    obj['queryset']=filtered_data
+
+                state.__setitem__(field.name,field.get_default())
+                field_info.append(obj)
+        return Response({'fields': field_info,'state':state},
+                        status=status.HTTP_200_OK)
+
+
+
+
+
+
+
+
+
 
 class FactureFieldsAddUpdate(APIView):
     def get(self, request):
@@ -652,6 +692,7 @@ class PlaningFieldsList(APIView):
                 if(field_name in ['mmaa']):
                     obj['rowGroup'] = True
                     obj['hide']=True
+         
 
 
                 if(field_name in ['qte_livre','qte_realise','ecart']):
