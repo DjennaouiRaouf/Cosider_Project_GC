@@ -107,10 +107,24 @@ class ImportPlaning(APIView):
     #permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        plaling_file = request.FILES['file']
-        contrat = request.data.get('contrat')
-          
-        df=pandas.read_excel(dqe_file, engine='openpyxl')
+        planing_file = request.FILES['file']
+        contrat = Contrat_Latest.objects.get(id=request.data.get('contrat'))
+        df=pandas.read_excel(planing_file, engine='openpyxl')
+        sub_df = df.iloc[4:, 3:]
+        sub_df.columns=sub_df.iloc[0]
+        sub_df = sub_df[1:]
+        sub_df = sub_df.reset_index(drop=True)
+        sub_df.insert(0,' ',list(df.iloc[5:, 1]))
+        sub_df.set_index(' ', inplace=True)
+        for i, row in sub_df.iterrows():
+            for col in sub_df.columns:
+                code_prod=i
+                date=col
+                qte=row[col]
+                
+                dqe=DQECumule.objects.get(produit_id=code_prod)
+                Planing(contrat=contrat,dqe=dqe,qte_livre=qte,date=date).save()
+
         return Response(status=status.HTTP_200_OK)
     
 
@@ -119,7 +133,7 @@ class PrintInv(APIView):
         id=self.request.query_params.get('id',None)
         response={}
         factures=Factures.objects.get(id=id)
-        details_qs=DetailFacture.objects.filter(facture=factures)
+        details_qs=DetailFacture.objects.filter(facture=factures).order_by('detail__date_modification')
         cosider= InfoEntr.objects.all().first()
         details=[]
         response={
@@ -149,6 +163,7 @@ class PrintInv(APIView):
         for d in details_qs:
             
             obj={
+                'bl':d.detail.num_bl,
                 'ref_prod':d.detail.dqe.produit_id.id,
                 'libelle':d.detail.dqe.produit_id.libelle,
                 'UM':d.detail.dqe.produit_id.unite_m.id,
@@ -295,9 +310,11 @@ class ListDQECumulePlaning(APIView):
             ws['C3']=f'{contrat.avenant}'
             ws['C4']=f"{humanize.intcomma(round(contrat.montant_ht,2)).replace(',',' ')} DA"
             ws['C5']=f"{humanize.intcomma(round(contrat.montant_ttc,2)).replace(',',' ')} DA"
-            
+          
+
+
             # Write data to template
-            row_offset = 8  # Start writing data from row 3 (assuming headers are in row 1 and 2)
+            row_offset = 7  # Start writing data from row 3 (assuming headers are in row 1 and 2)
             for row_index, item in enumerate(data, start=row_offset):
                 for col_index, key in enumerate(['produit_id', 'libelle'], start=2):
                     cell = ws.cell(row=row_index, column=col_index)

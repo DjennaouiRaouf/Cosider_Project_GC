@@ -221,8 +221,6 @@ class PlaningSerializer(serializers.ModelSerializer):
     lib_prod=serializers.SerializerMethodField(label='Libelle')
     code_prod=serializers.SerializerMethodField(label='Code Produit')
     unite_m=serializers.SerializerMethodField(label='Unité M')
-    qte_realise=serializers.SerializerMethodField(label='Qte Réalisée')
-    ecart= serializers.SerializerMethodField(label='Ecart')
     mmaa=serializers.SerializerMethodField(label='MMAA')
     def get_lib_prod(self,obj):
         try:
@@ -241,14 +239,7 @@ class PlaningSerializer(serializers.ModelSerializer):
         except:
             return None
         
-    def get_qte_realise(self,obj):
-        try:
-            return obj.qte_realise
-        except:
-            return None
         
-    def get_ecart(self,obj):
-        return obj.qte_livre-obj.qte_realise
     def get_mmaa(self,obj):
         return f'{obj.date.year}-{obj.date.month}'
     
@@ -259,7 +250,7 @@ class PlaningSerializer(serializers.ModelSerializer):
         return fields
     class Meta:
         model = Planing
-        fields = ['contrat','mmaa','dqe','code_prod','lib_prod','date','qte_livre','qte_realise','ecart','unite_m']
+        fields = ['contrat','mmaa','dqe','code_prod','lib_prod','date','qte_livre','unite_m']
     
 
 

@@ -8,6 +8,7 @@ from django.db.models import Q, F, IntegerField, Sum
 # Create your models here.
 class GeneralManager(models.Manager):
 
+
     def get_queryset(self):
         if(self.model in  [Contrat,Clients,Camion,UniteMesure,DetailFacture,ModePaiement,Tva]):
             return super().get_queryset().filter(~Q(est_bloquer=True))
@@ -19,6 +20,7 @@ class GeneralManager(models.Manager):
             else:
                 return super().get_queryset().filter(~Q(est_bloquer=True) & Q(pk__contains=unite))
 
+    
     def deleted(self):
 
         if (self.model in [Contrat,Clients,Camion,UniteMesure,DetailFacture,ModePaiement,Tva]):
@@ -792,27 +794,15 @@ class Planing(models.Model):
     user_id = models.CharField(max_length=500, editable=False)
     date_modification = models.DateTimeField(editable=False, auto_now=True)
     
-    @property
-    def qte_realise(self):
-        try:
-            qr = BonLivraison.objects.filter(dqe=self.dqe, contrat=self.contrat, date__month=self.date.month , date__year=self.date.year
-                                         ).aggregate(models.Sum('qte'))[
-                "qte__sum"] or 0
-            
-            return qr
-        except:
-            return 0
-            
-
-
-        return(f'{mm}-{aa}')    
-
     def save(self, *args, **kwargs):
         if not self.user_id:
             current_user = get_current_user()
             if current_user and hasattr(current_user, 'username'):
                 self.user_id = current_user.username
+            
         super().save(*args, **kwargs)
+    
+ 
 
     def delete(self, *args, **kwargs):
         if not self.user_id:
