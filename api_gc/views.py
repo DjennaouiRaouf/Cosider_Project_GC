@@ -21,6 +21,8 @@ from django.http import HttpResponse
 from PyPDFForm import *
 from reportlab.lib.pagesizes import *
 from reportlab.pdfgen import canvas
+from django.db.models import OuterRef, Subquery, DateField
+from django.db.models.functions import Coalesce
 # Create your views here.
 
 class CreateUserView(generics.CreateAPIView):
@@ -259,6 +261,38 @@ class GetEnc(generics.ListAPIView):
     # permission_classes = [IsAuthenticated]
     queryset= Encaissement.objects.all()
     serializer_class = EncaissementSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = EncFilter
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        mge = 0
+        mgc  = 0
+        
+        for q in queryset:
+            mge+=q.montant_encaisse
+        
+        latest_encaissement_subquery = queryset.filter(
+            facture=OuterRef('facture')
+        ).order_by('-date_encaissement').values('id')[:1]
+
+        latest_encaissements = queryset.filter(
+            id__in=Subquery(latest_encaissement_subquery)
+        ).select_related('facture', 'mode_paiement')
+
+        for le in latest_encaissements:
+            mgc+=le.montant_creance
+
+        response_data = super().list(request, *args, **kwargs).data
+        return Response({
+            'enc':response_data,
+            'extra':{
+                'mge': mge,
+                'mgc':mgc,
+                
+            }
+            
+        }, status=status.HTTP_200_OK)
+
 
 class AddPlaning(generics.CreateAPIView):
     # permission_classes = [IsAuthenticated]

@@ -1167,7 +1167,7 @@ class ModePaiement(models.Model):
 class Encaissement(models.Model):
 
     facture = models.ForeignKey(Factures, on_delete=models.DO_NOTHING, null=False, verbose_name="Facture")
-    date_encaissement = models.DateField(null=False, verbose_name="Date d'encaissement",auto_now=True)
+    date_encaissement = models.DateTimeField(null=False, verbose_name="Date d'encaissement",auto_now=True)
     mode_paiement = models.ForeignKey(ModePaiement, on_delete=models.DO_NOTHING, null=False,
                                       verbose_name="Mode de paiement")
     montant_encaisse = models.DecimalField(max_digits=38, decimal_places=3, blank=True, verbose_name="Montant encaissé",
@@ -1197,8 +1197,8 @@ class Encaissement(models.Model):
 
     @property
     def montant_cumule(self):
-        cumule = Encaissement.objects.filter(facture=self.facture, date_encaissement__lte=str(timezone.now().date().strftime('%Y-%m-%d'))).aggregate(models.Sum('montant_encaisse'))[
-            "montant_encaisse__sum"] or self.montant_encaisse
+        cumule = Encaissement.objects.filter(facture=self.facture, date_encaissement__lte=self.date_encaissement).aggregate(models.Sum('montant_encaisse'))[
+            "montant_encaisse__sum"] 
         return cumule
 
     @property

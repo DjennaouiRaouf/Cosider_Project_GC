@@ -24,7 +24,7 @@ urlpatterns = [
     path('dqeaddupdateform/',DQEFieldsAddUpdate.as_view()),
 
     path('encaddupdateform/',EncFieldsAddUpdate.as_view()),
-
+    path('enclistform/',EncFieldsList.as_view()),
 
     path('dqefilterform/',DQEFilterForm.as_view()),
     path('dqecumulefilterform/',DQECumuleFilterForm.as_view()),

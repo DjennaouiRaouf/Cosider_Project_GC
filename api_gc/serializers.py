@@ -228,10 +228,18 @@ class EncaissementSerializer(serializers.ModelSerializer):
     def get_fields(self, *args, **kwargs):
         fields = super().get_fields(*args, **kwargs)
         return fields
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['mode_paiement'] = instance.mode_paiement.libelle
+        representation['date_encaissement']= instance.date_encaissement.strftime('%Y-%m-%d %H:%M')
+        return representation
+
+
     class Meta:
         model = Encaissement
-        fields = ['id','facture','montant_encaisse','mode_paiement','date_encaissement','montant_cumule','montant_creance']
-    
+        fields = ['id','facture','date_encaissement','mode_paiement','montant_encaisse','montant_cumule','montant_creance']
+
     
 
 

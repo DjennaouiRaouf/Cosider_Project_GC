@@ -407,8 +407,10 @@ class FactureFieldsList(APIView):
 
 
                 }
+                if(field_name in ['contrat']):
+                    obj['hide']=True
                 if(field_name in ['montant_rg','montant_rb','montant','montant_cumule',
-                                  'montant_ttc','montant_ht']):
+                                  'montant_facture_ttc','montant_facture_ht']):
                     obj['cellRenderer'] = 'InfoRenderer'
 
                 field_info.append(obj)
@@ -703,6 +705,40 @@ class PlaningFieldsList(APIView):
         return Response({'fields': field_info},
                         status=status.HTTP_200_OK)
 
+
+
+
+
+
+
+class EncFieldsList(APIView):
+    def get(self, request):
+        serializer = EncaissementSerializer()
+        fields = serializer.get_fields()
+        field_info = []
+        for field_name, field_instance in fields.items():
+            if(field_name not in ['']):
+                obj = {
+                        'field': field_name,
+                        'headerName': field_instance.label or field_name,
+
+
+                }
+                if(field_name in ['id']):
+                    obj['hide']=True
+                
+                if(field_name in ['facture']):
+                    obj['rowGroup'] = True
+                    obj['hide']=True
+         
+
+
+                if(field_name in ['montant_cumule','montant_creance','montant_encaisse']):
+                    obj['cellRenderer'] = 'InfoRenderer'
+                    
+                field_info.append(obj)
+        return Response({'fields': field_info},
+                        status=status.HTTP_200_OK)
 
 
 
