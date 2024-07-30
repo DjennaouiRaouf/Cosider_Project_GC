@@ -418,7 +418,9 @@ class ListDQECumulePlaning(APIView):
             ws['C3']=f'{contrat.avenant}'
             ws['C4']=f"{humanize.intcomma(round(contrat.montant_ht,2)).replace(',',' ')} DA"
             ws['C5']=f"{humanize.intcomma(round(contrat.montant_ttc,2)).replace(',',' ')} DA"
-          
+
+
+
 
 
             # Write data to template
