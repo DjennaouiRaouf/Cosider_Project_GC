@@ -6,6 +6,7 @@ from django.db import models
 from django_currentuser.middleware import get_current_user
 from django.db.models import Q, F, IntegerField, Sum
 from django.utils import timezone
+from django.core.exceptions import ValidationError
 # Create your models here.
 class GeneralManager(models.Manager):
 
@@ -950,12 +951,13 @@ class BonLivraison(models.Model):
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        if not self.user_id:
-            current_user = get_current_user()
-            if current_user and hasattr(current_user, 'username'):
-                self.user_id = current_user.username
-        self.est_bloquer = True
-        super().save(*args, **kwargs)
+        if(not DetailFacture.objects.filter(detail=self.id)):    
+            if not self.user_id:
+                current_user = get_current_user()
+                if current_user and hasattr(current_user, 'username'):
+                    self.user_id = current_user.username
+            self.est_bloquer = True
+            super().save(*args, **kwargs)
 
     @property
     def qte_cumule(self):

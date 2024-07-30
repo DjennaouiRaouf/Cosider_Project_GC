@@ -34,15 +34,16 @@ urlpatterns = [
     path('getenc/',GetEnc.as_view()),
     path('pbl/',PrintBL.as_view()),
     path('print_f/',PrintInv.as_view()),
-
+    path('delbl/',DeleteBL.as_view()),
     path('addcamion/',AddCamion.as_view()),
     path('getcamion/',ListCamion.as_view()),
+    
+    path('printenc/',PrintEnc.as_view()),
 
     path('addfacture/', AddFacture.as_view()),
     path('getfacture/', ListFacture.as_view()),
 
-
-
+    path('dateinv/',DatesInv.as_view()),
 
     path('updatedqe/',UpdateDQE.as_view()),
     path('deldqe/',DeleteDQE.as_view()),

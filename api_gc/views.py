@@ -23,6 +23,7 @@ from reportlab.lib.pagesizes import *
 from reportlab.pdfgen import canvas
 from django.db.models import OuterRef, Subquery, DateField
 from django.db.models.functions import Coalesce
+from django.db.models import Count, Sum, Min, Max
 # Create your views here.
 
 class CreateUserView(generics.CreateAPIView):
@@ -181,6 +182,8 @@ class PrintInv(APIView):
         return Response(response,status=status.HTTP_200_OK)
         
 
+
+
 class PrintBL(APIView):
     def get(self,request):
     
@@ -229,18 +232,32 @@ class ListBL(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        qt = 0
-        mt = 0
+        mg = 0
+        contrat=Contrat_Latest.objects.get(numero=self.request.query_params.get('contrat',None))
         response_data = super().list(request, *args, **kwargs).data
+        date_overflow=None
         for q in queryset:
-            qt = qt + q.qte
-            mt = mt + q.montant
+            mg += q.montant
+            tmp=contrat.montant_ht-mg
+          
+        tmp=0
+        for q in queryset:
+            tmp += q.montant
+            if(contrat.montant_ht-mg<0):
+                date_overflow=q.date
+                break
+        if(date_overflow):
+            date_overflow=date_overflow.strftime('%d-%m-%Y')
+        else:
+            date_overflow=None
 
+        overflow=contrat.montant_ht-mg
         return Response({'bl': response_data,
                          'extra': {
-                             'qt': qt,
-                             'mt': mt,
-
+                             'solde': contrat.montant_ht,
+                             'mg': mg,
+                             'ecart':overflow,
+                             'date':date_overflow,
 
                          }}, status=status.HTTP_200_OK)
 
@@ -250,7 +267,15 @@ class AddBL(generics.CreateAPIView):
     # permission_classes = [IsAuthenticated]
     queryset= BonLivraison.objects.all()
     serializer_class = BonLivraisonSerializer
-
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            print(serializer)
+            serializer.save()
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 
 class AddEnc(generics.CreateAPIView):
     # permission_classes = [IsAuthenticated]
@@ -292,6 +317,45 @@ class GetEnc(generics.ListAPIView):
             }
             
         }, status=status.HTTP_200_OK)
+
+
+
+class PrintEnc(generics.ListAPIView):
+    # permission_classes = [IsAuthenticated]
+    queryset= Encaissement.objects.all().order_by('-facture')
+    serializer_class = EncaissementSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = EncFilter
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        mge = 0
+        mgc  = 0
+        
+        for q in queryset:
+            mge+=q.montant_encaisse
+        
+        latest_encaissement_subquery = queryset.filter(
+            facture=OuterRef('facture')
+        ).order_by('-date_encaissement').values('id')[:1]
+
+        latest_encaissements = queryset.filter(
+            id__in=Subquery(latest_encaissement_subquery)
+        ).select_related('facture', 'mode_paiement')
+
+        for le in latest_encaissements:
+            mgc+=le.montant_creance
+
+        response_data = super().list(request, *args, **kwargs).data
+        return Response({
+            'enc':response_data,
+            'extra':{
+                'mge': mge,
+                'mgc':mgc,
+                
+            }
+            
+        }, status=status.HTTP_200_OK)
+
 
 
 class AddPlaning(generics.CreateAPIView):
@@ -491,6 +555,25 @@ class contratKeys(APIView):
             return Response({'message':'Pas de contrat'},status=status.HTTP_404_NOT_FOUND)
 
 
+class DatesInv(APIView):
+    #permission_classes = [IsAuthenticated]
+    def get(self,request):
+        try:
+            contrat=self.request.query_params.get('cid',None)
+            result = Factures.objects.filter(contrat__numero=contrat).aggregate(
+                min_date=Min('date'),
+                max_date=Max('date')
+            )
+
+            min_date = result['min_date']
+            max_date = result['max_date']
+
+            return Response({'min_date': min_date, 'max_date': max_date}, status=status.HTTP_200_OK)
+        
+        except Contrat.DoesNotExist:
+            return Response({'message':'Pas de Facture(s)'},status=status.HTTP_404_NOT_FOUND)
+
+
 
 
 
@@ -560,6 +643,22 @@ class DeleteDQE(generics.DestroyAPIView):
 
 
 
+class DeleteBL(generics.DestroyAPIView):
+    #permission_classes = [IsAuthenticated]
+    queryset = BonLivraison.objects.all()
+    serializer_class = BonLivraisonSerializer
+
+    def delete(self, request, *args, **kwargs):
+        pks = request.data.get('id')
+        if pks:
+            queryset = self.filter_queryset(self.get_queryset())
+            queryset = queryset.filter(pk__in=pks)
+            for qs in queryset:
+                qs.delete()
+
+        return Response({'Message': pks}, status=status.HTTP_200_OK)
+
+
 class DeleteInvoice(generics.DestroyAPIView):
     #permission_classes = [IsAuthenticated]
     queryset = Factures.objects.all()
@@ -572,8 +671,8 @@ class DeleteInvoice(generics.DestroyAPIView):
             queryset = self.filter_queryset(self.get_queryset())
             queryset = queryset.filter(pk__in=pks)
             for q in queryset:
-                q.delete()
-
+                    q.delete()
+                
         return Response({'Message': pks}, status=status.HTTP_200_OK)
 
 
@@ -581,20 +680,6 @@ class DeleteInvoice(generics.DestroyAPIView):
 
 
 
-
-class DeleteBL(generics.DestroyAPIView):
-    #permission_classes = [IsAuthenticated]
-    queryset = BonLivraison.objects.all()
-    serializer_class = BonLivraisonSerializer
-
-    def delete(self, request, *args, **kwargs):
-        pk = request.data.get(BonLivraison._meta.pk.name)
-        if pk:
-            queryset = self.filter_queryset(self.get_queryset())
-            queryset = queryset.filter(pk__in=pk)
-            self.perform_destroy(queryset)
-
-        return Response({'Message': pk}, status=status.HTTP_200_OK)
 
 
 
