@@ -241,7 +241,15 @@ class EncaissementSerializer(serializers.ModelSerializer):
         fields = ['id','facture','date_encaissement','mode_paiement','montant_encaisse','montant_cumule','montant_creance']
 
     
+class InvNestedSerializer(serializers.ModelSerializer):
+    enc=serializers.SerializerMethodField()
+    def get_enc(self,obj):
+        e=Encaissement.objects.filter(facture=obj)
+        return EncaissementSerializer(e,many=True).data
 
+    class Meta:
+        model = Factures
+        fields = '__all__'
 
 class PlaningSerializer(serializers.ModelSerializer):
     

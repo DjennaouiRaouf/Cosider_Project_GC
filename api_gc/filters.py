@@ -86,7 +86,24 @@ class DQECumuleFilter(django_filters.FilterSet):
 class EncFilter(django_filters.FilterSet):
     class Meta:
         model = Encaissement
-        fields = ['facture__contrat__numero',]
+        fields = ['facture__contrat__numero',] 
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field_instance in self.base_filters.items():
+            try:
+                model_field = self.Meta.model._meta.get_field(field_name)
+                field_instance.label = model_field.verbose_name
+            except:
+                pass
+
+
+
+class InvFilter(django_filters.FilterSet):
+    date_op=django_filters.DateFromToRangeFilter(field_name='date')
+    class Meta:
+        model = Factures
+        fields = ['contrat__numero','date_op'] 
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

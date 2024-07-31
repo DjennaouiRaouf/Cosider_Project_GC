@@ -322,39 +322,40 @@ class GetEnc(generics.ListAPIView):
 
 class PrintEnc(generics.ListAPIView):
     # permission_classes = [IsAuthenticated]
-    queryset= Encaissement.objects.all().order_by('-facture')
-    serializer_class = EncaissementSerializer
+    queryset= Factures.objects.all().order_by('-id')
+    serializer_class = InvNestedSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_class = EncFilter
+    filterset_class = InvFilter
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        mge = 0
-        mgc  = 0
-        
-        for q in queryset:
-            mge+=q.montant_encaisse
-        
-        latest_encaissement_subquery = queryset.filter(
-            facture=OuterRef('facture')
-        ).order_by('-date_encaissement').values('id')[:1]
-
-        latest_encaissements = queryset.filter(
-            id__in=Subquery(latest_encaissement_subquery)
-        ).select_related('facture', 'mode_paiement')
-
-        for le in latest_encaissements:
-            mgc+=le.montant_creance
-
+        cosider= InfoEntr.objects.all().first()
+        contrat=Contrat_Latest.objects.get(numero=self.request.query_params.get('contrat__numero',None))
         response_data = super().list(request, *args, **kwargs).data
+        total_facture=0
+        total_encaisse=0
+        for f in queryset: #pour chaque facture dans la queryset
+            total_facture+=f.montant_facture_ttc
+            for e in Encaissement.objects.filter(facture=f):
+                total_encaisse+=e.montant_encaisse
+
         return Response({
-            'enc':response_data,
+            'fc':response_data,
             'extra':{
-                'mge': mge,
-                'mgc':mgc,
-                
-            }
-            
+                'ref':cosider.reference,
+                'rev':cosider.index,
+                'code_client':contrat.client.id,
+                'adresse':contrat.client.adresse,
+                'nif':contrat.client.nif,
+                'nrc':contrat.client.num_registre_commerce,
+                'rs':contrat.client.raison_social,
+                'unite':f"({Config.objects.all().first().unite.id}) {Config.objects.all().first().unite.libelle}",
+                'tf':total_facture,
+                'te':total_encaisse,
+                'solde':total_facture-total_encaisse,
+            }    
+        
         }, status=status.HTTP_200_OK)
+
 
 
 
@@ -692,7 +693,7 @@ class ListFacture(generics.ListAPIView):
     queryset = Factures.objects.all().order_by('-date_modification')
     serializer_class =FactureSerializer
     filter_backends = [DjangoFilterBackend]
-
+    filterset_class = InvFilter
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
