@@ -420,10 +420,6 @@ class ListDQECumulePlaning(APIView):
             ws['C4']=f"{humanize.intcomma(round(contrat.montant_ht,2)).replace(',',' ')} DA"
             ws['C5']=f"{humanize.intcomma(round(contrat.montant_ttc,2)).replace(',',' ')} DA"
 
-
-
-
-
             # Write data to template
             row_offset = 7  # Start writing data from row 3 (assuming headers are in row 1 and 2)
             for row_index, item in enumerate(data, start=row_offset):
