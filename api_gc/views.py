@@ -176,12 +176,11 @@ class PrintInv(APIView):
             }
             
             details.append(obj)
-        
-            
+
+
         response['details']=details
         return Response(response,status=status.HTTP_200_OK)
         
-
 
 
 class PrintBL(APIView):
