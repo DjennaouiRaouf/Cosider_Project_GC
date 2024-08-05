@@ -412,7 +412,6 @@ class ListDQECumulePlaning(APIView):
         if(data and contrat):
             template_path = os.path.join(settings.MEDIA_ROOT,'templates', 'planing.xlsx')
             wb = load_workbook(template_path)
-            
             ws = wb.active  # Assuming single sheet for simplicity
             ws['C2']=contrat.numero
             ws['C3']=f'{contrat.avenant}'
