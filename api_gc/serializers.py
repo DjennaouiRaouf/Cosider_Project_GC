@@ -257,6 +257,8 @@ class PlaningSerializer(serializers.ModelSerializer):
     code_prod=serializers.SerializerMethodField(label='Code Produit')
     unite_m=serializers.SerializerMethodField(label='Unité M')
     mmaa=serializers.SerializerMethodField(label='MMAA')
+    qte_r=serializers.SerializerMethodField(label='Qte Livrée')
+
     def get_lib_prod(self,obj):
         try:
             return obj.dqe.produit_id.libelle
@@ -278,6 +280,9 @@ class PlaningSerializer(serializers.ModelSerializer):
     def get_mmaa(self,obj):
         return f'{obj.date.year}-{obj.date.month}'
     
+    def get_qte_r(self,obj):
+        return obj.qte_realise
+
 
     
     def get_fields(self, *args, **kwargs):
@@ -285,7 +290,7 @@ class PlaningSerializer(serializers.ModelSerializer):
         return fields
     class Meta:
         model = Planing
-        fields = ['contrat','mmaa','dqe','code_prod','lib_prod','date','qte_livre','unite_m']
+        fields = ['contrat','mmaa','dqe','code_prod','lib_prod','date','qte_livre','qte_r','unite_m']
     
 
 
@@ -316,6 +321,13 @@ class BonLivraisonSerializer(serializers.ModelSerializer):
     def get_tare(self,obj):
         return obj.camion.tare
     
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['date'] = instance.date.strftime('%Y-%m-%d %H:%M:%S')
+        return representation
+
+
     def get_fields(self, *args, **kwargs):
         fields = super().get_fields(*args, **kwargs)
         fields.pop('est_bloquer', None)

@@ -116,13 +116,8 @@ class ContratFilterForm(APIView):
                             'label': item['libelle']
                         }
                         filtered_data.append(filtered_item)
-
                     obj['queryset'] = filtered_data
-
                 field_info.append(obj)
-            
-            
-
 
         return Response({'fields': field_info},status=status.HTTP_200_OK)
 class ContratFieldsAddUpdate(APIView):
@@ -849,7 +844,7 @@ class BLFieldsAddUpdate(APIView):
                             queryset=field.related_model.objects.filter(contrat_id=contrat)
                             anySerilizer = create_dynamic_serializer(field.related_model)
                             serialized_data = anySerilizer(queryset, many=True).data
-                            print
+
                             for item in serialized_data:
                                 code_prod=item['produit_id']
                                 lib_prod= Produits.objects.get(id=code_prod).libelle

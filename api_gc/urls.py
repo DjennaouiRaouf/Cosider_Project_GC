@@ -56,5 +56,9 @@ urlpatterns = [
 
     path('addavance/',AddAvance.as_view()),
 
+    path('delpl/',DeletePL.as_view()),
 
 ]
+
+
+

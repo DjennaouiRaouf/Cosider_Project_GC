@@ -1,0 +1,44 @@
+{
+    "data": {
+        "unite": "(C01) Unit\u00e9 Bouzegza/Boumerdes",
+        "client": "E.N.R.O.S",
+        "n_rc": "00/B/13510",
+        "n_if": "098535160008042",
+        "ai": "",
+        "num_f": "6",
+        "date": "Le 30/07/2024",
+        "contrat": "82/DG/2024",
+        "rc": "00/B/0014362",
+        "ref": "EN 84",
+        "rev": "R1",
+        "nif": "000016001436218",
+        "cap": "745 500 000.00 DA",
+        "tva": "17.000 % ",
+        "rabais": "0.00 DA",
+        "rg": "0.000 % ",
+        "mht": "67 524 500.00 DA",
+        "mttc": "79 003 665.00 DA",
+        "mrg": "0.00 DA",
+        "cai": null,
+        "details": [
+            {
+                "bl": "500",
+                "ref_prod": "0/3",
+                "libelle": "sable",
+                "UM": "T",
+                "qte": "40.000",
+                "pu_ht": "800.000",
+                "t_ligne_ht": "32000.000"
+            },
+            {
+                "bl": "501",
+                "ref_prod": "0/200",
+                "libelle": "PRE CONCASSE",
+                "UM": "T",
+                "qte": "89990.000",
+                "pu_ht": "750.000",
+                "t_ligne_ht": "67492500.000"
+            }
+        ]
+    }
+}

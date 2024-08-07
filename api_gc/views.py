@@ -1,5 +1,5 @@
+import os
 from django.contrib.auth import authenticate
-from django.shortcuts import render
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, generics
 from rest_framework.exceptions import NotFound
@@ -9,21 +9,19 @@ from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
 import pandas
 from api_gc.filters import *
-from api_gc.models import *
 from api_gc.serializers import *
 from openpyxl import *
-import os
 import humanize
 from django.conf import settings
-from django.http import HttpResponse
 from openpyxl.styles import *
 from django.http import HttpResponse
 from PyPDFForm import *
-from reportlab.lib.pagesizes import *
-from reportlab.pdfgen import canvas
-from django.db.models import OuterRef, Subquery, DateField
-from django.db.models.functions import Coalesce
-from django.db.models import Count, Sum, Min, Max
+from django.db.models import OuterRef, Subquery
+from django.db.models import Min, Max
+
+from media.reporting.report import gen_invoice
+
+
 # Create your views here.
 
 class CreateUserView(generics.CreateAPIView):
@@ -134,6 +132,7 @@ class ImportPlaning(APIView):
 class PrintInv(APIView):
     def get(self,request):
         id=self.request.query_params.get('id',None)
+     
         response={}
         factures=Factures.objects.get(id=id)
         details_qs=DetailFacture.objects.filter(facture=factures).order_by('detail__date_modification')
@@ -141,17 +140,17 @@ class PrintInv(APIView):
         details=[]
         response={
             'unite': f"({factures.id.split('_')[0]}) {Unite.objects.get(id=factures.id.split('_')[0]).libelle}",
-            'client': factures.contrat.client.raison_social,
-            'n_rc': factures.contrat.client.num_registre_commerce,
-            'n_if':factures.contrat.client.nif,
-            'ai':factures.contrat.client.article_imposition,
-            'num_f':factures.id.split('_')[1],
-            'date':factures.date.strftime('Le %d/%m/%Y'),
-            "contrat":factures.contrat.numero,
-            "rc":cosider.N_reg_c,
-            'ref':cosider.reference,
-            'rev':cosider.index,
-            "nif":cosider.M_fiscale,
+            'client': f"{factures.contrat.client.raison_social}",
+            'n_rc': f"{factures.contrat.client.num_registre_commerce}",
+            'n_if':f"{factures.contrat.client.nif}",
+            'ai':f"{factures.contrat.client.article_imposition}",
+            'num_f':f"{factures.id.split('_')[1]}",
+            'date':f"{factures.date.strftime('Le %d/%m/%Y')}",
+            "contrat":f"{factures.contrat.numero}",
+            "rc":f"{cosider.N_reg_c}",
+            'ref':f"{cosider.reference}",
+            'rev':f"{cosider.index}",
+            "nif":f"{cosider.M_fiscale}",
             "cap":f"{humanize.intcomma(round(cosider.Capital,2)).replace(',',' ')} DA",
             "tva": f"{factures.contrat.tva.id} % ",
             "rabais":f"{humanize.intcomma(round(factures.montant_rb,2)).replace(',',' ')} DA",
@@ -161,34 +160,32 @@ class PrintInv(APIView):
             'mrg':f"{humanize.intcomma(round(factures.montant_rg,2)).replace(',',' ')} DA",
             'cai':None,
         }
-
         
-        for d in details_qs:
-            
+        for d in details_qs:            
             obj={
-                'bl':d.detail.num_bl,
-                'ref_prod':d.detail.dqe.produit_id.id,
-                'libelle':d.detail.dqe.produit_id.libelle,
-                'UM':d.detail.dqe.produit_id.unite_m.id,
-                'qte':d.detail.qte,
-                'pu_ht':d.detail.dqe.prixproduit_id.prix_unitaire,
-                't_ligne_ht':d.detail.montant
-            }
-            
+                'bl':f"{d.detail.num_bl}",
+                'ref_prod':f"{d.detail.dqe.produit_id.id}",
+                'libelle':f"{d.detail.dqe.produit_id.libelle}",
+                'UM':f"{d.detail.dqe.produit_id.unite_m.id}",
+                'qte':f"{d.detail.qte}",
+                'pu_ht':f"{d.detail.dqe.prixproduit_id.prix_unitaire}",
+                't_ligne_ht':f"{d.detail.montant}"
+            }            
             details.append(obj)
 
-
         response['details']=details
-        return Response(response,status=status.HTTP_200_OK)
+        pdf_content=gen_invoice({"data":response})
+
+        response = HttpResponse(pdf_content, content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="report.pdf"'
+        return response
         
 
 
 class PrintBL(APIView):
     def get(self,request):
-    
         bl_id=self.request.query_params.get('bl',None)
         bl=BonLivraison.objects.get(id=bl_id)
-       
         filled = FormWrapper(os.path.join(settings.MEDIA_ROOT, 'templates','Template_BL-Empty.pdf')).fill(
         {
             'unite':f"{bl.unite}",
@@ -652,6 +649,21 @@ class DeleteBL(generics.DestroyAPIView):
             for qs in queryset:
                 qs.delete()
 
+        return Response({'Message': pks}, status=status.HTTP_200_OK)
+
+
+
+
+class DeletePL(generics.DestroyAPIView):
+    #permission_classes = [IsAuthenticated]
+    queryset = Planing.objects.all()
+    serializer_class = PlaningSerializer
+
+    def delete(self, request, *args, **kwargs):
+        pks = request.data.get('id')
+        if pks:
+            queryset = self.filter_queryset(self.get_queryset())
+            queryset.filter(pk__in=pks).delete()
         return Response({'Message': pks}, status=status.HTTP_200_OK)
 
 

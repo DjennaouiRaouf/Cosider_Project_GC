@@ -788,7 +788,7 @@ class Planing(models.Model):
     contrat=models.ForeignKey(Contrat_Latest,db_constraint=False, on_delete=models.DO_NOTHING, null=False, verbose_name='Contrat')
     dqe=models.ForeignKey('DQECumule',db_constraint=False, on_delete=models.DO_NOTHING, null=True, verbose_name='dqe')
     date=models.DateField(null=True, verbose_name='Date')
-    qte_livre=models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Quantité à livré')
+    qte_livre=models.DecimalField(max_digits=38, decimal_places=3,validators=[MinValueValidator(0)],default=0, verbose_name = 'Quantité à livrer')
 
     est_bloquer = models.BooleanField(default=False, editable=False)
     user_id = models.CharField(max_length=500, editable=False)
@@ -811,6 +811,14 @@ class Planing(models.Model):
                 self.user_id = current_user.username
         self.est_bloquer = True
         super().save(*args, **kwargs)
+
+    @property
+    def qte_realise(self):
+        mm=self.date.month 
+        aa=self.date.year
+        bl=BonLivraison.objects.filter(contrat=self.contrat.numero,dqe=self.dqe,date__month=mm,date__year=aa).aggregate(models.Sum('qte'))[
+            "qte__sum"] or 0
+        return bl
 
     @property
     def cumule(self):
