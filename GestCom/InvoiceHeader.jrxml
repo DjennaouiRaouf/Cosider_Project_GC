@@ -112,7 +112,7 @@
 					</box>
 					<image scaleImage="FillFrame">
 						<reportElement x="0" y="31" width="185" height="80" uuid="d18a730b-91fb-4c3b-a4f9-928b63afb633"/>
-						<imageExpression><![CDATA["C:\\Users\\PC\\Desktop\\Cosider_Project_GC\\media\\reporting\\logo_cc.png"]]></imageExpression>
+						<imageExpression><![CDATA["logo_cc.png"]]></imageExpression>
 					</image>
 				</frame>
 				<frame>
@@ -344,7 +344,7 @@
 			<subreport overflowType="NoStretch">
 				<reportElement x="0" y="0" width="555" height="217" uuid="9a728500-ffc9-43bb-8ff7-3607b0290b35"/>
 				<dataSourceExpression><![CDATA[((net.sf.jasperreports.engine.data.JsonDataSource)$P{REPORT_DATA_SOURCE}).subDataSource("details")]]></dataSourceExpression>
-				<subreportExpression><![CDATA["C:\\Users\\PC\\Desktop\\Cosider_Project_GC\\media\\reporting\\InvoiceDetail.jasper"]]></subreportExpression>
+				<subreportExpression><![CDATA["InvoiceDetail.jrxml"]]></subreportExpression>
 			</subreport>
 		</band>
 		<band height="237">

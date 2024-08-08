@@ -12,6 +12,7 @@ from api_gc.filters import *
 from api_gc.serializers import *
 from openpyxl import *
 import humanize
+from decimal import Decimal
 from django.conf import settings
 from openpyxl.styles import *
 from django.http import HttpResponse
@@ -174,12 +175,8 @@ class PrintInv(APIView):
             details.append(obj)
 
         response['details']=details
-        pdf_content=gen_invoice({"data":response})
 
-        response = HttpResponse(pdf_content, content_type='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename="report.pdf"'
-        return response
-        
+        return Response({'data': response}, status=status.HTTP_200_OK)
 
 
 class PrintBL(APIView):
@@ -216,7 +213,7 @@ class PrintBL(APIView):
         response.write(filled.read())
         return response
         
-        return None
+
         
     
 
@@ -329,28 +326,41 @@ class PrintEnc(generics.ListAPIView):
         response_data = super().list(request, *args, **kwargs).data
         total_facture=0
         total_encaisse=0
+
         for f in queryset: #pour chaque facture dans la queryset
             total_facture+=f.montant_facture_ttc
             for e in Encaissement.objects.filter(facture=f):
                 total_encaisse+=e.montant_encaisse
 
-        return Response({
-            'fc':response_data,
-            'extra':{
-                'ref':cosider.reference,
-                'rev':cosider.index,
-                'code_client':contrat.client.id,
-                'adresse':contrat.client.adresse,
-                'nif':contrat.client.nif,
-                'nrc':contrat.client.num_registre_commerce,
-                'rs':contrat.client.raison_social,
-                'unite':f"({Config.objects.all().first().unite.id}) {Config.objects.all().first().unite.libelle}",
-                'tf':total_facture,
-                'te':total_encaisse,
-                'solde':total_facture-total_encaisse,
-            }    
-        
-        }, status=status.HTTP_200_OK)
+        filter_values = request.query_params
+        du = filter_values.get('date_op_after', "/")
+        au = filter_values.get('date_op_before', "/")
+
+        if(response_data):
+            data={
+                'data':{
+                'fc':response_data,
+                'extra':{
+                    'ref':cosider.reference,
+                    'rev':cosider.index,
+                    "du":du,
+                    "au":au,
+                    'code_client':contrat.client.id,
+                    'adresse':contrat.client.adresse,
+                    'nif':contrat.client.nif,
+                    'nrc':contrat.client.num_registre_commerce,
+                    'rs':contrat.client.raison_social,
+                    'unite':f"({Config.objects.all().first().unite.id}) {Config.objects.all().first().unite.libelle}",
+                    'tf':Decimal(total_facture),
+                    'te':Decimal(total_encaisse),
+                    'solde':Decimal(total_facture-total_encaisse),
+                }
+
+            }
+            }
+        else:
+            data=None
+        return Response(data, status=status.HTTP_200_OK)
 
 
 
