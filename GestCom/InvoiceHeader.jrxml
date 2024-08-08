@@ -335,22 +335,21 @@
 			</frame>
 		</band>
 	</pageHeader>
-	<columnHeader>
-		<band splitType="Stretch"/>
-	</columnHeader>
 	<detail>
-		<band height="217" splitType="Stretch">
+		<band height="251" splitType="Stretch">
 			<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.VerticalRowLayout"/>
+			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 			<subreport overflowType="NoStretch">
-				<reportElement x="0" y="0" width="555" height="217" uuid="9a728500-ffc9-43bb-8ff7-3607b0290b35"/>
+				<reportElement x="0" y="0" width="555" height="251" uuid="9a728500-ffc9-43bb-8ff7-3607b0290b35"/>
 				<dataSourceExpression><![CDATA[((net.sf.jasperreports.engine.data.JsonDataSource)$P{REPORT_DATA_SOURCE}).subDataSource("details")]]></dataSourceExpression>
 				<subreportExpression><![CDATA["InvoiceDetail.jrxml"]]></subreportExpression>
 			</subreport>
 		</band>
-		<band height="237">
+		<band height="184">
 			<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.VerticalRowLayout"/>
+			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 			<frame borderSplitType="DrawBorders">
-				<reportElement x="0" y="0" width="555" height="237" isPrintWhenDetailOverflows="true" uuid="23e8b694-5756-453e-87c4-f9d526932828">
+				<reportElement x="0" y="0" width="555" height="184" isPrintWhenDetailOverflows="true" uuid="23e8b694-5756-453e-87c4-f9d526932828">
 					<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.FreeLayout"/>
 					<property name="ShowOutOfBoundContent" value="false"/>
 				</reportElement>
@@ -474,17 +473,23 @@
 		</band>
 	</detail>
 	<pageFooter>
-		<band height="20" splitType="Stretch">
-			<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
-			<textField>
-				<reportElement x="0" y="0" width="278" height="20" uuid="98826500-27d6-4fa7-8a52-cf34adae1e75"/>
-				<textElement textAlignment="Right"/>
-				<textFieldExpression><![CDATA["Page " + $V{PAGE_NUMBER}]]></textFieldExpression>
-			</textField>
+		<band height="36" splitType="Stretch">
+			<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.FreeLayout"/>
+			<rectangle>
+				<reportElement x="0" y="3" width="555" height="30" uuid="9a6524b9-723e-4796-a6a9-3a5a5c1fd348"/>
+				<graphicElement>
+					<pen lineColor="#000000"/>
+				</graphicElement>
+			</rectangle>
 			<textField evaluationTime="Report">
-				<reportElement x="278" y="0" width="277" height="20" uuid="2fef7aa0-5089-4a8c-813e-bc839b9b94be"/>
+				<reportElement x="270" y="9" width="185" height="16" uuid="2fef7aa0-5089-4a8c-813e-bc839b9b94be"/>
 				<textElement textAlignment="Left"/>
 				<textFieldExpression><![CDATA[" Sur " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="85" y="9" width="185" height="16" uuid="98826500-27d6-4fa7-8a52-cf34adae1e75"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA["Page " + $V{PAGE_NUMBER}]]></textFieldExpression>
 			</textField>
 		</band>
 	</pageFooter>
