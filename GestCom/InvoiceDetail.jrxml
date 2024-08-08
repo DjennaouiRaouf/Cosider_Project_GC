@@ -142,10 +142,11 @@
 		</band>
 	</columnHeader>
 	<detail>
-		<band height="29" splitType="Stretch">
+		<band height="20" splitType="Stretch">
 			<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.spreadsheet.SpreadsheetLayout"/>
-			<textField>
-				<reportElement x="0" y="0" width="60" height="29" uuid="a87f4dbf-5536-44a1-af91-ee9aef9a0f82">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<textField textAdjust="StretchHeight">
+				<reportElement stretchType="ElementGroupHeight" x="0" y="0" width="60" height="20" uuid="a87f4dbf-5536-44a1-af91-ee9aef9a0f82">
 					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="349d16f4-35a9-4765-b943-8099135514f8"/>
 				</reportElement>
 				<box>
@@ -157,8 +158,8 @@
 				<textElement textAlignment="Center"/>
 				<textFieldExpression><![CDATA[$F{bl}]]></textFieldExpression>
 			</textField>
-			<textField>
-				<reportElement x="60" y="0" width="79" height="29" uuid="ac31a23b-0caf-4e92-8e0c-1602b04201c7">
+			<textField textAdjust="StretchHeight">
+				<reportElement stretchType="ElementGroupHeight" x="60" y="0" width="79" height="20" uuid="ac31a23b-0caf-4e92-8e0c-1602b04201c7">
 					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="9182a482-1259-4d14-94ab-2e98d6366336"/>
 				</reportElement>
 				<box>
@@ -170,8 +171,8 @@
 				<textElement textAlignment="Center"/>
 				<textFieldExpression><![CDATA[$F{ref_prod}]]></textFieldExpression>
 			</textField>
-			<textField>
-				<reportElement x="139" y="0" width="79" height="29" uuid="63c53b57-a7c4-46e9-b6d1-b15257201119">
+			<textField textAdjust="StretchHeight">
+				<reportElement stretchType="ElementGroupHeight" x="139" y="0" width="79" height="20" uuid="63c53b57-a7c4-46e9-b6d1-b15257201119">
 					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="4226281a-b4c6-4edd-b728-250f05a21a85"/>
 				</reportElement>
 				<box>
@@ -183,8 +184,8 @@
 				<textElement textAlignment="Center"/>
 				<textFieldExpression><![CDATA[$F{libelle}]]></textFieldExpression>
 			</textField>
-			<textField>
-				<reportElement x="218" y="0" width="62" height="29" uuid="f4dac011-ecf3-4cc2-928d-723e778e2c0b">
+			<textField textAdjust="StretchHeight">
+				<reportElement stretchType="ElementGroupHeight" x="218" y="0" width="62" height="20" uuid="f4dac011-ecf3-4cc2-928d-723e778e2c0b">
 					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="f7fdeca7-d6f8-496b-bb31-754a818f8965"/>
 				</reportElement>
 				<box>
@@ -196,8 +197,8 @@
 				<textElement textAlignment="Center"/>
 				<textFieldExpression><![CDATA[$F{UM}]]></textFieldExpression>
 			</textField>
-			<textField pattern="#,##0.00#;#,##0.00#">
-				<reportElement x="280" y="0" width="90" height="29" uuid="c2d0bd27-5c56-4e3a-86c7-9143426f6487">
+			<textField textAdjust="StretchHeight" pattern="#,##0.00#;#,##0.00#">
+				<reportElement stretchType="ElementGroupHeight" x="280" y="0" width="90" height="20" uuid="c2d0bd27-5c56-4e3a-86c7-9143426f6487">
 					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="29b91836-40ca-46c4-bc38-3da251f40485"/>
 				</reportElement>
 				<box>
@@ -209,8 +210,8 @@
 				<textElement textAlignment="Center"/>
 				<textFieldExpression><![CDATA[($F{qte}).setScale(2)]]></textFieldExpression>
 			</textField>
-			<textField pattern="#,##0.00#;#,##0.00#">
-				<reportElement x="370" y="0" width="90" height="29" uuid="e36d383a-a5b5-4284-9547-ca8927d630a8">
+			<textField textAdjust="StretchHeight" pattern="#,##0.00#;#,##0.00#">
+				<reportElement stretchType="ElementGroupHeight" x="370" y="0" width="90" height="20" uuid="e36d383a-a5b5-4284-9547-ca8927d630a8">
 					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="c7a56ba2-e55e-44dc-8e97-533f9573de36"/>
 				</reportElement>
 				<box>
@@ -222,8 +223,8 @@
 				<textElement textAlignment="Center"/>
 				<textFieldExpression><![CDATA[($F{pu_ht}).setScale(2)]]></textFieldExpression>
 			</textField>
-			<textField pattern="#,##0.00#;#,##0.00#">
-				<reportElement x="460" y="0" width="95" height="29" uuid="276fbc6a-582b-438a-af88-ac8c5be2d7d2">
+			<textField textAdjust="StretchHeight" pattern="#,##0.00#;#,##0.00#">
+				<reportElement stretchType="ElementGroupHeight" x="460" y="0" width="95" height="20" uuid="276fbc6a-582b-438a-af88-ac8c5be2d7d2">
 					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="bf950f97-8451-4915-9b7a-fc78445f4549"/>
 				</reportElement>
 				<box>
