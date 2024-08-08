@@ -326,7 +326,6 @@ class PrintEnc(generics.ListAPIView):
         response_data = super().list(request, *args, **kwargs).data
         total_facture=0
         total_encaisse=0
-
         for f in queryset: #pour chaque facture dans la queryset
             total_facture+=f.montant_facture_ttc
             for e in Encaissement.objects.filter(facture=f):
