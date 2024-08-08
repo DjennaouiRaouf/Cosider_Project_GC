@@ -20,7 +20,6 @@ from PyPDFForm import *
 from django.db.models import OuterRef, Subquery
 from django.db.models import Min, Max
 
-from media.reporting.report import gen_invoice
 
 
 # Create your views here.
@@ -175,13 +174,6 @@ class PrintInv(APIView):
             details.append(obj)
 
         response['details']=details
-        '''
-        pdf_content=gen_invoice({'data': response})
-        response = HttpResponse(pdf_content, content_type='application/pdf')
-        response['Content-Disposition'] = 'inline; filename="example.pdf"'
-        return response
-
-        '''
         return Response({'data': response}, status=status.HTTP_200_OK)
 
 
